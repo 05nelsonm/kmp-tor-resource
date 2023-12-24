@@ -1,0 +1,36 @@
+public abstract class io/matthewnelson/cli/core/CLIRuntime {
+	public final field parser Lkotlinx/cli/ArgParser;
+	public fun <init> (Lkotlinx/cli/ArgParser;)V
+	protected abstract fun printHeader ()V
+	public final fun run ([Ljava/lang/String;)Lkotlinx/cli/ArgParserResult;
+}
+
+public abstract interface class io/matthewnelson/cli/core/OptQuiet {
+	public static final field Companion Lio/matthewnelson/cli/core/OptQuiet$Companion;
+	public static final field NAME_OPT Ljava/lang/String;
+	public abstract fun getQuietOpt ()Z
+}
+
+public final class io/matthewnelson/cli/core/OptQuiet$Companion {
+	public static final field NAME_OPT Ljava/lang/String;
+	public final fun quietOption (Lkotlinx/cli/ArgParser;)Lkotlinx/cli/SingleOption;
+}
+
+public abstract class io/matthewnelson/cli/core/Subcommand : kotlinx/cli/Subcommand, io/matthewnelson/cli/core/OptQuiet {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;I)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	protected final fun settings ()Lio/matthewnelson/cli/core/Subcommand$Settings;
+}
+
+public final class io/matthewnelson/cli/core/Subcommand$Settings {
+	public fun <init> (Z)V
+	public final fun component1 ()Z
+	public final fun copy (Z)Lio/matthewnelson/cli/core/Subcommand$Settings;
+	public static synthetic fun copy$default (Lio/matthewnelson/cli/core/Subcommand$Settings;ZILjava/lang/Object;)Lio/matthewnelson/cli/core/Subcommand$Settings;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getQuiet ()Z
+	public fun hashCode ()I
+	public final fun println (Ljava/lang/Object;)V
+	public fun toString ()Ljava/lang/String;
+}
+

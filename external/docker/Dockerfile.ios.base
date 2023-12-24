@@ -1,0 +1,160 @@
+FROM 05nelsonm/build-env.darwin.base:0.1.3
+
+ENV VERSION_DARWIN=23 \
+    VERSION_SDK=17.0 \
+    VERSION_MIN=12.0 \
+    PATH_IOSCROSS=/usr/local/ioscross
+
+RUN echo 'Installing iPhoneOS/iPhoneSimulator SDKs' && \
+    SHA256_SDK=cfa43af8bc3d13ce4d61ceebdcfe9fcf98ef9ab73a8cf7a24663f6513aeaeb31 && \
+    SHA256_SDK_SIMULATOR=6997e7c6cc50da77fbb4119be2e71b584edbbf4f3d948ac746dc5d0d8a286d77 && \
+    mkdir -p ${PATH_IOSCROSS}/SDK && \
+    cd ${PATH_IOSCROSS}/SDK && \
+    curl -O https://raw.githubusercontent.com/05nelsonm/build-env/sdk/ios/iPhoneOS${VERSION_SDK}.sdk.tar.xz && \
+    curl -O https://raw.githubusercontent.com/05nelsonm/build-env/sdk/ios/iPhoneSimulator${VERSION_SDK}.sdk.tar.xz && \
+    if [ "$(sha256sum iPhoneOS${VERSION_SDK}.sdk.tar.xz | cut -d ' ' -f 1)" != "${SHA256_SDK}" ]; then exit 1; fi && \
+    if [ "$(sha256sum iPhoneSimulator${VERSION_SDK}.sdk.tar.xz | cut -d ' ' -f 1)" != "${SHA256_SDK_SIMULATOR}" ]; then exit 1; fi && \
+    xz -dc iPhoneOS${VERSION_SDK}.sdk.tar.xz | tar xf - && \
+    xz -dc iPhoneSimulator${VERSION_SDK}.sdk.tar.xz | tar xf - && \
+    rm -rf *.sdk.tar.xz && \
+    chmod 755 *.sdk
+
+ENV IOS_SDK_SYSROOT=${PATH_IOSCROSS}/SDK/iPhoneOS${VERSION_SDK}.sdk \
+    IOS_SIMULATOR_SDK_SYSROOT=${PATH_IOSCROSS}/SDK/iPhoneSimulator${VERSION_SDK}.sdk
+
+RUN echo 'Building cctools-port arm64-ios' && \
+    mkdir -p /build && \
+    cd /build && \
+    git clone https://github.com/tpoechtrager/cctools-port.git && \
+    cd cctools-port && \
+    git checkout 986-ld64-711 && \
+    git checkout 2a3e1c2a6ff54a30f898b70cfb9ba1692a55fad7 && \
+    cd usage_examples/ios_toolchain && \
+    # Create clang wrapper for arm64
+    mkdir -p ${PATH_IOSCROSS}/arm64-ios/bin && \
+    cc -O2 -Wall -Wextra -pedantic wrapper.c \
+      -DSDK_DIR=\"iPhoneOS${VERSION_SDK}.sdk\" \
+      -DTARGET_CPU=\"arm64\" \
+      -DOS_VER_MIN=\"${VERSION_MIN}\" \
+      -o ${PATH_IOSCROSS}/arm64-ios/bin/arm-apple-darwin${VERSION_DARWIN}-clang && \
+    cd ${PATH_IOSCROSS}/arm64-ios/bin && \
+    ln -s arm-apple-darwin${VERSION_DARWIN}-clang arm-apple-darwin${VERSION_DARWIN}-clang++ && \
+    ln -s ${PATH_DARWINCROSS}/bin/ldid ldid && \
+    ln -s /usr/local/bin/dsymutil dsymutil && \
+    ln -s arm-apple-darwin${VERSION_DARWIN}-lipo lipo && \
+    cd .. && \
+    # Create sym link to real SDK directory so wrapper can find it
+    ln -s ${PATH_IOSCROSS}/SDK SDK && \
+    # Build cctools
+    cd /build/cctools-port/cctools && \
+    ./configure \
+      --target="arm-apple-darwin${VERSION_DARWIN}" \
+      --prefix=${PATH_IOSCROSS}/arm64-ios \
+      --with-libtapi=${PATH_DARWINCROSS} \
+      --with-libxar=${PATH_DARWINCROSS} \
+      --with-llvm-config=/usr/local/bin/llvm-config && \
+    make -j"$(nproc)" && \
+    make install && \
+    # Test wrapper
+    PATH=${PATH_IOSCROSS}/arm64-ios/bin:$PATH && \
+    echo "int main(){return 0;}" | arm-apple-darwin${VERSION_DARWIN}-clang -xc -O2 -o test - 1>/dev/null || exit 1 && \
+    # Create sym links for aarch64/arm64
+    cd ${PATH_IOSCROSS}/arm64-ios/bin && \
+    TOOLS="$(ls | grep 'arm-apple-darwin')"; for tool in $TOOLS; do \
+        ln -s "$tool" $(echo "$tool" | sed 's+arm-+aarch64-+');     \
+        ln -s "$tool" $(echo "$tool" | sed 's+arm-+arm64-+');       \
+    done && \
+    rm -rf /build
+
+RUN echo 'Building cctools-port arm64-ios-simulator' && \
+    mkdir -p /build && \
+    cd /build && \
+    git clone https://github.com/tpoechtrager/cctools-port.git && \
+    cd cctools-port && \
+    git checkout 986-ld64-711 && \
+    git checkout 2a3e1c2a6ff54a30f898b70cfb9ba1692a55fad7 && \
+    cd usage_examples/ios_toolchain && \
+    # Fix up wrapper.c variables for use with simulator
+    sed -i 's+IOS_SDK_SYSROOT+IOS_SIMULATOR_SDK_SYSROOT+' wrapper.c && \
+    sed -i 's+IOS_TARGET_CPU+IOS_SIMULATOR_TARGET_CPU+' wrapper.c && \
+    sed -i 's+IPHONEOS_DEPLOYMENT_TARGET+IPHONE_SIMULATOR_DEPLOYMENT_TARGET+' wrapper.c && \
+    sed -i 's+-miphoneos-version-min+-mios-simulator-version-min+' wrapper.c && \
+    # Create clang wrapper for arm64 simulator
+    mkdir -p ${PATH_IOSCROSS}/arm64-ios-simulator/bin && \
+    cc -O2 -Wall -Wextra -pedantic wrapper.c \
+      -DSDK_DIR=\"iPhoneSimulator${VERSION_SDK}.sdk\" \
+      -DTARGET_CPU=\"arm64\" \
+      -DOS_VER_MIN=\"${VERSION_MIN}\" \
+      -o ${PATH_IOSCROSS}/arm64-ios-simulator/bin/arm-apple-darwin${VERSION_DARWIN}-clang && \
+    cd ${PATH_IOSCROSS}/arm64-ios-simulator/bin && \
+    ln -s arm-apple-darwin${VERSION_DARWIN}-clang arm-apple-darwin${VERSION_DARWIN}-clang++ && \
+    ln -s ${PATH_DARWINCROSS}/bin/ldid ldid && \
+    ln -s /usr/local/bin/dsymutil dsymutil && \
+    ln -s arm-apple-darwin${VERSION_DARWIN}-lipo lipo && \
+    cd .. && \
+    # Create sym link to real SDK directory so wrapper can find it
+    ln -s ${PATH_IOSCROSS}/SDK SDK && \
+    # Build cctools
+    cd /build/cctools-port/cctools && \
+    ./configure \
+      --target="arm-apple-darwin${VERSION_DARWIN}" \
+      --prefix=${PATH_IOSCROSS}/arm64-ios-simulator \
+      --with-libtapi=${PATH_DARWINCROSS} \
+      --with-libxar=${PATH_DARWINCROSS} \
+      --with-llvm-config=/usr/local/bin/llvm-config && \
+    make -j"$(nproc)" && \
+    make install && \
+    # Test wrapper
+    PATH=${PATH_IOSCROSS}/arm64-ios-simulator/bin:$PATH && \
+    echo "int main(){return 0;}" | arm-apple-darwin${VERSION_DARWIN}-clang -xc -O2 -o test - 1>/dev/null || exit 1 && \
+    # Create sym links for aarch64/arm64
+    cd ${PATH_IOSCROSS}/arm64-ios-simulator/bin && \
+    TOOLS="$(ls | grep 'arm-apple-darwin')"; for tool in $TOOLS; do \
+        ln -s "$tool" $(echo "$tool" | sed 's+arm-+aarch64-+');     \
+        ln -s "$tool" $(echo "$tool" | sed 's+arm-+arm64-+');       \
+    done && \
+    rm -rf /build
+
+RUN echo 'Building cctools-port x86_64-ios-simulator' && \
+    mkdir -p /build && \
+    cd /build && \
+    git clone https://github.com/tpoechtrager/cctools-port.git && \
+    cd cctools-port && \
+    git checkout 986-ld64-711 && \
+    git checkout 2a3e1c2a6ff54a30f898b70cfb9ba1692a55fad7 && \
+    cd usage_examples/ios_toolchain && \
+    # Fix up wrapper.c variables for use with simulator
+    sed -i 's+IOS_SDK_SYSROOT+IOS_SIMULATOR_SDK_SYSROOT+' wrapper.c && \
+    sed -i 's+IOS_TARGET_CPU+IOS_SIMULATOR_TARGET_CPU+' wrapper.c && \
+    sed -i 's+IPHONEOS_DEPLOYMENT_TARGET+IPHONE_SIMULATOR_DEPLOYMENT_TARGET+' wrapper.c && \
+    sed -i 's+-miphoneos-version-min+-mios-simulator-version-min+' wrapper.c && \
+    # Create clang wrapper for x86_64 simulator
+    mkdir -p ${PATH_IOSCROSS}/x86_64-ios-simulator/bin && \
+    cc -O2 -Wall -Wextra -pedantic wrapper.c \
+      -DSDK_DIR=\"iPhoneSimulator${VERSION_SDK}.sdk\" \
+      -DTARGET_CPU=\"x86_64\" \
+      -DOS_VER_MIN=\"${VERSION_MIN}\" \
+      -o ${PATH_IOSCROSS}/x86_64-ios-simulator/bin/x86_64-apple-darwin${VERSION_DARWIN}-clang && \
+    cd ${PATH_IOSCROSS}/x86_64-ios-simulator/bin && \
+    ln -s x86_64-apple-darwin${VERSION_DARWIN}-clang x86_64-apple-darwin${VERSION_DARWIN}-clang++ && \
+    ln -s ${PATH_DARWINCROSS}/bin/ldid ldid && \
+    ln -s /usr/local/bin/dsymutil dsymutil && \
+    ln -s x86_64-apple-darwin${VERSION_DARWIN}-lipo lipo && \
+    cd .. && \
+    # Create sym link to real SDK directory so wrapper can find it
+    ln -s ${PATH_IOSCROSS}/SDK SDK && \
+    # Build cctools
+    cd /build/cctools-port/cctools && \
+    ./configure \
+      --target="x86_64-apple-darwin${VERSION_DARWIN}" \
+      --prefix=${PATH_IOSCROSS}/x86_64-ios-simulator \
+      --with-libtapi=${PATH_DARWINCROSS} \
+      --with-libxar=${PATH_DARWINCROSS} \
+      --with-llvm-config=/usr/local/bin/llvm-config && \
+    make -j"$(nproc)" && \
+    make install && \
+    # Test wrapper
+    PATH=${PATH_IOSCROSS}/x86_64-ios-simulator/bin:$PATH && \
+    echo "int main(){return 0;}" | x86_64-apple-darwin${VERSION_DARWIN}-clang -xc -O2 -o test - 1>/dev/null || exit 1 && \
+    cd / && \
+    rm -rf /build

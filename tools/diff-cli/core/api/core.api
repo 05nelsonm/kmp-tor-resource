@@ -1,0 +1,112 @@
+public final class io/matthewnelson/diff/core/Diff {
+	public static final field Companion Lio/matthewnelson/diff/core/Diff$Companion;
+	public static final fun apply (Ljava/lang/String;Ljava/lang/String;)V
+	public static final fun apply (Ljava/lang/String;Ljava/lang/String;Lio/matthewnelson/diff/core/Options$Apply;)V
+	public static final fun apply (Lokio/Path;Lokio/Path;)V
+	public static final fun apply (Lokio/Path;Lokio/Path;Lio/matthewnelson/diff/core/Options$Apply;)V
+	public static final fun create (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public static final fun create (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/matthewnelson/diff/core/Options$Create;)Ljava/lang/String;
+	public static final fun create (Lokio/Path;Lokio/Path;Lokio/Path;)Lokio/Path;
+	public static final fun create (Lokio/Path;Lokio/Path;Lokio/Path;Lio/matthewnelson/diff/core/Options$Create;)Lokio/Path;
+	public static final fun readHeader (Ljava/lang/String;)Lio/matthewnelson/diff/core/Header;
+	public static final fun readHeader (Lokio/Path;)Lio/matthewnelson/diff/core/Header;
+}
+
+public final class io/matthewnelson/diff/core/Diff$Companion {
+	public final fun apply (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun apply (Ljava/lang/String;Ljava/lang/String;Lio/matthewnelson/diff/core/Options$Apply;)V
+	public final fun apply (Lokio/Path;Lokio/Path;)V
+	public final fun apply (Lokio/Path;Lokio/Path;Lio/matthewnelson/diff/core/Options$Apply;)V
+	public static synthetic fun apply$default (Lio/matthewnelson/diff/core/Diff$Companion;Ljava/lang/String;Ljava/lang/String;Lio/matthewnelson/diff/core/Options$Apply;ILjava/lang/Object;)V
+	public static synthetic fun apply$default (Lio/matthewnelson/diff/core/Diff$Companion;Lokio/Path;Lokio/Path;Lio/matthewnelson/diff/core/Options$Apply;ILjava/lang/Object;)V
+	public final fun create (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public final fun create (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/matthewnelson/diff/core/Options$Create;)Ljava/lang/String;
+	public final fun create (Lokio/Path;Lokio/Path;Lokio/Path;)Lokio/Path;
+	public final fun create (Lokio/Path;Lokio/Path;Lokio/Path;Lio/matthewnelson/diff/core/Options$Create;)Lokio/Path;
+	public static synthetic fun create$default (Lio/matthewnelson/diff/core/Diff$Companion;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/matthewnelson/diff/core/Options$Create;ILjava/lang/Object;)Ljava/lang/String;
+	public static synthetic fun create$default (Lio/matthewnelson/diff/core/Diff$Companion;Lokio/Path;Lokio/Path;Lokio/Path;Lio/matthewnelson/diff/core/Options$Create;ILjava/lang/Object;)Lokio/Path;
+	public final fun readHeader (Ljava/lang/String;)Lio/matthewnelson/diff/core/Header;
+	public final fun readHeader (Lokio/Path;)Lio/matthewnelson/diff/core/Header;
+}
+
+public final class io/matthewnelson/diff/core/Diff$Schema : java/lang/Enum {
+	public static final field Companion Lio/matthewnelson/diff/core/Diff$Schema$Companion;
+	public final field code I
+	public static final field v1 Lio/matthewnelson/diff/core/Diff$Schema;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static final fun latest ()Lio/matthewnelson/diff/core/Diff$Schema;
+	public static fun valueOf (Ljava/lang/String;)Lio/matthewnelson/diff/core/Diff$Schema;
+	public static fun values ()[Lio/matthewnelson/diff/core/Diff$Schema;
+}
+
+public final class io/matthewnelson/diff/core/Diff$Schema$Companion {
+	public final fun latest ()Lio/matthewnelson/diff/core/Diff$Schema;
+}
+
+public final class io/matthewnelson/diff/core/Header {
+	public final field createdForFile Ljava/lang/String;
+	public final field createdForHash Ljava/lang/String;
+	public final field createdFromHash Ljava/lang/String;
+	public final field schema Lio/matthewnelson/diff/core/Diff$Schema;
+	public final fun createdAt ()J
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public class io/matthewnelson/diff/core/NoDiffException : java/lang/RuntimeException {
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public final fun getMessage ()Ljava/lang/String;
+}
+
+public abstract class io/matthewnelson/diff/core/Options {
+}
+
+public final class io/matthewnelson/diff/core/Options$Apply : io/matthewnelson/diff/core/Options {
+	public final field dryRun Z
+	public fun <init> ()V
+	public fun <init> (Lio/matthewnelson/diff/core/Options$Apply$Builder;)V
+	public fun <init> (Lkotlin/jvm/functions/Function1;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/matthewnelson/diff/core/Options$Apply$Builder {
+	public field dryRun Z
+	public fun <init> ()V
+	public final fun dryRun (Z)Lio/matthewnelson/diff/core/Options$Apply$Builder;
+}
+
+public final class io/matthewnelson/diff/core/Options$Create : io/matthewnelson/diff/core/Options {
+	public static final field Companion Lio/matthewnelson/diff/core/Options$Create$Companion;
+	public static final field DEFAULT_EXT_NAME Ljava/lang/String;
+	public static final field STATIC_TIME Ljava/lang/String;
+	public final field diffFileExtensionName Ljava/lang/String;
+	public final field schema Lio/matthewnelson/diff/core/Diff$Schema;
+	public final field useStaticTime Z
+	public fun <init> ()V
+	public fun <init> (Lio/matthewnelson/diff/core/Options$Create$Builder;)V
+	public fun <init> (Lkotlin/jvm/functions/Function1;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/matthewnelson/diff/core/Options$Create$Builder {
+	public field schema Lio/matthewnelson/diff/core/Diff$Schema;
+	public field useStaticTime Z
+	public fun <init> ()V
+	public final fun diffFileExtensionName ()Ljava/lang/String;
+	public final fun diffFileExtensionName (Ljava/lang/String;)Lio/matthewnelson/diff/core/Options$Create$Builder;
+	public final fun schema (Lio/matthewnelson/diff/core/Diff$Schema;)Lio/matthewnelson/diff/core/Options$Create$Builder;
+	public final fun useStaticTime (Z)Lio/matthewnelson/diff/core/Options$Create$Builder;
+}
+
+public final class io/matthewnelson/diff/core/Options$Create$Companion {
+}
+
+public abstract interface annotation class io/matthewnelson/diff/core/internal/InternalDiffApi : java/lang/annotation/Annotation {
+}
+

@@ -1,0 +1,25 @@
+public final class io/matthewnelson/kmp/tor/resource/initializer/KmpTorResourceInitializer : androidx/startup/Initializer {
+	public static final field Companion Lio/matthewnelson/kmp/tor/resource/initializer/KmpTorResourceInitializer$Companion;
+	public fun <init> ()V
+	public fun create (Landroid/content/Context;)Lio/matthewnelson/kmp/tor/resource/initializer/KmpTorResourceInitializer$Impl;
+	public synthetic fun create (Landroid/content/Context;)Ljava/lang/Object;
+	public fun dependencies ()Ljava/util/List;
+	public static final fun errorMsg ()Ljava/lang/String;
+}
+
+public final class io/matthewnelson/kmp/tor/resource/initializer/KmpTorResourceInitializer$Companion {
+	public final fun errorMsg ()Ljava/lang/String;
+}
+
+public final class io/matthewnelson/kmp/tor/resource/initializer/KmpTorResourceInitializer$Impl {
+	public static final field Companion Lio/matthewnelson/kmp/tor/resource/initializer/KmpTorResourceInitializer$Impl$Companion;
+	public static final field INSTANCE Lio/matthewnelson/kmp/tor/resource/initializer/KmpTorResourceInitializer$Impl;
+	public final fun findLib (Ljava/lang/String;)Ljava/io/File;
+	public final fun isInitialized ()Z
+	public final fun nativeLibraryDir ()Ljava/io/File;
+	public final fun requireLib (Ljava/lang/String;)Ljava/io/File;
+}
+
+public final class io/matthewnelson/kmp/tor/resource/initializer/KmpTorResourceInitializer$Impl$Companion {
+}
+
