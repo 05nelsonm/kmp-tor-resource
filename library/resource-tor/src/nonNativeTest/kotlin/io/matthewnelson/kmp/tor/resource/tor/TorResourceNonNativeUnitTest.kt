@@ -30,6 +30,8 @@ class TorResourceNonNativeUnitTest: TorResourceBaseTest() {
 
     @Test
     fun givenTorBinaryResources_whenConfigured_thenIsExpectedForHostMachine() {
+        println(RESOURCE_CONFIG)
+
         if (!OSInfo.INSTANCE.osArch.isSupportedBy(OSInfo.INSTANCE.osHost)) {
             // If host machine running this test is not supported, the
             // tor binaries will not be configured and an error will
@@ -41,9 +43,11 @@ class TorResourceNonNativeUnitTest: TorResourceBaseTest() {
             // class from module :binary-android-unit-test and have
             // the appropriate resources to load for the host machine.
             assertEquals(0, RESOURCE_CONFIG.errors.size)
-            assertEquals(3, RESOURCE_CONFIG.resources.size)
-        }
 
-        println(RESOURCE_CONFIG)
+            // If it's Android runtime, tor should be obtained via `core-resource-initializer`
+            // and not have a "tor" alias within its config
+            val expected = if (OSInfo.INSTANCE.osHost is OSHost.Linux.Android) 2 else 3
+            assertEquals(expected, RESOURCE_CONFIG.resources.size)
+        }
     }
 }
