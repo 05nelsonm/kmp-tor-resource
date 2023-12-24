@@ -17,7 +17,7 @@ package io.matthewnelson.kmp.tor.resource.tor.internal
 
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.tor.resource.tor.TorResource
-import io.matthewnelson.kmp.tor.resource.initializer.KmpTorResourceInitializer
+import io.matthewnelson.kmp.tor.core.resource.initializer.KmpTorResourceInitializer
 import io.matthewnelson.kmp.tor.core.api.annotation.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.core.resource.ImmutableMap
 import io.matthewnelson.kmp.tor.core.resource.OSHost

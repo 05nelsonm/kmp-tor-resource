@@ -13,7 +13,7 @@ gradle-publish-maven = "0.25.3"
 gradle-publish-npm = "3.4.1"
 
 kmp-file = "0.1.0-alpha02"
-kmp-tor-core = "2.0.0-alpha01"
+kmp-tor-core = "2.0.0-alpha02"
 
 kotlincrypto-hash = "0.4.0"
 kotlinx-atomicfu = "0.23.1"
@@ -38,6 +38,7 @@ gradle-publish-maven = { module = "com.vanniktech:gradle-maven-publish-plugin", 
 kmp-file = { module = "io.matthewnelson.kmp-file:file", version.ref = "kmp-file" }
 kmp-tor-core-api = { module = "io.matthewnelson.kmp-tor:core-api", version.ref = "kmp-tor-core" }
 kmp-tor-core-resource = { module = "io.matthewnelson.kmp-tor:core-resource", version.ref = "kmp-tor-core" }
+kmp-tor-core-resource-initializer = { module = "io.matthewnelson.kmp-tor:core-resource-initializer", version.ref = "kmp-tor-core" }
 
 kotlincrypto-hash-sha2 = { module = "org.kotlincrypto.hash:sha2", version.ref = "kotlincrypto-hash" }
 kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "kotlinx-atomicfu" }

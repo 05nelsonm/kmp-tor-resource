@@ -40,7 +40,7 @@ kmpConfiguration {
 
             sourceSetMain {
                 dependencies {
-                    implementation(project(":library:resource-initializer"))
+                    implementation(libs.kmp.tor.core.resource.initializer)
                 }
             }
 
