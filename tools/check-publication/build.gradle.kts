@@ -41,7 +41,6 @@ kmpConfiguration {
                 dependencies {
                     // Should be a SEPARATE publication from resource-tor-jvm
                     implementation("$group:resource-tor-android:$version")
-                    implementation("$group:resource-initializer:$version")
                 }
             }
             sourceSetTest {

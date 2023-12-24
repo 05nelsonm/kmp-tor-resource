@@ -18,7 +18,6 @@ if (CHECK_PUBLICATION != null) {
 } else {
     listOf(
         "resource-android-unit-test",
-        "resource-initializer",
         "resource-tor",
         "npmjs",
     ).forEach { module ->
