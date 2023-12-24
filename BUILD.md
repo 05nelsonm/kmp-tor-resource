@@ -48,8 +48,16 @@ you can do so by following along below.
      ERRS=$(ls library/resource-tor/build/reports/resource-validation/resource-tor | grep ".err")
      echo ""
      for file_err in $ERRS; do
-       echo "$file_err:"
+       echo "resource-tor/$file_err:"
        cat "library/resource-tor/build/reports/resource-validation/resource-tor/$file_err"
+     done
+     echo ""
+
+     ERRS=$(ls library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl | grep ".err")
+     echo ""
+     for file_err in $ERRS; do
+       echo "resource-tor-gpl/$file_err:"
+       cat "library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/$file_err"
      done
      echo ""
    )

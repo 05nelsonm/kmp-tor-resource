@@ -18,6 +18,16 @@ This project is focused on the compilation, packaging, distribution and installa
 resources for Kotlin Multiplatform, primarily to be consumed as a dependency by the 
 [kmp-tor][url-kmp-tor] project.
 
+2 versions of `tor` are built; 1 **with** `--enable-gpl`, and 1 with**out**. Modules 
+`resource-tor` (no `--enable-gpl`) and `resource-tor-gpl` (yes `--enable-gpl`) are positionally 
+identical with the same package names, classes, resource names/locations, etc. The only difference 
+between them are the compiled `tor` binaries provided.
+
+Only **1** of the dependencies can be had for a project, as a conflict will occur if both are 
+present. This is to respect the `GPL` licensed code `tor` is utilizing such that projects who 
+have a `GPL` license are able to take advantage of the new functionality, and projects who do 
+**not** have a `GPL` license can still utilize `tor` without infringing on the `GPL` license.
+
 ### Jvm/Node.js Supported Operating Systems & Architectures
 
 **NOTE:** `macOS` and `Windows` binaries are code signed, so they work out of the box.

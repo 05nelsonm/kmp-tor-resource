@@ -41,6 +41,7 @@ kmpConfiguration {
                 dependencies {
                     // Should be a SEPARATE publication from resource-tor-jvm
                     implementation("$group:resource-tor-android:$version")
+                    implementation("$group:resource-tor-gpl-android:$version")
                 }
             }
             sourceSetTest {
@@ -54,6 +55,7 @@ kmpConfiguration {
             sourceSetMain {
                 dependencies {
                     implementation("$group:resource-tor-jvm:$version")
+                    implementation("$group:resource-tor-gpl-jvm:$version")
                 }
             }
         }
@@ -62,6 +64,7 @@ kmpConfiguration {
             sourceSetMain {
                 dependencies {
                     implementation("$group:resource-tor:$version")
+                    implementation("$group:resource-tor-gpl:$version")
                 }
             }
         }
