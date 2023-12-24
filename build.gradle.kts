@@ -39,11 +39,11 @@ allprojects {
 }
 
 @Suppress("PropertyName")
-val CHECK_PUBLICATION = findProperty("CHECK_PUBLICATION") as? String
+val CHECK_PUBLICATION = (findProperty("CHECK_PUBLICATION") as? String) != null
 
 plugins.withType<YarnPlugin> {
     the<YarnRootExtension>().lockFileDirectory = rootDir.resolve(".kotlin-js-store")
-    if (CHECK_PUBLICATION != null) {
+    if (CHECK_PUBLICATION) {
         the<YarnRootExtension>().yarnLockMismatchReport = YarnLockMismatchReport.NONE
     }
 }
@@ -53,7 +53,7 @@ apiValidation {
     val KMP_TARGETS_ALL = System.getProperty("KMP_TARGETS_ALL") != null
     val KMP_TARGETS = (findProperty("KMP_TARGETS") as? String)?.split(',')
 
-    if (CHECK_PUBLICATION != null) {
+    if (CHECK_PUBLICATION) {
         ignoredProjects.add("check-publication")
     } else {
         nonPublicMarkers.add("io.matthewnelson.diff.core.internal.InternalDiffApi")
@@ -62,6 +62,7 @@ apiValidation {
         // Don't check these projects when building JVM only or Android only
         if (!KMP_TARGETS_ALL && KMP_TARGETS?.containsAll(setOf("ANDROID", "JVM")) == false) {
             ignoredProjects.add("resource-tor")
+            ignoredProjects.add("resource-tor-gpl")
         }
     }
 }

@@ -40,6 +40,8 @@ npmPublish {
 
     val jvmGeoipSrcDir = torResourceValidation.jvmGeoipResourcesSrcDir
     val jvmTorLibsSrcDir = torResourceValidation.jvmTorLibResourcesSrcDir
+    val jvmGPLGeoipSrcDir = torResourceGPLValidation.jvmGeoipGPLResourcesSrcDir
+    val jvmGPLTorLibsSrcDir = torResourceGPLValidation.jvmTorGPLLibResourcesSrcDir
 
     packages {
         val snapshotVersion = properties["NPMJS_SNAPSHOT_VERSION"]!!
@@ -55,9 +57,16 @@ npmPublish {
 
             // Only register snapshot task when project version is -SNAPSHOT
             registerTorResources(
+                isGPL = false,
                 releaseVersion = "$vProject.$snapshotVersion",
                 geoipResourcesDir = jvmGeoipSrcDir,
                 torResourcesDir = jvmTorLibsSrcDir,
+            )
+            registerTorResources(
+                isGPL = true,
+                releaseVersion = "$vProject.$snapshotVersion",
+                geoipResourcesDir = jvmGPLGeoipSrcDir,
+                torResourcesDir = jvmGPLTorLibsSrcDir,
             )
         } else {
             check(snapshotVersion == 0) {
@@ -76,14 +85,28 @@ npmPublish {
             // and git tagging, updating VERSION_NAME with -SNAPSHOT
             // there will be a "next release" waiting
             registerTorResources(
+                isGPL = false,
                 releaseVersion = vProject,
                 geoipResourcesDir = jvmGeoipSrcDir,
                 torResourcesDir = jvmTorLibsSrcDir,
             )
             registerTorResources(
+                isGPL = false,
                 releaseVersion = "$nextVersion-SNAPSHOT.0",
                 geoipResourcesDir = jvmGeoipSrcDir,
                 torResourcesDir = jvmTorLibsSrcDir,
+            )
+            registerTorResources(
+                isGPL = true,
+                releaseVersion = vProject,
+                geoipResourcesDir = jvmGPLGeoipSrcDir,
+                torResourcesDir = jvmGPLTorLibsSrcDir,
+            )
+            registerTorResources(
+                isGPL = true,
+                releaseVersion = "$nextVersion-SNAPSHOT.0",
+                geoipResourcesDir = jvmGPLGeoipSrcDir,
+                torResourcesDir = jvmGPLTorLibsSrcDir,
             )
         }
     }
@@ -92,22 +115,25 @@ npmPublish {
 }
 
 fun NpmPackages.registerTorResources(
+    isGPL: Boolean,
     releaseVersion: String,
     geoipResourcesDir: File,
     torResourcesDir: File
 ) {
+    val suffix = if (isGPL) "-gpl" else ""
+
     val name = if (releaseVersion.contains("SNAPSHOT")) {
-        "tor-resources-snapshot"
+        "tor${suffix}-resources-snapshot"
     } else {
-        "tor-resources-release"
+        "tor${suffix}-resources-release"
     }
 
     register(name) {
-        packageName.set("kmp-tor-resource-tor")
+        packageName.set("kmp-tor-resource-tor$suffix")
         version.set(releaseVersion)
 
         main.set("index.js")
-        readme.set(projectDir.resolve("README.md"))
+        readme.set(projectDir.resolve("resource-tor$suffix").resolve("README.md"))
 
         files {
             from("index.js")

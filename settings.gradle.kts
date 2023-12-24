@@ -19,6 +19,7 @@ if (CHECK_PUBLICATION != null) {
     listOf(
         "resource-android-unit-test",
         "resource-tor",
+        "resource-tor-gpl",
         "npmjs",
     ).forEach { module ->
         include(":library:$module")

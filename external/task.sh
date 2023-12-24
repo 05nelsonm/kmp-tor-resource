@@ -353,45 +353,54 @@ function package { ## Packages build dir output
   DIR_STAGING="$(mktemp -d)"
   trap 'rm -rf "$DIR_STAGING"' SIGINT ERR
 
-  local module="resource-tor"
-  __package:geoip "geoip"
-  __package:geoip "geoip6"
+  local module=
+  local dir_out=
+  for module in $(echo "resource-tor,resource-tor-gpl" | tr "," " "); do
+    if [ "$module" = "resource-tor-gpl" ]; then
+      dir_out="out-gpl"
+    else
+      dir_out="out"
+    fi
 
-  __package:android "arm64-v8a"
-  __package:android "armeabi-v7a"
-  __package:android "x86"
-  __package:android "x86_64"
+    __package:geoip "geoip"
+    __package:geoip "geoip6"
 
-  __package:jvm "linux-android/aarch64" "tor"
-  __package:jvm "linux-android/armv7" "tor"
-  __package:jvm "linux-android/x86" "tor"
-  __package:jvm "linux-android/x86_64" "tor"
-  __package:jvm "linux-libc/aarch64" "tor"
-  __package:jvm "linux-libc/armv7" "tor"
-  __package:jvm "linux-libc/ppc64" "tor"
-  __package:jvm "linux-libc/x86" "tor"
-  __package:jvm "linux-libc/x86_64" "tor"
+    __package:android "arm64-v8a"
+    __package:android "armeabi-v7a"
+    __package:android "x86"
+    __package:android "x86_64"
 
-  __package:jvm:codesigned "macos-lts/aarch64" "tor"
-  __package:jvm:codesigned "macos-lts/x86_64" "tor"
+    __package:jvm "linux-android/aarch64" "tor"
+    __package:jvm "linux-android/armv7" "tor"
+    __package:jvm "linux-android/x86" "tor"
+    __package:jvm "linux-android/x86_64" "tor"
+    __package:jvm "linux-libc/aarch64" "tor"
+    __package:jvm "linux-libc/armv7" "tor"
+    __package:jvm "linux-libc/ppc64" "tor"
+    __package:jvm "linux-libc/x86" "tor"
+    __package:jvm "linux-libc/x86_64" "tor"
 
-  # Jvm/Js utilize the LTS builds. Need to move them into
-  # their final resting place 'macos-lts' -> 'macos'
-  local dir_native="build/package/resource-tor/src/jvmMain/resources/io/matthewnelson/kmp/tor/resource/tor/native"
-  if [ -d "$dir_native/macos-lts" ]; then
-    rm -rf "$dir_native/macos"
-    mv -v "$dir_native/macos-lts" "$dir_native/macos"
-  fi
-  unset dir_native
+    __package:jvm:codesigned "macos-lts/aarch64" "tor"
+    __package:jvm:codesigned "macos-lts/x86_64" "tor"
 
-  __package:jvm:codesigned "mingw/x86" "tor.exe"
-  __package:jvm:codesigned "mingw/x86_64" "tor.exe"
+    # Jvm/Js utilize the LTS builds. Need to move them into
+    # their final resting place 'macos-lts' -> 'macos'
+    local dir_native="build/package/$module/src/jvmMain/resources/io/matthewnelson/kmp/tor/resource/tor/native"
+    if [ -d "$dir_native/macos-lts" ]; then
+      rm -rf "$dir_native/macos"
+      mv -v "$dir_native/macos-lts" "$dir_native/macos"
+    fi
+    unset dir_native
 
-  __package:native "linux-libc/aarch64" "tor" "linuxArm64Main"
-  __package:native "linux-libc/x86_64" "tor" "linuxX64Main"
-  __package:native:codesigned "macos/aarch64" "tor" "macosArm64Main"
-  __package:native:codesigned "macos/x86_64" "tor" "macosX64Main"
-  __package:native:codesigned "mingw/x86_64" "tor.exe" "mingwX64Main"
+    __package:jvm:codesigned "mingw/x86" "tor.exe"
+    __package:jvm:codesigned "mingw/x86_64" "tor.exe"
+
+    __package:native "linux-libc/aarch64" "tor" "linuxArm64Main"
+    __package:native "linux-libc/x86_64" "tor" "linuxX64Main"
+    __package:native:codesigned "macos/aarch64" "tor" "macosArm64Main"
+    __package:native:codesigned "macos/x86_64" "tor" "macosX64Main"
+    __package:native:codesigned "mingw/x86_64" "tor.exe" "mingwX64Main"
+  done
 
   rm -rf "$DIR_STAGING"
   trap - SIGINT ERR
@@ -409,6 +418,14 @@ function sign:apple { ## 2 ARGS - [1]: /path/to/key.p12  [2]: /path/to/app/store
   local os_subtype="-lts"
   __signature:generate:apple "$1" "$2" "aarch64"
   __signature:generate:apple "$1" "$2" "x86_64"
+
+  local is_gpl="yes"
+  unset os_subtype
+  __signature:generate:apple "$1" "$2" "aarch64"
+  __signature:generate:apple "$1" "$2" "x86_64"
+  local os_subtype="-lts"
+  __signature:generate:apple "$1" "$2" "aarch64"
+  __signature:generate:apple "$1" "$2" "x86_64"
 }
 
 function sign:mingw { ## 2 ARGS - [1]: /path/to/file.key [2]: /path/to/cert.cer
@@ -417,6 +434,10 @@ function sign:mingw { ## 2 ARGS - [1]: /path/to/file.key [2]: /path/to/cert.cer
     __error "Usage: $0 $FUNCNAME /path/to/file.key /path/to/cert.cer"
   fi
 
+  __signature:generate:mingw "$1" "$2" "x86"
+  __signature:generate:mingw "$1" "$2" "x86_64"
+
+  local is_gpl="yes"
   __signature:generate:mingw "$1" "$2" "x86"
   __signature:generate:mingw "$1" "$2" "x86_64"
 }
@@ -436,7 +457,6 @@ function __build:configure:target:init {
   __require:var_set "$os_name" "os_name"
   __require:var_set "$os_arch" "os_arch"
   __require:var_set "$openssl_target" "openssl_target"
-  __require:cmd "$DOCKER" "docker"
   __require:var_set "$U_ID" "U_ID"
   __require:var_set "$G_ID" "G_ID"
 
@@ -446,10 +466,12 @@ function __build:configure:target:init {
 
       DIR_BUILD="build/stage/$os_name/$ndk_abi"
       DIR_OUT="build/out/$os_name/$ndk_abi"
+      DIR_OUT_GPL="build/out-gpl/$os_name/$ndk_abi"
       ;;
     *)
       DIR_BUILD="build/stage/$os_name$os_subtype/$os_arch"
       DIR_OUT="build/out/$os_name$os_subtype/$os_arch"
+      DIR_OUT_GPL="build/out-gpl/$os_name$os_subtype/$os_arch"
       ;;
   esac
 
@@ -459,6 +481,7 @@ function __build:configure:target:init {
   unset CONF_LIBEVENT
   unset CONF_OPENSSL
   unset CONF_TOR
+  unset CONF_TOR_GPL
   unset CONF_XZ
   unset CONF_ZLIB
 
@@ -510,6 +533,7 @@ fi
 '
 
   __conf:SCRIPT "readonly DIR_OUT=\"\$DIR_EXTERNAL/$DIR_OUT\""
+  __conf:SCRIPT "readonly DIR_OUT_GPL=\"\$DIR_EXTERNAL/$DIR_OUT_GPL\""
   __conf:SCRIPT 'readonly DIR_TMP="$(mktemp -d)"'
   __conf:SCRIPT "trap 'rm -rf \$DIR_TMP' EXIT"
   __conf:SCRIPT '
@@ -518,14 +542,18 @@ readonly NUM_JOBS="$(nproc)"
 
   if [ "$os_name" = "android" ]; then
     __conf:SCRIPT "readonly DIR_OUT_ALT=\"\$DIR_EXTERNAL/build/out/linux-$os_name/$os_arch\""
+    __conf:SCRIPT "readonly DIR_OUT_GPL_ALT=\"\$DIR_EXTERNAL/build/out-gpl/linux-$os_name/$os_arch\""
     __conf:SCRIPT '
-rm -rf "$DIR_OUT_ALT"'
+rm -rf "$DIR_OUT_ALT"
+rm -rf "$DIR_OUT_GPL_ALT"'
   fi
 
   __conf:SCRIPT 'rm -rf "$DIR_OUT"
+rm -rf "$DIR_OUT_GPL"
 rm -rf "$DIR_SCRIPT/libevent"
 rm -rf "$DIR_SCRIPT/openssl"
 rm -rf "$DIR_SCRIPT/tor"
+rm -rf "$DIR_SCRIPT/tor-gpl"
 rm -rf "$DIR_SCRIPT/xz"
 rm -rf "$DIR_SCRIPT/zlib"
 
@@ -546,6 +574,7 @@ mkdir -p "$DIR_SCRIPT/libevent/lib"
 mkdir -p "$DIR_SCRIPT/libevent/logs"
 
 mkdir -p "$DIR_SCRIPT/tor/logs"
+mkdir -p "$DIR_SCRIPT/tor-gpl/logs"
 
 export LD_LIBRARY_PATH="$DIR_SCRIPT/libevent/lib:$DIR_SCRIPT/openssl/lib:$DIR_SCRIPT/xz/lib:$DIR_SCRIPT/zlib/lib:$LD_LIBRARY_PATH"
 export LIBS="-L$DIR_SCRIPT/libevent/lib -L$DIR_SCRIPT/openssl/lib -L$DIR_SCRIPT/xz/lib -L$DIR_SCRIPT/zlib/lib"
@@ -676,7 +705,6 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
   --disable-system-torrc \
   --disable-systemd \
   --disable-tool-name-check \
-  --enable-gpl \
   --enable-zstd=no \
   --enable-static-libevent \
   --with-libevent-dir="$DIR_SCRIPT/libevent" \
@@ -685,8 +713,7 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
   --with-openssl-dir="$DIR_SCRIPT/openssl" \
   --enable-static-zlib \
   --with-zlib-dir="$DIR_SCRIPT/zlib" \
-  --host="$CROSS_TRIPLE" \
-  --prefix="$DIR_SCRIPT/tor"'
+  --host="$CROSS_TRIPLE"'
 
   case "$os_name" in
     "android")
@@ -707,6 +734,12 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
       __conf:TOR 'LDFLAGS="$LDFLAGS -Wl,--subsystem,console"'
       ;;
   esac
+
+  CONF_TOR_GPL="$CONF_TOR"
+
+  __conf:TOR '--prefix="$DIR_SCRIPT/tor"'
+  __conf:TOR:GPL '--enable-gpl'
+  __conf:TOR:GPL '--prefix="$DIR_SCRIPT/tor-gpl"'
 }
 
 # shellcheck disable=SC2016
@@ -715,6 +748,7 @@ function __build:configure:target:build_script {
   __require:var_set "$os_name" "os_name"
   __require:var_set "$DIR_BUILD" "DIR_BUILD"
   __require:var_set "$DIR_OUT" "DIR_OUT"
+  __require:var_set "$DIR_OUT_GPL" "DIR_OUT_GPL"
 
   __conf:SCRIPT "export CFLAGS=\"$CONF_CFLAGS\""
   __conf:SCRIPT "export LDFLAGS=\"$CONF_LDFLAGS\""
@@ -811,8 +845,25 @@ make -j\"\$NUM_JOBS\" > \"\$DIR_SCRIPT/tor/logs/make.log\" 2> \"\$DIR_SCRIPT/tor
 make install >> \"\$DIR_SCRIPT/tor/logs/make.log\" 2>> \"\$DIR_SCRIPT/tor/logs/make.err\"
 "
 
+  # TOR_GPL
+  __conf:SCRIPT "
+echo \"
+    Building tor (with --enable-gpl) for \$TASK_TARGET
+    LOGS >> $DIR_BUILD/tor-gpl/logs
+\""
+  __conf:SCRIPT '
+cp -R "$DIR_EXTERNAL/tor" "$DIR_TMP/tor-gpl"
+cd "$DIR_TMP/tor-gpl"
+./autogen.sh > "$DIR_SCRIPT/tor-gpl/logs/autogen.log" 2> "$DIR_SCRIPT/tor-gpl/logs/autogen.err"'
+  __conf:SCRIPT "$CONF_TOR_GPL > \"\$DIR_SCRIPT/tor-gpl/logs/configure.log\" 2> \"\$DIR_SCRIPT/tor-gpl/logs/configure.err\"
+make clean > /dev/null 2>&1
+make -j\"\$NUM_JOBS\" > \"\$DIR_SCRIPT/tor-gpl/logs/make.log\" 2> \"\$DIR_SCRIPT/tor-gpl/logs/make.err\"
+make install >> \"\$DIR_SCRIPT/tor-gpl/logs/make.log\" 2>> \"\$DIR_SCRIPT/tor-gpl/logs/make.err\"
+"
+
   # out
   __conf:SCRIPT 'mkdir -p "$DIR_OUT"'
+  __conf:SCRIPT 'mkdir -p "$DIR_OUT_GPL"'
 
   local bin_name=
   local bin_name_out=
@@ -838,17 +889,24 @@ make install >> \"\$DIR_SCRIPT/tor/logs/make.log\" 2>> \"\$DIR_SCRIPT/tor/logs/m
   esac
 
   __conf:SCRIPT "cp \"\$DIR_SCRIPT/tor/bin/$bin_name\" \"\$DIR_OUT/$bin_name_out\""
+  __conf:SCRIPT "cp \"\$DIR_SCRIPT/tor-gpl/bin/$bin_name\" \"\$DIR_OUT_GPL/$bin_name_out\""
   __conf:SCRIPT "\${STRIP} -D \"\$DIR_OUT/$bin_name_out\""
+  __conf:SCRIPT "\${STRIP} -D \"\$DIR_OUT_GPL/$bin_name_out\""
 
   if [ "$os_name" = "android" ]; then
     __conf:SCRIPT "
 mkdir -p \"\$DIR_OUT_ALT\"
+mkdir -p \"\$DIR_OUT_GPL_ALT\"
 cp -a \"\$DIR_OUT/$bin_name_out\" \"\$DIR_OUT_ALT/tor\"
+cp -a \"\$DIR_OUT_GPL/$bin_name_out\" \"\$DIR_OUT_GPL_ALT/tor\"
 "
   fi
 
   __conf:SCRIPT "echo \"Unstripped: \$(sha256sum \"\$DIR_SCRIPT/tor/bin/$bin_name\")\""
   __conf:SCRIPT "echo \"Stripped:   \$(sha256sum \"\$DIR_OUT/$bin_name_out\")\""
+  __conf:SCRIPT 'echo ""'
+  __conf:SCRIPT "echo \"Unstripped: \$(sha256sum \"\$DIR_SCRIPT/tor-gpl/bin/$bin_name\")\""
+  __conf:SCRIPT "echo \"Stripped:   \$(sha256sum \"\$DIR_OUT_GPL/$bin_name_out\")\""
 
   mkdir -p "$DIR_BUILD"
   echo "$CONF_SCRIPT" > "$DIR_BUILD/build.sh"
@@ -943,6 +1001,12 @@ function __conf:TOR {
   $1"
 }
 
+function __conf:TOR:GPL {
+  if [ -z "$1" ]; then return 0; fi
+  CONF_TOR_GPL+=" \\
+  $1"
+}
+
 function __conf:XZ {
   if [ -z "$1" ]; then return 0; fi
   CONF_XZ+=" \\
@@ -962,6 +1026,8 @@ function __exec:docker:run {
     echo "Build Script >> $DIR_BUILD/build.sh"
     return 0
   fi
+
+  __require:cmd "$DOCKER" "docker"
 
   trap 'echo "
     SIGINT intercepted... exiting...
@@ -1011,15 +1077,17 @@ function __package:geoip {
 }
 
 function __package:android {
+  __require:var_set "$dir_out" "dir_out"
   local permissions="755"
   # no gzip
-  __package "build/out/android/$1" "androidMain/jniLibs/$1" "libtor.so"
+  __package "build/$dir_out/android/$1" "androidMain/jniLibs/$1" "libtor.so"
 }
 
 function __package:jvm {
+  __require:var_set "$dir_out" "dir_out"
   local permissions="755"
   local gzip="yes"
-  __package "build/out/$1" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/tor/native/$1" "$2"
+  __package "build/$dir_out/$1" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/tor/native/$1" "$2"
 }
 
 function __package:jvm:codesigned {
@@ -1028,10 +1096,11 @@ function __package:jvm:codesigned {
 }
 
 function __package:native {
+  __require:var_set "$dir_out" "dir_out"
   local permissions="755"
   local gzip="yes"
   local native_resource="io.matthewnelson.kmp.tor.resource.tor.internal"
-  __package "build/out/$1" "$3" "$2"
+  __package "build/$dir_out/$1" "$3" "$2"
 }
 
 function __package:native:codesigned {
@@ -1041,7 +1110,7 @@ function __package:native:codesigned {
 
 function __package {
   __require:var_set "$1" "Packaging target dir (relative to dir external/build/)"
-  __require:var_set "$2" "Binary module src path (relative to dir kmp-tor-binary/library/resource-tor/src)"
+  __require:var_set "$2" "Binary module src path (e.g. external/package/resource-tor/src)"
   __require:var_set "$3" "File name"
   __require:var_set "$module" "module"
 
@@ -1071,7 +1140,7 @@ function __package {
 
   if [ -n "$detached_sig" ]; then
     ../tooling diff-cli apply \
-      "$DIR_TASK/codesign/$detached_sig/$3.signature" \
+      "$DIR_TASK/codesign/$module/$detached_sig/$3.signature" \
       "$DIR_STAGING/$3"
   fi
 
@@ -1111,13 +1180,23 @@ function __package {
 }
 
 function __signature:generate:apple {
-  __require:var_set "$os_name"
+  __require:var_set "$os_name" "os_name"
   __require:cmd "$RCODESIGN" "rcodesign"
   __require:file_exists "$1" "p12 file does not exist"
   __require:file_exists "$2" "App Store Connect api key file does not exist"
   __require:var_set "$3" "arch"
 
-  if [ ! -f "$DIR_TASK/build/out/$os_name$os_subtype/$3/tor" ]; then
+  local dir_out=
+  local module=
+  if [ -n "$is_gpl" ]; then
+    dir_out="out-gpl"
+    module="resource-tor-gpl"
+  else
+    dir_out="out"
+    module="resource-tor"
+  fi
+
+  if [ ! -f "$DIR_TASK/build/$dir_out/$os_name$os_subtype/$3/tor" ]; then
     echo "
     tor not found for $os_name$os_subtype:$3. Skipping...
     "
@@ -1125,7 +1204,7 @@ function __signature:generate:apple {
   fi
 
   echo "
-    Creating detached signature for build/out/$os_name$os_subtype/$3/tor
+    Creating detached signature for build/$dir_out/$os_name$os_subtype/$3/tor
   "
 
   DIR_TMP="$(mktemp -d)"
@@ -1148,8 +1227,8 @@ function __signature:generate:apple {
 </dict>
 </plist>' > "$dir_bundle/Contents/Info.plist"
 
-  cp "$DIR_TASK/build/out/$os_name$os_subtype/$3/tor" "$dir_bundle_macos/tor.program"
-  cp -a "$DIR_TASK/build/out/$os_name$os_subtype/$3/tor" "$dir_bundle_libs/tor"
+  cp "$DIR_TASK/build/$dir_out/$os_name$os_subtype/$3/tor" "$dir_bundle_macos/tor.program"
+  cp -a "$DIR_TASK/build/$dir_out/$os_name$os_subtype/$3/tor" "$dir_bundle_libs/tor"
 
   ${RCODESIGN} sign \
     --p12-file "$1" \
@@ -1164,16 +1243,16 @@ function __signature:generate:apple {
     --staple \
     "$dir_bundle"
 
-  mkdir -p "$DIR_TASK/codesign/$os_name$os_subtype/$3"
-  rm -rf "$DIR_TASK/codesign/$os_name$os_subtype/$3/tor.signature"
+  mkdir -p "$DIR_TASK/codesign/$module/$os_name$os_subtype/$3"
+  rm -rf "$DIR_TASK/codesign/$module/$os_name$os_subtype/$3/tor.signature"
 
   echo ""
 
   ../tooling diff-cli create \
     --diff-ext-name ".signature" \
-    "$DIR_TASK/build/out/$os_name$os_subtype/$3/tor" \
+    "$DIR_TASK/build/$dir_out/$os_name$os_subtype/$3/tor" \
     "$dir_bundle_libs/tor" \
-    "$DIR_TASK/codesign/$os_name$os_subtype/$3"
+    "$DIR_TASK/codesign/$module/$os_name$os_subtype/$3"
 
   echo ""
 
@@ -1188,7 +1267,17 @@ function __signature:generate:mingw {
   __require:file_exists "$2" "cert file does not exist"
   __require:var_set "$3" "arch"
 
-  if [ ! -f "$DIR_TASK/build/out/mingw/$3/tor.exe" ]; then
+  local dir_out=
+  local module=
+  if [ -n "$is_gpl" ]; then
+    dir_out="out-gpl"
+    module="resource-tor-gpl"
+  else
+    dir_out="out"
+    module="resource-tor"
+  fi
+
+  if [ ! -f "$DIR_TASK/build/$dir_out/mingw/$3/tor.exe" ]; then
     echo "
     tor.exe not found for mingw/$3. Skipping...
     "
@@ -1196,7 +1285,7 @@ function __signature:generate:mingw {
   fi
 
   echo "
-    Creating detached signature for build/out/mingw/$3/tor.exe
+    Creating detached signature for build/$dir_out/mingw/$3/tor.exe
   "
 
   DIR_TMP="$(mktemp -d)"
@@ -1206,26 +1295,25 @@ function __signature:generate:mingw {
     -key "$1" \
     -certs "$2" \
     -t "http://timestamp.comodoca.com" \
-    -in "$DIR_TASK/build/out/mingw/$3/tor.exe" \
+    -in "$DIR_TASK/build/$dir_out/mingw/$3/tor.exe" \
     -out "$DIR_TMP/tor.exe"
 
-  mkdir -p "$DIR_TASK/codesign/mingw/$3"
-  rm -rf "$DIR_TASK/codesign/mingw/$3/tor.exe.signature"
+  mkdir -p "$DIR_TASK/codesign/$module/mingw/$3"
+  rm -rf "$DIR_TASK/codesign/$module/mingw/$3/tor.exe.signature"
 
   echo ""
 
   ../tooling diff-cli create \
     --diff-ext-name ".signature" \
-    "$DIR_TASK/build/out/mingw/$3/tor.exe" \
+    "$DIR_TASK/build/$dir_out/mingw/$3/tor.exe" \
     "$DIR_TMP/tor.exe" \
-    "$DIR_TASK/codesign/mingw/$3"
+    "$DIR_TASK/codesign/$module/mingw/$3"
 
   echo ""
 
-  local dir_tmp="$DIR_TMP"
+  rm -rf "$DIR_TMP"
   unset DIR_TMP
   trap - SIGINT ERR
-  rm -rf "$dir_tmp"
 }
 
 function __require:cmd {

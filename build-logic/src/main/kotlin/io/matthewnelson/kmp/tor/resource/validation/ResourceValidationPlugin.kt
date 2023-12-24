@@ -25,5 +25,10 @@ open class ResourceValidationPlugin internal constructor(): Plugin<Project> {
             TorResourceValidationExtension::class.java,
             target,
         )
+        target.extensions.create(
+            TorResourceGPLValidationExtension.NAME,
+            TorResourceGPLValidationExtension::class.java,
+            target,
+        )
     }
 }

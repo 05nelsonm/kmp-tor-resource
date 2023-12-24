@@ -37,13 +37,15 @@ NPMJS_AUTH_TOKEN=<auth token>
 
 - Assemble `Npmjs` packages
 ```bash
-./gradlew assembleTorResourcesReleasePackage assembleTorResourcesSnapshotPackage -DKMP_TARGETS_ALL
+./gradlew assembleTorResourcesReleasePackage assembleTorResourcesSnapshotPackage assembleTorGplResourcesReleasePackage assembleTorGplResourcesSnapshotPackage -DKMP_TARGETS_ALL
 ```
 
 - Check for resource validation errors
 ```bash
 cat library/npmjs/build/reports/resource-validation/resource-tor/jvm.err
 cat library/npmjs/build/reports/resource-validation/resource-tor/jvm-geoip.err
+cat library/npmjs/build/reports/resource-validation/resource-tor-gpl/jvm.err
+cat library/npmjs/build/reports/resource-validation/resource-tor-gpl/jvm-geoip.err
 ```
 
 - Inspect contents of the assembled packages in `npmjs/build/packages` for correctness
@@ -56,7 +58,7 @@ cat library/npmjs/build/reports/resource-validation/resource-tor/jvm-geoip.err
 
 - Publish assets to `Npmjs`
 ```bash
-./gradlew publishTorResourcesReleasePackageToNpmjsRegistry publishTorResourcesSnapshotPackageToNpmjsRegistry -DKMP_TARGETS_ALL
+./gradlew publishTorResourcesReleasePackageToNpmjsRegistry publishTorResourcesSnapshotPackageToNpmjsRegistry publishTorGplResourcesReleasePackageToNpmjsRegistry publishTorGplResourcesSnapshotPackageToNpmjsRegistry -DKMP_TARGETS_ALL
 ```
 
 - Update `.kotlin-js-store/yarn.lock`
@@ -68,6 +70,7 @@ cat library/npmjs/build/reports/resource-validation/resource-tor/jvm-geoip.err
   publication dependency (should not be using `SNAPSHOT` version).
 ```bash
 cat .kotlin-js-store/yarn.lock | grep "kmp-tor-resource-tor@"
+cat .kotlin-js-store/yarn.lock | grep "kmp-tor-resource-tor-gpl@"
 ```
 
 - Commit Changes
@@ -118,6 +121,13 @@ cat library/resource-tor/build/reports/resource-validation/resource-tor/linuxArm
 cat library/resource-tor/build/reports/resource-validation/resource-tor/linuxX64.err
 cat library/resource-tor/build/reports/resource-validation/resource-tor/mingwX64.err
 cat library/resource-tor/build/reports/resource-validation/resource-tor/native.err
+cat library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/android.err
+cat library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/jvm.err
+cat library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/jvm-geoip.err
+cat library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/linuxArm64.err
+cat library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/linuxX64.err
+cat library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/mingwX64.err
+cat library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/native.err
 ```
 
 - Publish
@@ -191,6 +201,9 @@ MACOS_TARGETS="JVM,JS,IOS_ARM64,IOS_X64,IOS_SIMULATOR_ARM64,MACOS_ARM64,MACOS_X6
 cat library/resource-tor/build/reports/resource-validation/resource-tor/macosArm64.err
 cat library/resource-tor/build/reports/resource-validation/resource-tor/macosX64.err
 cat library/resource-tor/build/reports/resource-validation/resource-tor/native.err
+cat library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/macosArm64.err
+cat library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/macosX64.err
+cat library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/native.err
 ```
 
 - Publish macOS build

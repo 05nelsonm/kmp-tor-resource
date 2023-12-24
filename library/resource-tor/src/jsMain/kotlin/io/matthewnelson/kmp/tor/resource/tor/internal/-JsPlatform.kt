@@ -24,13 +24,11 @@ import io.matthewnelson.kmp.tor.core.resource.Resource
 @OptIn(InternalKmpTorApi::class)
 internal actual val RESOURCE_CONFIG: Resource.Config by lazy {
     Resource.Config.create {
-        val module = "kmp-tor-resource-tor"
-
         resource(ALIAS_GEOIP) {
             isExecutable = false
 
             platform {
-                moduleName = module
+                moduleName = MODULE_NAME
                 resourcePath = PATH_RESOURCE_GEOIP
             }
         }
@@ -39,7 +37,7 @@ internal actual val RESOURCE_CONFIG: Resource.Config by lazy {
             isExecutable = false
 
             platform {
-                moduleName = module
+                moduleName = MODULE_NAME
                 resourcePath = PATH_RESOURCE_GEOIP6
             }
         }
@@ -64,7 +62,7 @@ internal actual val RESOURCE_CONFIG: Resource.Config by lazy {
             isExecutable = true
 
             platform {
-                moduleName = module
+                moduleName = MODULE_NAME
                 resourcePath = torResourcePath
             }
         }

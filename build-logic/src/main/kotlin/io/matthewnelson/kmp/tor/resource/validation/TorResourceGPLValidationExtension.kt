@@ -30,14 +30,14 @@ import javax.inject.Inject
  * `external/build/package`. This is to maintain runtime referecnes and
  * mitigate checking resources into version control.
  *
- * Any errors are written to the project's `build/reports/resource-validation/resource-tor`
+ * Any errors are written to the project's `build/reports/resource-validation/resource-tor-gpl`
  * directory for the respective files.
  * */
-abstract class TorResourceValidationExtension @Inject internal constructor(
+abstract class TorResourceGPLValidationExtension @Inject internal constructor(
     project: Project
 ): ResourceValidation(
     project = project,
-    moduleName = "resource-tor",
+    moduleName = "resource-tor-gpl",
     modulePackageName = "io.matthewnelson.kmp.tor.resource.tor",
 ) {
 
@@ -45,7 +45,7 @@ abstract class TorResourceValidationExtension @Inject internal constructor(
     private var isGeoipConfigured = false
 
     @Throws(IllegalStateException::class)
-    fun configureTorAndroidJniResources() {
+    fun configureTorGPLAndroidJniResources() {
         check(project.plugins.hasPlugin("com.android.library")) {
             "The 'com.android.library' plugin is required to utilize this function"
         }
@@ -55,10 +55,10 @@ abstract class TorResourceValidationExtension @Inject internal constructor(
         }
     }
 
-    val jvmTorLibResourcesSrcDir: File get() = jvmLibResourcesSrcDir()
+    val jvmTorGPLLibResourcesSrcDir: File get() = jvmLibResourcesSrcDir()
 
     @Throws(IllegalStateException::class)
-    fun configureTorNativeResources() {
+    fun configureTorGPLNativeResources() {
         check(project.plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
             "The 'org.jetbrains.kotlin.multiplatform' plugin is required to utilize this function"
         }
@@ -68,7 +68,7 @@ abstract class TorResourceValidationExtension @Inject internal constructor(
         }
     }
 
-    val jvmGeoipResourcesSrcDir: File get() {
+    val jvmGeoipGPLResourcesSrcDir: File get() {
         val mockResourcesSrc = rootProjectDir
             .resolve("library")
             .resolve(moduleName)
@@ -129,10 +129,10 @@ abstract class TorResourceValidationExtension @Inject internal constructor(
     override val androidLibHashes = setOf(
         AndroidLibHash(
             libname = "libtor.so",
-            hashArm64 = "4c1220735f75d6f7eccfe74ede27496afc6ec1ac2f43e63a7509b2d83e71cbed",
-            hashArmv7 = "28f2b9c003c0bac9fec43d8b1e4d8a8e6bca7aab986b363abc854ce202232302",
-            hashX86 = "d876aa9773dba2d402a9d80622d5729917d776f694362a392b42804245567ae2",
-            hashX86_64 = "d3b00d0a0b38429beee86aa787ef1a6e03130e47dbfb3c33d3b6482733d2129e",
+            hashArm64 = "924fcc225e53bb14145e8dc9b080435478849dae1dbddb45aef38f7123f54980",
+            hashArmv7 = "2c3030e3aeef1dc643c507e559fa0fb3a3fa25f68c33e3f08458c85870f87501",
+            hashX86 = "a796c9d30acad1fc5d5dbf4c4859eaaad87768bdea9d1e4789a3c1644c29ed03",
+            hashX86_64 = "7944c0308eddef0b25e84252fd77822965433783b4886757985b0dcdedc2bd12",
         ),
     )
 
@@ -141,79 +141,79 @@ abstract class TorResourceValidationExtension @Inject internal constructor(
             libname = "tor.gz",
             machine = "linux-android",
             arch = "aarch64",
-            hash = "1ab797e4f78e44fbdd9472d405b0e08c832a5595ecc672d1de5a3dc6b7c85572",
+            hash = "46bdf6264df06cd349119736d0dd7c2d90159fb32369266b91c6834f0f5dbdb0",
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "linux-android",
             arch = "armv7",
-            hash = "e96410b419471898afdffdfe5f33acd8a53f84624fc6fb4553908ffb3a45efc9",
+            hash = "81f2ecbe98b49b15e16d55174173fcfb13bcd18be568b74a013da89f1a9ff682",
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "linux-android",
             arch = "x86",
-            hash = "e23c5be50387d3ce5e2fa9e77bd306e21f0d45675998b493fd904730e3b255a4",
+            hash = "913004c43ed697bb4b9b2a935e7b464c45fc01d02b724ad466599eecabb46f0a",
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "linux-android",
             arch = "x86_64",
-            hash = "4bf23e988a78506b2cce5d7a53132f5fe9c3b175150f41bde93d3271ae57498e",
+            hash = "b0afd0c844075d71219f7bbacdeeb2f97c4bd880b0b3f170fa1bde301e61dc4d",
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "linux-libc",
             arch = "aarch64",
-            hash = "35044b7c561f30299572e3a94c17fe42a922667cb6bbb8be04ce1c6b3eb6b0f0",
+            hash = "2b482abf9f3dc9e0957a724f83975f5615ed1c8ffc539deff6ef9d58a653c495",
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "linux-libc",
             arch = "armv7",
-            hash = "64d9c568c8417b750cec4fcfb23dfaa7cec2870ef3ee01378ed36a2bbe7e3d47",
+            hash = "fdfb36321d97a9c77e52d0cbf79ecb6606b16a5779b8f204082c18c6fa1bf1a3",
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "linux-libc",
             arch = "ppc64",
-            hash = "5ce4c9d52f5ff999faefe581e850ed113976b853e94abd42ca8109c4d6c16478",
+            hash = "9654d15967ffd2cc9381b2822aea2a94e566837adc1d53067965bddebf997678",
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "linux-libc",
             arch = "x86",
-            hash = "7b7b9bc2a0f9c1ba685d37468d4a8b7a246e81a7768ccf3864f4cf37c92b8608",
+            hash = "56a4ebbc27f84481d574d5ac3541136c789715a1fe4edbe4dcbcb5ce0c04a26d",
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "linux-libc",
             arch = "x86_64",
-            hash = "503fd825e65ee18dd7365be67f7f53b7adba982613c0561c0977c21f2c8dc597",
+            hash = "3009ca44d5a544707adc61ea73d9e9ce48c157d60a1a45a794d7ba526a7f8d8f",
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "macos",
             arch = "aarch64",
-            hash = "521b29b4ad70bbdf1315fc65b14e4caf71ee66691372406e8024224c8cc12fc8",
+            hash = "9e2134c53f37741fbde4ff263199dffa013114e051b53d1ab247fb2b017a5673",
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "macos",
             arch = "x86_64",
-            hash = "7a3fcd66c0d455e5b001487017d81fac7f90c815a563ad46fd60755dc71171a8",
+            hash = "742bf43a5210a3dda540cfb0c9166c9ae0c9c526c5c3abd4bbd879867bf26a7b",
         ),
         JvmLibHash(
             libname = "tor.exe.gz",
             machine = "mingw",
             arch = "x86",
-            hash = "62de94b3255ce9123c5aae769619ae64ca40d21d0179bab64a6fef2e6d3f02ab",
+            hash = "281a704409bd58c354c3a0bb05bf939af88a6b8ffc81afbf8dc7af817213ba12",
         ),
         JvmLibHash(
             libname = "tor.exe.gz",
             machine = "mingw",
             arch = "x86_64",
-            hash = "c8afe454419d1f9e92716c5964a587dbb726a651b572066a701b645df7316841",
+            hash = "8b993c24899bc3da7fbb36870e28f47f0b204e4fa208096a3ab2e6015a6f36b5",
         ),
     )
 
@@ -226,27 +226,27 @@ abstract class TorResourceValidationExtension @Inject internal constructor(
         NativeResourceHash(
             sourceSetName = "linuxArm64",
             ktFileName = "resource_tor_gz.kt",
-            hash = "35044b7c561f30299572e3a94c17fe42a922667cb6bbb8be04ce1c6b3eb6b0f0",
+            hash = "2b482abf9f3dc9e0957a724f83975f5615ed1c8ffc539deff6ef9d58a653c495",
         ),
         NativeResourceHash(
             sourceSetName = "linuxX64",
             ktFileName = "resource_tor_gz.kt",
-            hash = "503fd825e65ee18dd7365be67f7f53b7adba982613c0561c0977c21f2c8dc597",
+            hash = "3009ca44d5a544707adc61ea73d9e9ce48c157d60a1a45a794d7ba526a7f8d8f",
         ),
         NativeResourceHash(
             sourceSetName = "macosArm64",
             ktFileName = "resource_tor_gz.kt",
-            hash = "378751be79e0f00a9678508537f683a3d41914f495c6002f652c5c9063bf1c08",
+            hash = "ca74cbbb292489b0b90bc2b0e74d93acc9eeb4a315829857ead4617936ec20ee",
         ),
         NativeResourceHash(
             sourceSetName = "macosX64",
             ktFileName = "resource_tor_gz.kt",
-            hash = "dc0db550995a75ff4d2cc70f3e16d4644f4f45b6cd6ff59e6c977f7f4dc86223",
+            hash = "d66122d18d980861b4d46893b488a9908cd63592fd9a98bd85929addf33b96d2",
         ),
         NativeResourceHash(
             sourceSetName = "mingwX64",
             ktFileName = "resource_tor_exe_gz.kt",
-            hash = "c8afe454419d1f9e92716c5964a587dbb726a651b572066a701b645df7316841",
+            hash = "8b993c24899bc3da7fbb36870e28f47f0b204e4fa208096a3ab2e6015a6f36b5",
         ),
         NativeResourceHash(
             sourceSetName = "native",
@@ -271,6 +271,6 @@ abstract class TorResourceValidationExtension @Inject internal constructor(
     )
 
     internal companion object {
-        internal const val NAME = "torResourceValidation"
+        internal const val NAME = "torResourceGPLValidation"
     }
 }
