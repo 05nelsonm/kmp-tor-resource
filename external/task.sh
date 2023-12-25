@@ -345,7 +345,7 @@ $(
     Options:
         --dry-run                      Debugging output that does not execute.
 
-    Example: $0 build:all:jvm --dry-run
+    Example: $0 build:all --dry-run
   "
 }
 
