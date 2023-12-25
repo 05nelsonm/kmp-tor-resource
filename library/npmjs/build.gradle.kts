@@ -77,12 +77,10 @@ npmPublish {
                 "NPMJS_SNAPSHOT_VERSION must be 0 for releases"
             }
 
-            // Release will be X.X.X-#
+            // Release will be XXXX.XX.##
             // Increment the # for the next SNAPSHOT version
-            val increment = vProject.last().toString().toInt() + 1
-            val nextVersion = vProject
-                .substringBefore('-') +
-                    "-$increment"
+            val increment = vProject.substringAfterLast('.').toInt() + 1
+            val nextVersion = vProject.substringBeforeLast('.') + ".$increment"
 
             // Register both snapshot and release tasks when project
             // version indicates a release so after maven publication
@@ -96,7 +94,7 @@ npmPublish {
             )
             registerTorResources(
                 isGPL = false,
-                releaseVersion = "$nextVersion-SNAPSHOT.0",
+                releaseVersion = "$nextVersion-SNAPSHOT.$snapshotVersion",
                 geoipResourcesDir = jvmGeoipSrcDir,
                 torResourcesDir = jvmTorLibsSrcDir,
             )
@@ -108,14 +106,12 @@ npmPublish {
             )
             registerTorResources(
                 isGPL = true,
-                releaseVersion = "$nextVersion-SNAPSHOT.0",
+                releaseVersion = "$nextVersion-SNAPSHOT.$snapshotVersion",
                 geoipResourcesDir = jvmGPLGeoipSrcDir,
                 torResourcesDir = jvmGPLTorLibsSrcDir,
             )
         }
     }
-
-    // TODO: Make Npmjs publication tasks dependant on the jvm resource validation tasks
 }
 
 fun NpmPackages.registerTorResources(
