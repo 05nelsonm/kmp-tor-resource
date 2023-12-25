@@ -28,6 +28,10 @@ present. This is to respect the `GPL` licensed code `tor` is utilizing such that
 have a `GPL` license are able to take advantage of the new functionality, and projects who do 
 **not** have a `GPL` license can still utilize `tor` without infringing on the `GPL` license.
 
+### Building
+
+See [BUILD.md](BUILD.md)
+
 ### Jvm/Node.js Supported Operating Systems & Architectures
 
 **NOTE:** `macOS` and `Windows` binaries are code signed, so they work out of the box.
