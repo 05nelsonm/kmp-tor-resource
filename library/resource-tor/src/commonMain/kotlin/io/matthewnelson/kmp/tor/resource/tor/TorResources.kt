@@ -28,7 +28,7 @@ import io.matthewnelson.kmp.tor.resource.tor.internal.RESOURCE_CONFIG
 import io.matthewnelson.kmp.tor.resource.tor.internal.findLibTor
 import kotlin.concurrent.Volatile
 
-public class TorResource(
+public class TorResources(
     installationDir: File,
 ): ResourceInstaller<ResourceInstaller.Paths.Tor>(
     installationDir

@@ -24,7 +24,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @OptIn(InternalKmpTorApi::class)
-class TorResourceNonNativeUnitTest: TorResourceBaseTest() {
+class TorResourcesNonNativeUnitTest: TorResourcesBaseTest() {
 
     override val isWindows: Boolean = OSInfo.INSTANCE.osHost is OSHost.Windows
 
