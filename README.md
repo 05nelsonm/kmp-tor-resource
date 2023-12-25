@@ -3,6 +3,8 @@
 <!-- [![badge-latest-release]][url-latest-release] -->
 
 [![badge-kotlin]][url-kotlin]
+[![badge-build-env]][url-build-env]
+[![badge-kmp-tor-core]][url-kmp-tor-core]
 
 ![badge-platform-android]
 ![badge-platform-jvm]
@@ -229,11 +231,13 @@ TODO: gradle configuration for android
 -->
 
 <!-- TAG_VERSION -->
-[badge-latest-release]: https://img.shields.io/badge/latest--release-4.8.10--0-5d2f68.svg?logo=torproject&style=flat&logoColor=5d2f68
+[badge-latest-release]: https://img.shields.io/badge/latest--release-408.10.0--SNAPSHOT-5d2f68.svg?logo=torproject&style=flat&logoColor=5d2f68
 [badge-license]: https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat
 
 <!-- TAG_DEPENDENCIES -->
 [badge-kotlin]: https://img.shields.io/badge/kotlin-1.9.21-blue.svg?logo=kotlin
+[badge-build-env]: https://img.shields.io/badge/build--env-0.1.3-blue.svg?logo=docker
+[badge-kmp-tor-core]: https://img.shields.io/badge/kmp--tor--core-2.0.0--alpha02-blue.svg?style=flat
 
 <!-- TAG_PLATFORMS -->
 [badge-platform-android]: http://img.shields.io/badge/-android-6EDB8D.svg?style=flat
@@ -253,9 +257,11 @@ TODO: gradle configuration for android
 [badge-support-linux-arm]: http://img.shields.io/badge/support-[LinuxArm]-2D3F6C.svg?style=flat
 
 [url-bundletool]: https://github.com/google/bundletool
+[url-build-env]: https://github.com/05nelsonm/build-env
 [url-latest-release]: https://github.com/05nelsonm/kmp-tor-resource/releases/latest
 [url-license]: https://www.apache.org/licenses/LICENSE-2.0
 [url-kotlin]: https://kotlinlang.org
 [url-kmp-tor]: https://github.com/05nelsonm/kmp-tor
+[url-kmp-tor-core]: https://github.com/05nelsonm/kmp-tor-core
 [url-core-resource-initializer]: https://github.com/05nelsonm/kmp-tor-core/tree/master/library/core-resource-initializer
 [url-task-image]: https://github.com/05nelsonm/kmp-tor-resource/assets/44778092/4c77c211-b3ac-41c2-ba39-c2267eff15c1
