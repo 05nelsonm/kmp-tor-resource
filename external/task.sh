@@ -61,11 +61,11 @@ function build:all:desktop { ## Builds all Linux, macOS, Windows targets
 #  build:freebsd:x86_64
 #}
 
-#function build:all:ios { ## Builds all iOS targets
-#  build:ios-simulator:aarch64
-#  build:ios-simulator:x86_64
-#  build:ios:aarch64
-#}
+function build:all:ios { ## Builds all iOS targets
+  build:ios-simulator:aarch64
+  build:ios-simulator:x86_64
+  build:ios:aarch64
+}
 
 function build:all:linux-libc { ## Builds all Linux Libc targets
   build:linux-libc:aarch64
@@ -88,9 +88,9 @@ function build:all:macos { ## Builds all macOS and macOS LTS targets
   build:macos:x86_64
 }
 
-function build:all:mobile { ## Builds all Android targets
+function build:all:mobile { ## Builds all Android and iOS targets
   build:all:android
-#  build:all:ios
+  build:all:ios
 }
 
 function build:all:mingw { ## Builds all Windows targets
@@ -138,35 +138,34 @@ function build:android:x86_64 { ## Builds Android x86_64
   __exec:docker:run
 }
 
-# TODO: Fix ios-*:aarch64 link errors
-#function build:ios-simulator:aarch64 { ## Builds iOS Simulator arm64
-#  local os_name="ios"
-#  local os_subtype="-simulator"
-#  local os_arch="aarch64"
-#  local openssl_target="iossimulator-xcrun"
-#  local cc_clang="yes"
-#  __build:configure:target:init
-#  __exec:docker:run
-#}
-#
-#function build:ios-simulator:x86_64 { ## Builds iOS Simulator x86_64
-#  local os_name="ios"
-#  local os_subtype="-simulator"
-#  local os_arch="x86_64"
-#  local openssl_target="iossimulator-xcrun"
-#  local cc_clang="yes"
-#  __build:configure:target:init
-#  __exec:docker:run
-#}
-#
-#function build:ios:aarch64 { ## Builds iOS arm64
-#  local os_name="ios"
-#  local os_arch="aarch64"
-#  local openssl_target="ios64-xcrun"
-#  local cc_clang="yes"
-#  __build:configure:target:init
-#  __exec:docker:run
-#}
+function build:ios-simulator:aarch64 { ## Builds iOS Simulator arm64
+  local os_name="ios"
+  local os_subtype="-simulator"
+  local os_arch="aarch64"
+  local openssl_target="iossimulator-xcrun"
+  local cc_clang="yes"
+  __build:configure:target:init
+  __exec:docker:run
+}
+
+function build:ios-simulator:x86_64 { ## Builds iOS Simulator x86_64
+  local os_name="ios"
+  local os_subtype="-simulator"
+  local os_arch="x86_64"
+  local openssl_target="iossimulator-xcrun"
+  local cc_clang="yes"
+  __build:configure:target:init
+  __exec:docker:run
+}
+
+function build:ios:aarch64 { ## Builds iOS arm64
+  local os_name="ios"
+  local os_arch="aarch64"
+  local openssl_target="ios64-xcrun"
+  local cc_clang="yes"
+  __build:configure:target:init
+  __exec:docker:run
+}
 
 #function build:freebsd:aarch64 { ## Builds FreeBSD aarch64
 #  local os_name="freebsd"
