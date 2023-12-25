@@ -442,6 +442,35 @@ function sign:mingw { ## 2 ARGS - [1]: /path/to/file.key [2]: /path/to/cert.cer
   __signature:generate:mingw "$1" "$2" "x86_64"
 }
 
+function verify { ## Checks the build/package directory output against expected sha256 hashes
+  local kmp_targets="JVM,LINUX_ARM64,LINUX_X64,MACOS_ARM64,MACOS_X64,MINGW_X64,IOS_ARM64,IOS_SIMULATOR_ARM64,IOS_X64,TVOS_ARM64,TVOS_SIMULATOR_ARM64,TVOS_X64,WATCHOS_ARM32,WATCHOS_ARM64,WATCHOS_DEVICE_ARM64,WATCHOS_SIMULATOR_ARM64,WATCHOS_X64"
+  cd "$DIR_TASK/.."
+  ./gradlew clean -PKMP_TARGETS="$kmp_targets"
+  ./gradlew prepareKotlinBuildScriptModel -PKMP_TARGETS="$kmp_targets"
+
+  local dir_module_reports=
+  local errs=
+  local file_err=
+
+  dir_module_reports="$DIR_TASK/../library/resource-tor/build/reports/resource-validation/resource-tor"
+  errs=$(ls "$dir_module_reports")
+
+  echo ""
+  for file_err in $errs; do
+    echo "resource-tor/$file_err:"
+    cat "$dir_module_reports/$file_err"
+  done
+  echo ""
+
+  dir_module_reports="$DIR_TASK/../library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl"
+  errs=$(ls "$dir_module_reports")
+  for file_err in $errs; do
+    echo "resource-tor-gpl/$file_err:"
+    cat "$dir_module_reports/$file_err"
+  done
+  echo ""
+}
+
 function __build:cleanup {
   rm -rf "$FILE_BUILD_LOCK"
   __build:git:stash "libevent"

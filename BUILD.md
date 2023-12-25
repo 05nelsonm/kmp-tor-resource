@@ -31,36 +31,9 @@ you can do so by following along below.
    ./external/task.sh package
    ```
 
-5) Clean:
+5) Verify hashes:
    ```shell
-   ./gradlew clean -PKMP_TARGETS="JVM,LINUX_ARM64,LINUX_X64,MACOS_ARM64,MACOS_X64,MINGW_X64,IOS_ARM64,IOS_SIMULATOR_ARM64,IOS_X64,TVOS_ARM64,TVOS_SIMULATOR_ARM64,TVOS_X64,WATCHOS_ARM32,WATCHOS_ARM64,WATCHOS_DEVICE_ARM64,WATCHOS_SIMULATOR_ARM64,WATCHOS_X64"
-   ```
-
-6) Sync the project:
-   ```shell
-   ./gradlew prepareKotlinBuildScriptModel -PKMP_TARGETS="JVM,LINUX_ARM64,LINUX_X64,MACOS_ARM64,MACOS_X64,MINGW_X64,IOS_ARM64,IOS_SIMULATOR_ARM64,IOS_X64,TVOS_ARM64,TVOS_SIMULATOR_ARM64,TVOS_X64,WATCHOS_ARM32,WATCHOS_ARM64,WATCHOS_DEVICE_ARM64,WATCHOS_SIMULATOR_ARM64,WATCHOS_X64"
-   ```
-
-7) Check the generated reports for any errors:
-   ```shell
-   (
-     set +e
-     ERRS=$(ls library/resource-tor/build/reports/resource-validation/resource-tor | grep ".err")
-     echo ""
-     for file_err in $ERRS; do
-       echo "resource-tor/$file_err:"
-       cat "library/resource-tor/build/reports/resource-validation/resource-tor/$file_err"
-     done
-     echo ""
-
-     ERRS=$(ls library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl | grep ".err")
-     echo ""
-     for file_err in $ERRS; do
-       echo "resource-tor-gpl/$file_err:"
-       cat "library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/$file_err"
-     done
-     echo ""
-   )
+   ./external/task.sh verify
    ```
 
 If the output is blank, all built/packaged resources matched the expected sha256 hash values
