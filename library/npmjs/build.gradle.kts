@@ -44,8 +44,8 @@ npmPublish {
 
     val jvmGeoipSrcDir = torResourceValidation.jvmGeoipResourcesSrcDir
     val jvmTorLibsSrcDir = torResourceValidation.jvmTorLibResourcesSrcDir
-    val jvmGPLGeoipSrcDir = torResourceGPLValidation.jvmGeoipGPLResourcesSrcDir
-    val jvmGPLTorLibsSrcDir = torResourceGPLValidation.jvmTorGPLLibResourcesSrcDir
+    val jvmGPLGeoipSrcDir = torGPLResourceValidation.jvmGeoipResourcesSrcDir
+    val jvmGPLTorLibsSrcDir = torGPLResourceValidation.jvmTorLibResourcesSrcDir
 
     packages {
         val snapshotVersion = properties["NPMJS_SNAPSHOT_VERSION"]!!

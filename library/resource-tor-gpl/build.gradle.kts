@@ -27,14 +27,14 @@ kmpConfiguration {
         androidLibrary {
             android {
 
-                torResourceGPLValidation.configureTorGPLAndroidJniResources()
+                torGPLResourceValidation.configureTorAndroidJniResources()
 
                 defaultConfig {
                     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
                 }
 
                 sourceSets.getByName("main") {
-                    resources.srcDirs(torResourceGPLValidation.jvmGeoipGPLResourcesSrcDir)
+                    resources.srcDirs(torGPLResourceValidation.jvmGeoipResourcesSrcDir)
                 }
             }
 
@@ -60,8 +60,8 @@ kmpConfiguration {
 
         jvm {
             sourceSetMain {
-                resources.srcDir(torResourceGPLValidation.jvmGeoipGPLResourcesSrcDir)
-                resources.srcDir(torResourceGPLValidation.jvmTorGPLLibResourcesSrcDir)
+                resources.srcDir(torGPLResourceValidation.jvmGeoipResourcesSrcDir)
+                resources.srcDir(torGPLResourceValidation.jvmTorLibResourcesSrcDir)
             }
         }
 
@@ -102,7 +102,7 @@ kmpConfiguration {
                 }
             }
 
-            torResourceGPLValidation.configureTorGPLNativeResources()
+            torGPLResourceValidation.configureTorNativeResources()
         }
     }
 }
