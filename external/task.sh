@@ -389,6 +389,9 @@ function package { ## Packages build dir output
 
     __package:native "linux-libc/aarch64" "tor" "linuxArm64Main"
     __package:native "linux-libc/x86_64" "tor" "linuxX64Main"
+    __package:native:codesigned "ios/aarch64" "tor" "iosArm64Main"
+    __package:native:codesigned "ios-simulator/aarch64" "tor" "iosSimulatorArm64Main"
+    __package:native:codesigned "ios-simulator/x86_64" "tor" "iosX64Main"
     __package:native:codesigned "macos/aarch64" "tor" "macosArm64Main"
     __package:native:codesigned "macos/x86_64" "tor" "macosX64Main"
     __package:native:codesigned "mingw/x86_64" "tor.exe" "mingwX64Main"
@@ -407,16 +410,32 @@ function sign:apple { ## 2 ARGS - [1]: /path/to/key.p12  [2]: /path/to/app/store
   local os_name="macos"
   local file_name="tor"
   local module="resource-tor"
-  __signature:generate:apple "$1" "$2" "aarch64"
-  __signature:generate:apple "$1" "$2" "x86_64"
-  local os_subtype="-lts"
-  __signature:generate:apple "$1" "$2" "aarch64"
-  __signature:generate:apple "$1" "$2" "x86_64"
+#  __signature:generate:apple "$1" "$2" "aarch64"
+#  __signature:generate:apple "$1" "$2" "x86_64"
+#  local os_subtype="-lts"
+#  __signature:generate:apple "$1" "$2" "aarch64"
+#  __signature:generate:apple "$1" "$2" "x86_64"
+#  unset os_subtype
+#
+#  module="resource-tor-gpl"
+#  __signature:generate:apple "$1" "$2" "aarch64"
+#  __signature:generate:apple "$1" "$2" "x86_64"
+#  local os_subtype="-lts"
+#  __signature:generate:apple "$1" "$2" "aarch64"
+#  __signature:generate:apple "$1" "$2" "x86_64"
+#  unset os_subtype
 
-  module="resource-tor-gpl"
+  os_name="ios"
+  module="resource-tor"
+  __signature:generate:apple "$1" "$2" "aarch64"
+  local os_subtype="-simulator"
   __signature:generate:apple "$1" "$2" "aarch64"
   __signature:generate:apple "$1" "$2" "x86_64"
   unset os_subtype
+
+  module="resource-tor-gpl"
+  __signature:generate:apple "$1" "$2" "aarch64"
+  local os_subtype="-simulator"
   __signature:generate:apple "$1" "$2" "aarch64"
   __signature:generate:apple "$1" "$2" "x86_64"
 }
@@ -1262,12 +1281,16 @@ function __signature:generate:apple {
   DIR_TMP="$(mktemp -d)"
   trap 'rm -rf "$DIR_TMP"' SIGINT ERR
 
-  # TODO: handle non-macos
-  local dir_bundle="$DIR_TMP/KmpTor.app"
-  local dir_bundle_macos="$dir_bundle/Contents/MacOS"
-  local dir_bundle_libs="$dir_bundle_macos/Tor"
-  mkdir -p "$dir_bundle_libs"
-  echo '<?xml version="1.0" encoding="UTF-8"?>
+  local dir_lib_location=
+
+  if [ "$os_name" = "macos" ]; then
+    local dir_bundle="$DIR_TMP/KmpTor.app"
+    local dir_bundle_macos="$dir_bundle/Contents/MacOS"
+    local dir_bundle_libs="$dir_bundle_macos/Tor"
+    dir_lib_location="$dir_bundle_libs"
+
+    mkdir -p "$dir_bundle_libs"
+    echo '<?xml version="1.0" encoding="UTF-8"?>
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key>
@@ -1279,21 +1302,30 @@ function __signature:generate:apple {
 </dict>
 </plist>' > "$dir_bundle/Contents/Info.plist"
 
-  cp "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" "$dir_bundle_macos/program"
-  cp -a "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" "$dir_bundle_libs/$file_name"
+    cp "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" "$dir_bundle_macos/program"
+    cp -a "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" "$dir_bundle_libs/$file_name"
 
-  ${RCODESIGN} sign \
-    --p12-file "$1" \
-    --code-signature-flags runtime \
-    "$dir_bundle"
+    ${RCODESIGN} sign \
+      --p12-file "$1" \
+      --code-signature-flags runtime \
+      "$dir_bundle"
 
-  echo ""
-  sleep 1
+    echo ""
+    sleep 1
 
-  ${RCODESIGN} notary-submit \
-    --api-key-path "$2" \
-    --staple \
-    "$dir_bundle"
+    ${RCODESIGN} notary-submit \
+      --api-key-path "$2" \
+      --staple \
+      "$dir_bundle"
+  else
+    cp -a "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" "$DIR_TMP"
+    dir_lib_location="$DIR_TMP"
+
+    ${RCODESIGN} sign \
+      --p12-file "$1" \
+      --code-signature-flags runtime \
+      "$DIR_TMP/$file_name"
+  fi
 
   mkdir -p "$DIR_TASK/codesign/$module/$os_name$os_subtype/$3"
   rm -rf "$DIR_TASK/codesign/$module/$os_name$os_subtype/$3/$file_name.signature"
@@ -1303,7 +1335,7 @@ function __signature:generate:apple {
   ../tooling diff-cli create \
     --diff-ext-name ".signature" \
     "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" \
-    "$dir_bundle_libs/$file_name" \
+    "$dir_lib_location/$file_name" \
     "$DIR_TASK/codesign/$module/$os_name$os_subtype/$3"
 
   echo ""
