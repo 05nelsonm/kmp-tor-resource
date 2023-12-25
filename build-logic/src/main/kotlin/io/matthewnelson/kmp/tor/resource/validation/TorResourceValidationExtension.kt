@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+@file:Suppress("PropertyName")
+
 package io.matthewnelson.kmp.tor.resource.validation
 
 import com.android.build.api.dsl.LibraryExtension
@@ -33,13 +35,47 @@ import javax.inject.Inject
  * Any errors are written to the project's `build/reports/resource-validation/resource-tor`
  * directory for the respective files.
  * */
-abstract class TorResourceValidationExtension @Inject internal constructor(
-    project: Project
-): ResourceValidation(
-    project = project,
-    moduleName = "resource-tor",
-    modulePackageName = "io.matthewnelson.kmp.tor.resource.tor",
-) {
+abstract class TorResourceValidationExtension: ResourceValidation {
+
+    @Inject
+    internal constructor(project: Project): this(project, moduleName = "resource-tor")
+
+    internal constructor(
+        project: Project,
+        moduleName: String,
+    ): super(project, moduleName, modulePackageName = "io.matthewnelson.kmp.tor.resource.tor")
+
+    // Hashes for geoip/geoip6 files are identical for GPL/non-GPL, and Jvm/Native
+    private val hashGeoipGZ: String = "67cd2f146fbe6d572aedb394d966a0581d8ba040361fd475cdd7519a4216847f"
+    private val hashGeoip6GZ: String = "ee9b64481effb235dd10565dfc987f53fd175fc97615eabed10345707e50b61f"
+
+    protected open val hashAndroidAarch64: String = "9046e7b6938fcf4c88a1e242a4b4dc1495a3563d94f472b1512f8d6fe8327aa8"
+    protected open val hashAndroidArmv7: String = "24770369165f712810906f6e561f6ca9683ea522e78a7d666496b3b3b91ad6c1"
+    protected open val hashAndroidX86: String = "f2813e91c68cce65c0ba38c5aaf1f97979a14615462a885b936189049152daa5"
+    protected open val hashAndroidX86_64: String = "93c839025409a62b5f1657ae4be1692267eb988fea42359b07c81ae8fe660af1"
+
+    protected open val hashJvmLinuxAndroidAarch64: String = "2a745aae3c2e0985d38d258fe5b74b996908b17826b047d335d4ac984e3fc5cd"
+    protected open val hashJvmLinuxAndroidArmv7: String = "7f4d761e6aa134c248195444ad60fbccf406d23a1d6c1d68928ea59d38f3dbd3"
+    protected open val hashJvmLinuxAndroidX86: String = "81159423eadbd161c5e45fe69ff0908b5b5098e4d0964e1077b4c24783b2443b"
+    protected open val hashJvmLinuxAndroidX86_64: String = "c434c3d861fc0c848280c8b688c11babb72075d7b33f033d574b88496521fbb1"
+
+    protected open val hashJvmLinuxLibcAarch64: String = "341ddf5e66ff86077b00f4a2c71f83c25dcad9df5290a3eeff49c7df33a5bb9e"
+    protected open val hashJvmLinuxLibcArmv7: String = "ff2bf19a88bd64ac3fecd45625a078679c2f13bcaa3b28ed5afdbf4084defb8f"
+    protected open val hashJvmLinuxLibcPpc64: String = "ea81effccca032bc6776e77725b6685f9c333e93f9e80714a4995e8e35dd0b26"
+    protected open val hashJvmLinuxLibcX86: String = "490a8a0a7f4ceb14f553726be7d4b357c391bfac4086217b0f0f93944c0f50d2"
+    protected open val hashJvmLinuxLibcX86_64: String = "4d453d77f122c9a73664ccfe9356faef7b5df2938f0575912b57be9d469f9863"
+
+    protected open val hashJvmMacosAarch64: String = "a81e210c14937197949a5e6eb9979338962aedb4cbb03010390eec7570e180bf"
+    protected open val hashJvmMacosX86_64: String = "762a11f117f2237732915ce630d60f2d69e49aa2553e71f094ac3aed58b034d6"
+
+    protected open val hashJvmMingwX86: String = "e093a36db1e6410541873b32d1e1143a33633f377de15dc4afc38e60e223ebbc"
+    protected open val hashJvmMingwX86_64: String = "7627c3826333946e421ada71f813f51e672651577c2fa688575fe1046d10a17d"
+
+    protected open val hashNativeLinuxArm64: String = "341ddf5e66ff86077b00f4a2c71f83c25dcad9df5290a3eeff49c7df33a5bb9e"
+    protected open val hashNativeLinuxX64: String = "4d453d77f122c9a73664ccfe9356faef7b5df2938f0575912b57be9d469f9863"
+    protected open val hashNativeMacosArm64: String = "7658a9e7af98e38c5f701226a5597e08963d1507cbd624c4d562ad4ae31dbf17"
+    protected open val hashNativeMacosX64: String = "c062ac1e393cf688f36bedf69684bfe851ef9d4a5160b19d07b74b4963e53402"
+    protected open val hashNativeMingwX64: String = "7627c3826333946e421ada71f813f51e672651577c2fa688575fe1046d10a17d"
 
     private val geoipErrors = mutableSetOf<String>()
     private var isGeoipConfigured = false
@@ -122,102 +158,102 @@ abstract class TorResourceValidationExtension @Inject internal constructor(
     }
 
     private val jvmGeoipHashes = setOf(
-        "geoip.gz" to "67cd2f146fbe6d572aedb394d966a0581d8ba040361fd475cdd7519a4216847f",
-        "geoip6.gz" to "ee9b64481effb235dd10565dfc987f53fd175fc97615eabed10345707e50b61f",
+        "geoip.gz" to hashGeoipGZ,
+        "geoip6.gz" to hashGeoip6GZ,
     )
 
-    override val androidLibHashes = setOf(
+    final override val androidLibHashes by lazy { setOf(
         AndroidLibHash(
             libname = "libtor.so",
-            hashArm64 = "9046e7b6938fcf4c88a1e242a4b4dc1495a3563d94f472b1512f8d6fe8327aa8",
-            hashArmv7 = "24770369165f712810906f6e561f6ca9683ea522e78a7d666496b3b3b91ad6c1",
-            hashX86 = "f2813e91c68cce65c0ba38c5aaf1f97979a14615462a885b936189049152daa5",
-            hashX86_64 = "93c839025409a62b5f1657ae4be1692267eb988fea42359b07c81ae8fe660af1",
+            hashArm64 = hashAndroidAarch64,
+            hashArmv7 = hashAndroidArmv7,
+            hashX86 = hashAndroidX86,
+            hashX86_64 = hashAndroidX86_64,
         ),
-    )
+    )}
 
-    override val jvmLibHashes = setOf(
+    final override val jvmLibHashes by lazy { setOf(
         JvmLibHash(
             libname = "tor.gz",
             machine = "linux-android",
             arch = "aarch64",
-            hash = "2a745aae3c2e0985d38d258fe5b74b996908b17826b047d335d4ac984e3fc5cd",
+            hash = hashJvmLinuxAndroidAarch64,
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "linux-android",
             arch = "armv7",
-            hash = "7f4d761e6aa134c248195444ad60fbccf406d23a1d6c1d68928ea59d38f3dbd3",
+            hash = hashJvmLinuxAndroidArmv7,
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "linux-android",
             arch = "x86",
-            hash = "81159423eadbd161c5e45fe69ff0908b5b5098e4d0964e1077b4c24783b2443b",
+            hash = hashJvmLinuxAndroidX86,
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "linux-android",
             arch = "x86_64",
-            hash = "c434c3d861fc0c848280c8b688c11babb72075d7b33f033d574b88496521fbb1",
+            hash = hashJvmLinuxAndroidX86_64,
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "linux-libc",
             arch = "aarch64",
-            hash = "341ddf5e66ff86077b00f4a2c71f83c25dcad9df5290a3eeff49c7df33a5bb9e",
+            hash = hashJvmLinuxLibcAarch64,
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "linux-libc",
             arch = "armv7",
-            hash = "ff2bf19a88bd64ac3fecd45625a078679c2f13bcaa3b28ed5afdbf4084defb8f",
+            hash = hashJvmLinuxLibcArmv7,
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "linux-libc",
             arch = "ppc64",
-            hash = "ea81effccca032bc6776e77725b6685f9c333e93f9e80714a4995e8e35dd0b26",
+            hash = hashJvmLinuxLibcPpc64,
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "linux-libc",
             arch = "x86",
-            hash = "490a8a0a7f4ceb14f553726be7d4b357c391bfac4086217b0f0f93944c0f50d2",
+            hash = hashJvmLinuxLibcX86,
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "linux-libc",
             arch = "x86_64",
-            hash = "4d453d77f122c9a73664ccfe9356faef7b5df2938f0575912b57be9d469f9863",
+            hash = hashJvmLinuxLibcX86_64,
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "macos",
             arch = "aarch64",
-            hash = "a81e210c14937197949a5e6eb9979338962aedb4cbb03010390eec7570e180bf",
+            hash = hashJvmMacosAarch64,
         ),
         JvmLibHash(
             libname = "tor.gz",
             machine = "macos",
             arch = "x86_64",
-            hash = "762a11f117f2237732915ce630d60f2d69e49aa2553e71f094ac3aed58b034d6",
+            hash = hashJvmMacosX86_64,
         ),
         JvmLibHash(
             libname = "tor.exe.gz",
             machine = "mingw",
             arch = "x86",
-            hash = "e093a36db1e6410541873b32d1e1143a33633f377de15dc4afc38e60e223ebbc",
+            hash = hashJvmMingwX86,
         ),
         JvmLibHash(
             libname = "tor.exe.gz",
             machine = "mingw",
             arch = "x86_64",
-            hash = "7627c3826333946e421ada71f813f51e672651577c2fa688575fe1046d10a17d",
+            hash = hashJvmMingwX86_64,
         ),
-    )
+    )}
 
-    override val nativeResourceHashes: Set<NativeResourceHash> = setOf(
+    final override val nativeResourceHashes by lazy { setOf(
 //        NativeResourceHash(
 //            sourceSetName = "ios",
 //            ktFileName = "resource_tor_gz.kt",
@@ -226,37 +262,37 @@ abstract class TorResourceValidationExtension @Inject internal constructor(
         NativeResourceHash(
             sourceSetName = "linuxArm64",
             ktFileName = "resource_tor_gz.kt",
-            hash = "341ddf5e66ff86077b00f4a2c71f83c25dcad9df5290a3eeff49c7df33a5bb9e",
+            hash = hashNativeLinuxArm64,
         ),
         NativeResourceHash(
             sourceSetName = "linuxX64",
             ktFileName = "resource_tor_gz.kt",
-            hash = "4d453d77f122c9a73664ccfe9356faef7b5df2938f0575912b57be9d469f9863",
+            hash = hashNativeLinuxX64,
         ),
         NativeResourceHash(
             sourceSetName = "macosArm64",
             ktFileName = "resource_tor_gz.kt",
-            hash = "7658a9e7af98e38c5f701226a5597e08963d1507cbd624c4d562ad4ae31dbf17",
+            hash = hashNativeMacosArm64,
         ),
         NativeResourceHash(
             sourceSetName = "macosX64",
             ktFileName = "resource_tor_gz.kt",
-            hash = "c062ac1e393cf688f36bedf69684bfe851ef9d4a5160b19d07b74b4963e53402",
+            hash = hashNativeMacosX64,
         ),
         NativeResourceHash(
             sourceSetName = "mingwX64",
             ktFileName = "resource_tor_exe_gz.kt",
-            hash = "7627c3826333946e421ada71f813f51e672651577c2fa688575fe1046d10a17d",
+            hash = hashNativeMingwX64,
         ),
         NativeResourceHash(
             sourceSetName = "native",
             ktFileName = "resource_geoip6_gz.kt",
-            hash = "ee9b64481effb235dd10565dfc987f53fd175fc97615eabed10345707e50b61f",
+            hash = hashGeoip6GZ,
         ),
         NativeResourceHash(
             sourceSetName = "native",
             ktFileName = "resource_geoip_gz.kt",
-            hash = "67cd2f146fbe6d572aedb394d966a0581d8ba040361fd475cdd7519a4216847f",
+            hash = hashGeoipGZ,
         ),
 //        NativeResourceHash(
 //            sourceSetName = "tvos",
@@ -268,7 +304,7 @@ abstract class TorResourceValidationExtension @Inject internal constructor(
 //            ktFileName = "resource_tor_gz.kt",
 //            hash = "TODO",
 //        ),
-    )
+    )}
 
     internal companion object {
         internal const val NAME = "torResourceValidation"

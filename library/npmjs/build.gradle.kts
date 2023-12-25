@@ -36,16 +36,7 @@ npmPublish {
         }
     }
 
-    val dryRun = properties["NPMJS_DRY_RUN"] != null
-
-    if (dryRun) {
-        dry.set(true)
-    }
-
-    val jvmGeoipSrcDir = torResourceValidation.jvmGeoipResourcesSrcDir
-    val jvmTorLibsSrcDir = torResourceValidation.jvmTorLibResourcesSrcDir
-    val jvmGPLGeoipSrcDir = torResourceGPLValidation.jvmGeoipGPLResourcesSrcDir
-    val jvmGPLTorLibsSrcDir = torResourceGPLValidation.jvmTorGPLLibResourcesSrcDir
+    if (properties["NPMJS_DRY_RUN"] != null) { dry.set(true) }
 
     packages {
         val snapshotVersion = properties["NPMJS_SNAPSHOT_VERSION"]!!
@@ -63,14 +54,10 @@ npmPublish {
             registerTorResources(
                 isGPL = false,
                 releaseVersion = "$vProject.$snapshotVersion",
-                geoipResourcesDir = jvmGeoipSrcDir,
-                torResourcesDir = jvmTorLibsSrcDir,
             )
             registerTorResources(
                 isGPL = true,
                 releaseVersion = "$vProject.$snapshotVersion",
-                geoipResourcesDir = jvmGPLGeoipSrcDir,
-                torResourcesDir = jvmGPLTorLibsSrcDir,
             )
         } else {
             check(snapshotVersion == 0) {
@@ -89,26 +76,18 @@ npmPublish {
             registerTorResources(
                 isGPL = false,
                 releaseVersion = vProject,
-                geoipResourcesDir = jvmGeoipSrcDir,
-                torResourcesDir = jvmTorLibsSrcDir,
             )
             registerTorResources(
                 isGPL = false,
                 releaseVersion = "$nextVersion-SNAPSHOT.$snapshotVersion",
-                geoipResourcesDir = jvmGeoipSrcDir,
-                torResourcesDir = jvmTorLibsSrcDir,
             )
             registerTorResources(
                 isGPL = true,
                 releaseVersion = vProject,
-                geoipResourcesDir = jvmGPLGeoipSrcDir,
-                torResourcesDir = jvmGPLTorLibsSrcDir,
             )
             registerTorResources(
                 isGPL = true,
                 releaseVersion = "$nextVersion-SNAPSHOT.$snapshotVersion",
-                geoipResourcesDir = jvmGPLGeoipSrcDir,
-                torResourcesDir = jvmGPLTorLibsSrcDir,
             )
         }
     }
@@ -117,10 +96,20 @@ npmPublish {
 fun NpmPackages.registerTorResources(
     isGPL: Boolean,
     releaseVersion: String,
-    geoipResourcesDir: File,
-    torResourcesDir: File
 ) {
-    val suffix = if (isGPL) "-gpl" else ""
+    val (suffix, geoipResourceSrcDir, torResourceSrcDir) = if (isGPL) {
+        Triple(
+            "-gpl",
+            torGPLResourceValidation.jvmGeoipResourcesSrcDir,
+            torGPLResourceValidation.jvmTorLibResourcesSrcDir
+        )
+    } else {
+        Triple(
+            "",
+            torResourceValidation.jvmGeoipResourcesSrcDir,
+            torResourceValidation.jvmTorLibResourcesSrcDir,
+        )
+    }
 
     val name = if (releaseVersion.contains("SNAPSHOT")) {
         "tor${suffix}-resources-snapshot"
@@ -137,8 +126,8 @@ fun NpmPackages.registerTorResources(
 
         files {
             from("index.js")
-            from(geoipResourcesDir)
-            from(torResourcesDir)
+            from(geoipResourceSrcDir)
+            from(torResourceSrcDir)
         }
 
         packageInfoJson()
@@ -147,18 +136,18 @@ fun NpmPackages.registerTorResources(
 
 fun NpmPackage.packageInfoJson() {
     packageJson {
-        homepage.set("https://github.com/05nelsonm/kmp-tor-resource")
+        homepage.set("https://github.com/05nelsonm/${rootProject.name}")
         license.set("Apache 2.0")
 
         repository {
             type.set("git")
-            url.set("git+https://github.com/05nelsonm/kmp-tor-resource.git")
+            url.set("git+https://github.com/05nelsonm/${rootProject.name}.git")
         }
         author {
             name.set("Matthew Nelson")
         }
         bugs {
-            url.set("https://github.com/05nelsonm/kmp-tor-resource/issues")
+            url.set("https://github.com/05nelsonm/${rootProject.name}/issues")
         }
 
         keywords.add("tor")
