@@ -406,6 +406,7 @@ function sign:apple { ## 2 ARGS - [1]: /path/to/key.p12  [2]: /path/to/app/store
   fi
 
   local os_name="macos"
+  local file_name="tor"
   local module="resource-tor"
   __signature:generate:apple "$1" "$2" "aarch64"
   __signature:generate:apple "$1" "$2" "x86_64"
@@ -414,10 +415,9 @@ function sign:apple { ## 2 ARGS - [1]: /path/to/key.p12  [2]: /path/to/app/store
   __signature:generate:apple "$1" "$2" "x86_64"
 
   module="resource-tor-gpl"
-  unset os_subtype
   __signature:generate:apple "$1" "$2" "aarch64"
   __signature:generate:apple "$1" "$2" "x86_64"
-  local os_subtype="-lts"
+  unset os_subtype
   __signature:generate:apple "$1" "$2" "aarch64"
   __signature:generate:apple "$1" "$2" "x86_64"
 }
@@ -428,6 +428,7 @@ function sign:mingw { ## 2 ARGS - [1]: /path/to/file.key [2]: /path/to/cert.cer
     __error "Usage: $0 $FUNCNAME /path/to/file.key /path/to/cert.cer"
   fi
 
+  local file_name="tor.exe"
   local module="resource-tor"
   __signature:generate:mingw "$1" "$2" "x86"
   __signature:generate:mingw "$1" "$2" "x86_64"
@@ -1217,21 +1218,22 @@ function __package {
 
 function __signature:generate:apple {
   __require:var_set "$module" "module"
+  __require:var_set "$file_name" "file_name"
   __require:var_set "$os_name" "os_name"
   __require:cmd "$RCODESIGN" "rcodesign"
   __require:file_exists "$1" "p12 file does not exist"
   __require:file_exists "$2" "App Store Connect api key file does not exist"
   __require:var_set "$3" "arch"
 
-  if [ ! -f "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/tor" ]; then
+  if [ ! -f "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" ]; then
     echo "
-    tor not found for $os_name$os_subtype:$3. Skipping...
+    $file_name not found for $module/$os_name$os_subtype:$3. Skipping...
     "
     return 0
   fi
 
   echo "
-    Creating detached signature for build/out/$module/$os_name$os_subtype/$3/tor
+    Creating detached signature for build/out/$module/$os_name$os_subtype/$3/$file_name
   "
 
   DIR_TMP="$(mktemp -d)"
@@ -1246,7 +1248,7 @@ function __signature:generate:apple {
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key>
-    <string>tor.program</string>
+    <string>program</string>
     <key>CFBundleIdentifier</key>
     <string>io.matthewnelson</string>
     <key>LSUIElement</key>
@@ -1254,8 +1256,8 @@ function __signature:generate:apple {
 </dict>
 </plist>' > "$dir_bundle/Contents/Info.plist"
 
-  cp "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/tor" "$dir_bundle_macos/tor.program"
-  cp -a "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/tor" "$dir_bundle_libs/tor"
+  cp "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" "$dir_bundle_macos/program"
+  cp -a "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" "$dir_bundle_libs/$file_name"
 
   ${RCODESIGN} sign \
     --p12-file "$1" \
@@ -1271,14 +1273,14 @@ function __signature:generate:apple {
     "$dir_bundle"
 
   mkdir -p "$DIR_TASK/codesign/$module/$os_name$os_subtype/$3"
-  rm -rf "$DIR_TASK/codesign/$module/$os_name$os_subtype/$3/tor.signature"
+  rm -rf "$DIR_TASK/codesign/$module/$os_name$os_subtype/$3/$file_name.signature"
 
   echo ""
 
   ../tooling diff-cli create \
     --diff-ext-name ".signature" \
-    "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/tor" \
-    "$dir_bundle_libs/tor" \
+    "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" \
+    "$dir_bundle_libs/$file_name" \
     "$DIR_TASK/codesign/$module/$os_name$os_subtype/$3"
 
   echo ""
@@ -1290,20 +1292,21 @@ function __signature:generate:apple {
 
 function __signature:generate:mingw {
   __require:var_set "$module" "module"
+  __require:var_set "$file_name" "file_name"
   __require:cmd "$OSSLSIGNCODE" "osslsigncode"
   __require:file_exists "$1" "key file does not exist"
   __require:file_exists "$2" "cert file does not exist"
   __require:var_set "$3" "arch"
 
-  if [ ! -f "$DIR_TASK/build/out/$module/mingw/$3/tor.exe" ]; then
+  if [ ! -f "$DIR_TASK/build/out/$module/mingw/$3/$file_name" ]; then
     echo "
-    tor.exe not found for mingw/$3. Skipping...
+    $file_name not found for mingw/$3. Skipping...
     "
     return 0
   fi
 
   echo "
-    Creating detached signature for build/out/$module/mingw/$3/tor.exe
+    Creating detached signature for build/out/$module/mingw/$3/$file_name
   "
 
   DIR_TMP="$(mktemp -d)"
@@ -1313,18 +1316,18 @@ function __signature:generate:mingw {
     -key "$1" \
     -certs "$2" \
     -t "http://timestamp.comodoca.com" \
-    -in "$DIR_TASK/build/out/$module/mingw/$3/tor.exe" \
-    -out "$DIR_TMP/tor.exe"
+    -in "$DIR_TASK/build/out/$module/mingw/$3/$file_name" \
+    -out "$DIR_TMP/$file_name"
 
   mkdir -p "$DIR_TASK/codesign/$module/mingw/$3"
-  rm -rf "$DIR_TASK/codesign/$module/mingw/$3/tor.exe.signature"
+  rm -rf "$DIR_TASK/codesign/$module/mingw/$3/$file_name.signature"
 
   echo ""
 
   ../tooling diff-cli create \
     --diff-ext-name ".signature" \
-    "$DIR_TASK/build/out/$module/mingw/$3/tor.exe" \
-    "$DIR_TMP/tor.exe" \
+    "$DIR_TASK/build/out/$module/mingw/$3/$file_name" \
+    "$DIR_TMP/$file_name" \
     "$DIR_TASK/codesign/$module/mingw/$3"
 
   echo ""
