@@ -293,15 +293,15 @@ js-yaml@4.1.0:
   dependencies:
     argparse "^2.0.1"
 
-kmp-tor-resource-tor-gpl@4.8.10-0-SNAPSHOT.1:
-  version "4.8.10-0-SNAPSHOT.1"
-  resolved "https://registry.yarnpkg.com/kmp-tor-resource-tor-gpl/-/kmp-tor-resource-tor-gpl-4.8.10-0-SNAPSHOT.1.tgz#d6bd26bde2f897057da642d8f488c204b0606ec5"
-  integrity sha512-TY9yycisLs+jfxmX1DXsMuR3dAjuPugZL35IE5J4/hMLvmtOYhUDpr1L9A4dKocUKKod9VETC1SZtZSO3Weqqw==
+kmp-tor-resource-tor-gpl@4.8.10-0-SNAPSHOT.2:
+  version "4.8.10-0-SNAPSHOT.2"
+  resolved "https://registry.yarnpkg.com/kmp-tor-resource-tor-gpl/-/kmp-tor-resource-tor-gpl-4.8.10-0-SNAPSHOT.2.tgz#2ecef03a85ef0a19a6fb2071463529abde6a87a3"
+  integrity sha512-hgh+sHHbqn6tjE6FDoERM9MjkJodLMguamUk/hVUJA3pfEx064btU6W0Tv5knKaijSFc6eY7gPfxnVkCc/CNPg==
 
-kmp-tor-resource-tor@4.8.10-0-SNAPSHOT.1:
-  version "4.8.10-0-SNAPSHOT.1"
-  resolved "https://registry.yarnpkg.com/kmp-tor-resource-tor/-/kmp-tor-resource-tor-4.8.10-0-SNAPSHOT.1.tgz#8f0ccad872ef1c7094cdd0c3e4c489d3bf6a4de5"
-  integrity sha512-WKLk+ZSnOJ2lWabXcjswaR9KhKjbSLB9LUOgQOuE1duOP86XO9asifVhYOuUjrmL1xS6wIPKKY6ZyzpIlcnLfg==
+kmp-tor-resource-tor@4.8.10-0-SNAPSHOT.2:
+  version "4.8.10-0-SNAPSHOT.2"
+  resolved "https://registry.yarnpkg.com/kmp-tor-resource-tor/-/kmp-tor-resource-tor-4.8.10-0-SNAPSHOT.2.tgz#0e147483e90701e770ed4e75ee1432b2c02a51d8"
+  integrity sha512-zmH4003c9YpZickMLbk7MMPFSZWj551XhWC701WU3bSnvF6FzYqnf8Cu2w89QzawK3mMLT6DMqAX3ku4R9N3EA==
 
 locate-path@^6.0.0:
   version "6.0.0"
