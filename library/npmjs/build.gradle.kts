@@ -30,12 +30,16 @@ npmPublish {
     val npmjsAuthToken = rootProject.findProperty("NPMJS_AUTH_TOKEN") as? String
     if (npmjsAuthToken.isNullOrBlank()) return@npmPublish
 
-//    dry.set(true)
-
     registries {
         npmjs {
             authToken.set(npmjsAuthToken)
         }
+    }
+
+    val dryRun = properties["NPMJS_DRY_RUN"] != null
+
+    if (dryRun) {
+        dry.set(true)
     }
 
     val jvmGeoipSrcDir = torResourceValidation.jvmGeoipResourcesSrcDir

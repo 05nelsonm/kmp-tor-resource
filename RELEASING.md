@@ -32,13 +32,19 @@ NPMJS_AUTH_TOKEN=<auth token>
 
 - Clean
 ```bash
-./gradlew clean -DKMP_TARGETS_ALL
+./gradlew clean
 ```
 
-- Assemble `Npmjs` packages
+- Perform a dry run of the publication
 ```bash
-./gradlew assembleTorResourcesReleasePackage assembleTorResourcesSnapshotPackage assembleTorGplResourcesReleasePackage assembleTorGplResourcesSnapshotPackage -DKMP_TARGETS_ALL
+./gradlew -PNPMJS_DRY_RUN publishTorResourcesSnapshotPackageToNpmjsRegistry publishTorGplResourcesSnapshotPackageToNpmjsRegistry publishTorResourcesReleasePackageToNpmjsRegistry publishTorGplResourcesReleasePackageToNpmjsRegistry
 ```
+
+- Inspect the terminal output
+    - `README.md` present
+    - `index.js` is present
+    - geoip files should be about `1MB` each
+    - tor files should be about `3MB` each
 
 - Check for resource validation errors
 ```bash
@@ -48,22 +54,14 @@ cat library/npmjs/build/reports/resource-validation/resource-tor-gpl/jvm.err
 cat library/npmjs/build/reports/resource-validation/resource-tor-gpl/jvm-geoip.err
 ```
 
-- Inspect contents of the assembled packages in `npmjs/build/packages` for correctness
-    - `index.js`
-    - `package.json`
-    - `README.md`
-    - `io/matthewnelson/kmp/tor/resource/tor/geoip.gz`
-    - `io/matthewnelson/kmp/tor/resource/tor/geoip6.gz`
-    - All binaries within `io/matthewnelson/kmp/tor/resource/tor/native/`
-
-- Publish assets to `Npmjs`
+- Publish to `Npmjs`
 ```bash
-./gradlew publishTorResourcesReleasePackageToNpmjsRegistry publishTorResourcesSnapshotPackageToNpmjsRegistry publishTorGplResourcesReleasePackageToNpmjsRegistry publishTorGplResourcesSnapshotPackageToNpmjsRegistry -DKMP_TARGETS_ALL
+./gradlew publishTorResourcesSnapshotPackageToNpmjsRegistry publishTorGplResourcesSnapshotPackageToNpmjsRegistry publishTorResourcesReleasePackageToNpmjsRegistry publishTorGplResourcesReleasePackageToNpmjsRegistry
 ```
 
 - Update `.kotlin-js-store/yarn.lock`
 ```bash
-./gradlew kotlinUpgradeYarnLock -DKMP_TARGETS_ALL
+./gradlew kotlinUpgradeYarnLock
 ```
 
 - Verify that `.kotlin-js-store/yarn.lock` is using the release 
