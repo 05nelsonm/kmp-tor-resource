@@ -354,14 +354,7 @@ function package { ## Packages build dir output
   trap 'rm -rf "$DIR_STAGING"' SIGINT ERR
 
   local module=
-  local dir_out=
   for module in $(echo "resource-tor,resource-tor-gpl" | tr "," " "); do
-    if [ "$module" = "resource-tor-gpl" ]; then
-      dir_out="out-gpl"
-    else
-      dir_out="out"
-    fi
-
     __package:geoip "geoip"
     __package:geoip "geoip6"
 
@@ -413,13 +406,14 @@ function sign:apple { ## 2 ARGS - [1]: /path/to/key.p12  [2]: /path/to/app/store
   fi
 
   local os_name="macos"
+  local module="resource-tor"
   __signature:generate:apple "$1" "$2" "aarch64"
   __signature:generate:apple "$1" "$2" "x86_64"
   local os_subtype="-lts"
   __signature:generate:apple "$1" "$2" "aarch64"
   __signature:generate:apple "$1" "$2" "x86_64"
 
-  local is_gpl="yes"
+  module="resource-tor-gpl"
   unset os_subtype
   __signature:generate:apple "$1" "$2" "aarch64"
   __signature:generate:apple "$1" "$2" "x86_64"
@@ -434,10 +428,11 @@ function sign:mingw { ## 2 ARGS - [1]: /path/to/file.key [2]: /path/to/cert.cer
     __error "Usage: $0 $FUNCNAME /path/to/file.key /path/to/cert.cer"
   fi
 
+  local module="resource-tor"
   __signature:generate:mingw "$1" "$2" "x86"
   __signature:generate:mingw "$1" "$2" "x86_64"
 
-  local is_gpl="yes"
+  module="resource-tor-gpl"
   __signature:generate:mingw "$1" "$2" "x86"
   __signature:generate:mingw "$1" "$2" "x86_64"
 }
@@ -509,13 +504,13 @@ function __build:configure:target:init {
       __require:var_set "$ndk_abi" "ndk_abi"
 
       DIR_BUILD="build/stage/$os_name/$ndk_abi"
-      DIR_OUT="build/out/$os_name/$ndk_abi"
-      DIR_OUT_GPL="build/out-gpl/$os_name/$ndk_abi"
+      DIR_OUT_TOR="build/out/resource-tor/$os_name/$ndk_abi"
+      DIR_OUT_TOR_GPL="build/out/resource-tor-gpl/$os_name/$ndk_abi"
       ;;
     *)
       DIR_BUILD="build/stage/$os_name$os_subtype/$os_arch"
-      DIR_OUT="build/out/$os_name$os_subtype/$os_arch"
-      DIR_OUT_GPL="build/out-gpl/$os_name$os_subtype/$os_arch"
+      DIR_OUT_TOR="build/out/resource-tor/$os_name$os_subtype/$os_arch"
+      DIR_OUT_TOR_GPL="build/out/resource-tor-gpl/$os_name$os_subtype/$os_arch"
       ;;
   esac
 
@@ -576,8 +571,8 @@ if [ -z "$CROSS_TRIPLE" ]; then
 fi
 '
 
-  __conf:SCRIPT "readonly DIR_OUT=\"\$DIR_EXTERNAL/$DIR_OUT\""
-  __conf:SCRIPT "readonly DIR_OUT_GPL=\"\$DIR_EXTERNAL/$DIR_OUT_GPL\""
+  __conf:SCRIPT "readonly DIR_OUT_TOR=\"\$DIR_EXTERNAL/$DIR_OUT_TOR\""
+  __conf:SCRIPT "readonly DIR_OUT_TOR_GPL=\"\$DIR_EXTERNAL/$DIR_OUT_TOR_GPL\""
   __conf:SCRIPT 'readonly DIR_TMP="$(mktemp -d)"'
   __conf:SCRIPT "trap 'rm -rf \$DIR_TMP' EXIT"
   __conf:SCRIPT '
@@ -585,15 +580,15 @@ readonly NUM_JOBS="$(nproc)"
 '
 
   if [ "$os_name" = "android" ]; then
-    __conf:SCRIPT "readonly DIR_OUT_ALT=\"\$DIR_EXTERNAL/build/out/linux-$os_name/$os_arch\""
-    __conf:SCRIPT "readonly DIR_OUT_GPL_ALT=\"\$DIR_EXTERNAL/build/out-gpl/linux-$os_name/$os_arch\""
+    __conf:SCRIPT "readonly DIR_OUT_TOR_ALT=\"\$DIR_EXTERNAL/build/out/resource-tor/linux-$os_name/$os_arch\""
+    __conf:SCRIPT "readonly DIR_OUT_TOR_GPL_ALT=\"\$DIR_EXTERNAL/build/out/resource-tor-gpl/linux-$os_name/$os_arch\""
     __conf:SCRIPT '
-rm -rf "$DIR_OUT_ALT"
-rm -rf "$DIR_OUT_GPL_ALT"'
+rm -rf "$DIR_OUT_TOR_ALT"
+rm -rf "$DIR_OUT_TOR_GPL_ALT"'
   fi
 
-  __conf:SCRIPT 'rm -rf "$DIR_OUT"
-rm -rf "$DIR_OUT_GPL"
+  __conf:SCRIPT 'rm -rf "$DIR_OUT_TOR"
+rm -rf "$DIR_OUT_TOR_GPL"
 rm -rf "$DIR_SCRIPT/libevent"
 rm -rf "$DIR_SCRIPT/openssl"
 rm -rf "$DIR_SCRIPT/tor"
@@ -791,8 +786,8 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
 function __build:configure:target:build_script {
   __require:var_set "$os_name" "os_name"
   __require:var_set "$DIR_BUILD" "DIR_BUILD"
-  __require:var_set "$DIR_OUT" "DIR_OUT"
-  __require:var_set "$DIR_OUT_GPL" "DIR_OUT_GPL"
+  __require:var_set "$DIR_OUT_TOR" "DIR_OUT_TOR"
+  __require:var_set "$DIR_OUT_TOR_GPL" "DIR_OUT_TOR_GPL"
 
   __conf:SCRIPT "export CFLAGS=\"$CONF_CFLAGS\""
   __conf:SCRIPT "export LDFLAGS=\"$CONF_LDFLAGS\""
@@ -906,8 +901,8 @@ make install >> \"\$DIR_SCRIPT/tor-gpl/logs/make.log\" 2>> \"\$DIR_SCRIPT/tor-gp
 "
 
   # out
-  __conf:SCRIPT 'mkdir -p "$DIR_OUT"'
-  __conf:SCRIPT 'mkdir -p "$DIR_OUT_GPL"'
+  __conf:SCRIPT 'mkdir -p "$DIR_OUT_TOR"'
+  __conf:SCRIPT 'mkdir -p "$DIR_OUT_TOR_GPL"'
 
   local bin_name=
   local bin_name_out=
@@ -932,25 +927,25 @@ make install >> \"\$DIR_SCRIPT/tor-gpl/logs/make.log\" 2>> \"\$DIR_SCRIPT/tor-gp
       ;;
   esac
 
-  __conf:SCRIPT "cp \"\$DIR_SCRIPT/tor/bin/$bin_name\" \"\$DIR_OUT/$bin_name_out\""
-  __conf:SCRIPT "cp \"\$DIR_SCRIPT/tor-gpl/bin/$bin_name\" \"\$DIR_OUT_GPL/$bin_name_out\""
-  __conf:SCRIPT "\${STRIP} -D \"\$DIR_OUT/$bin_name_out\""
-  __conf:SCRIPT "\${STRIP} -D \"\$DIR_OUT_GPL/$bin_name_out\""
+  __conf:SCRIPT "cp \"\$DIR_SCRIPT/tor/bin/$bin_name\" \"\$DIR_OUT_TOR/$bin_name_out\""
+  __conf:SCRIPT "cp \"\$DIR_SCRIPT/tor-gpl/bin/$bin_name\" \"\$DIR_OUT_TOR_GPL/$bin_name_out\""
+  __conf:SCRIPT "\${STRIP} -D \"\$DIR_OUT_TOR/$bin_name_out\""
+  __conf:SCRIPT "\${STRIP} -D \"\$DIR_OUT_TOR_GPL/$bin_name_out\""
 
   if [ "$os_name" = "android" ]; then
     __conf:SCRIPT "
-mkdir -p \"\$DIR_OUT_ALT\"
-mkdir -p \"\$DIR_OUT_GPL_ALT\"
-cp -a \"\$DIR_OUT/$bin_name_out\" \"\$DIR_OUT_ALT/tor\"
-cp -a \"\$DIR_OUT_GPL/$bin_name_out\" \"\$DIR_OUT_GPL_ALT/tor\"
+mkdir -p \"\$DIR_OUT_TOR_ALT\"
+mkdir -p \"\$DIR_OUT_TOR_GPL_ALT\"
+cp -a \"\$DIR_OUT_TOR/$bin_name_out\" \"\$DIR_OUT_TOR_ALT/tor\"
+cp -a \"\$DIR_OUT_TOR_GPL/$bin_name_out\" \"\$DIR_OUT_TOR_GPL_ALT/tor\"
 "
   fi
 
   __conf:SCRIPT "echo \"Unstripped: \$(sha256sum \"\$DIR_SCRIPT/tor/bin/$bin_name\")\""
-  __conf:SCRIPT "echo \"Stripped:   \$(sha256sum \"\$DIR_OUT/$bin_name_out\")\""
+  __conf:SCRIPT "echo \"Stripped:   \$(sha256sum \"\$DIR_OUT_TOR/$bin_name_out\")\""
   __conf:SCRIPT 'echo ""'
   __conf:SCRIPT "echo \"Unstripped: \$(sha256sum \"\$DIR_SCRIPT/tor-gpl/bin/$bin_name\")\""
-  __conf:SCRIPT "echo \"Stripped:   \$(sha256sum \"\$DIR_OUT_GPL/$bin_name_out\")\""
+  __conf:SCRIPT "echo \"Stripped:   \$(sha256sum \"\$DIR_OUT_TOR_GPL/$bin_name_out\")\""
 
   mkdir -p "$DIR_BUILD"
   echo "$CONF_SCRIPT" > "$DIR_BUILD/build.sh"
@@ -1121,17 +1116,15 @@ function __package:geoip {
 }
 
 function __package:android {
-  __require:var_set "$dir_out" "dir_out"
   local permissions="755"
   # no gzip
-  __package "build/$dir_out/android/$1" "androidMain/jniLibs/$1" "libtor.so"
+  __package "build/out/$module/android/$1" "androidMain/jniLibs/$1" "libtor.so"
 }
 
 function __package:jvm {
-  __require:var_set "$dir_out" "dir_out"
   local permissions="755"
   local gzip="yes"
-  __package "build/$dir_out/$1" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/tor/native/$1" "$2"
+  __package "build/out/$module/$1" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/tor/native/$1" "$2"
 }
 
 function __package:jvm:codesigned {
@@ -1140,11 +1133,10 @@ function __package:jvm:codesigned {
 }
 
 function __package:native {
-  __require:var_set "$dir_out" "dir_out"
   local permissions="755"
   local gzip="yes"
   local native_resource="io.matthewnelson.kmp.tor.resource.tor.internal"
-  __package "build/$dir_out/$1" "$3" "$2"
+  __package "build/out/$module/$1" "$3" "$2"
 }
 
 function __package:native:codesigned {
@@ -1224,23 +1216,14 @@ function __package {
 }
 
 function __signature:generate:apple {
+  __require:var_set "$module" "module"
   __require:var_set "$os_name" "os_name"
   __require:cmd "$RCODESIGN" "rcodesign"
   __require:file_exists "$1" "p12 file does not exist"
   __require:file_exists "$2" "App Store Connect api key file does not exist"
   __require:var_set "$3" "arch"
 
-  local dir_out=
-  local module=
-  if [ -n "$is_gpl" ]; then
-    dir_out="out-gpl"
-    module="resource-tor-gpl"
-  else
-    dir_out="out"
-    module="resource-tor"
-  fi
-
-  if [ ! -f "$DIR_TASK/build/$dir_out/$os_name$os_subtype/$3/tor" ]; then
+  if [ ! -f "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/tor" ]; then
     echo "
     tor not found for $os_name$os_subtype:$3. Skipping...
     "
@@ -1248,7 +1231,7 @@ function __signature:generate:apple {
   fi
 
   echo "
-    Creating detached signature for build/$dir_out/$os_name$os_subtype/$3/tor
+    Creating detached signature for build/out/$module/$os_name$os_subtype/$3/tor
   "
 
   DIR_TMP="$(mktemp -d)"
@@ -1271,8 +1254,8 @@ function __signature:generate:apple {
 </dict>
 </plist>' > "$dir_bundle/Contents/Info.plist"
 
-  cp "$DIR_TASK/build/$dir_out/$os_name$os_subtype/$3/tor" "$dir_bundle_macos/tor.program"
-  cp -a "$DIR_TASK/build/$dir_out/$os_name$os_subtype/$3/tor" "$dir_bundle_libs/tor"
+  cp "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/tor" "$dir_bundle_macos/tor.program"
+  cp -a "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/tor" "$dir_bundle_libs/tor"
 
   ${RCODESIGN} sign \
     --p12-file "$1" \
@@ -1294,7 +1277,7 @@ function __signature:generate:apple {
 
   ../tooling diff-cli create \
     --diff-ext-name ".signature" \
-    "$DIR_TASK/build/$dir_out/$os_name$os_subtype/$3/tor" \
+    "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/tor" \
     "$dir_bundle_libs/tor" \
     "$DIR_TASK/codesign/$module/$os_name$os_subtype/$3"
 
@@ -1306,22 +1289,13 @@ function __signature:generate:apple {
 }
 
 function __signature:generate:mingw {
+  __require:var_set "$module" "module"
   __require:cmd "$OSSLSIGNCODE" "osslsigncode"
   __require:file_exists "$1" "key file does not exist"
   __require:file_exists "$2" "cert file does not exist"
   __require:var_set "$3" "arch"
 
-  local dir_out=
-  local module=
-  if [ -n "$is_gpl" ]; then
-    dir_out="out-gpl"
-    module="resource-tor-gpl"
-  else
-    dir_out="out"
-    module="resource-tor"
-  fi
-
-  if [ ! -f "$DIR_TASK/build/$dir_out/mingw/$3/tor.exe" ]; then
+  if [ ! -f "$DIR_TASK/build/out/$module/mingw/$3/tor.exe" ]; then
     echo "
     tor.exe not found for mingw/$3. Skipping...
     "
@@ -1329,7 +1303,7 @@ function __signature:generate:mingw {
   fi
 
   echo "
-    Creating detached signature for build/$dir_out/mingw/$3/tor.exe
+    Creating detached signature for build/out/$module/mingw/$3/tor.exe
   "
 
   DIR_TMP="$(mktemp -d)"
@@ -1339,7 +1313,7 @@ function __signature:generate:mingw {
     -key "$1" \
     -certs "$2" \
     -t "http://timestamp.comodoca.com" \
-    -in "$DIR_TASK/build/$dir_out/mingw/$3/tor.exe" \
+    -in "$DIR_TASK/build/out/$module/mingw/$3/tor.exe" \
     -out "$DIR_TMP/tor.exe"
 
   mkdir -p "$DIR_TASK/codesign/$module/mingw/$3"
@@ -1349,7 +1323,7 @@ function __signature:generate:mingw {
 
   ../tooling diff-cli create \
     --diff-ext-name ".signature" \
-    "$DIR_TASK/build/$dir_out/mingw/$3/tor.exe" \
+    "$DIR_TASK/build/out/$module/mingw/$3/tor.exe" \
     "$DIR_TMP/tor.exe" \
     "$DIR_TASK/codesign/$module/mingw/$3"
 
