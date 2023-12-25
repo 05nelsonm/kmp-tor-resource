@@ -1,0 +1,26 @@
+From f53e7388511cc519415f8448c82c9303f6b8dfbf Mon Sep 17 00:00:00 2001
+From: Matthew Nelson <developer@matthewnelson.io>
+Date: Mon, 25 Dec 2023 16:04:33 -0500
+Subject: [PATCH] Remove clear_cache
+
+---
+ src/ext/equix/hashx/src/compiler_a64.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/src/ext/equix/hashx/src/compiler_a64.c b/src/ext/equix/hashx/src/compiler_a64.c
+index f4efa561b9..a1d27bb093 100644
+--- a/src/ext/equix/hashx/src/compiler_a64.c
++++ b/src/ext/equix/hashx/src/compiler_a64.c
+@@ -155,9 +155,6 @@ bool hashx_compile_a64(const hashx_program* program, uint8_t* code) {
+ 	EMIT(pos, a64_epilogue);
+ 	if (!hashx_vm_rx(code, COMP_CODE_SIZE))
+ 		return false;
+-#ifdef __GNUC__
+-	__builtin___clear_cache((void*)code, (void*)pos);
+-#endif
+ 	return true;
+ }
+ 
+-- 
+2.34.1
+
