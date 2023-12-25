@@ -1,5 +1,4 @@
 [versions]
-androidx-startup = "1.1.1"
 androidx-test-core = "1.5.0"
 androidx-test-runner = "1.5.2"
 
@@ -16,14 +15,12 @@ kmp-file = "0.1.0-alpha02"
 kmp-tor-core = "2.0.0-alpha02"
 
 kotlincrypto-hash = "0.4.0"
-kotlinx-atomicfu = "0.23.1"
 kotlinx-cli = "0.3.6"
 kotlinx-datetime = "0.4.1"
 
 okio = "3.6.0"
 
 [libraries]
-androidx-startup-runtime = { module = "androidx.startup:startup-runtime", version.ref = "androidx-startup" }
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidx-test-core" }
 androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
 
@@ -41,7 +38,6 @@ kmp-tor-core-resource = { module = "io.matthewnelson.kmp-tor:core-resource", ver
 kmp-tor-core-resource-initializer = { module = "io.matthewnelson.kmp-tor:core-resource-initializer", version.ref = "kmp-tor-core" }
 
 kotlincrypto-hash-sha2 = { module = "org.kotlincrypto.hash:sha2", version.ref = "kotlincrypto-hash" }
-kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "kotlinx-atomicfu" }
 kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
