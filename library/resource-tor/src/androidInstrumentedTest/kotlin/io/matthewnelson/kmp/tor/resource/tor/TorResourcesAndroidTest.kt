@@ -15,14 +15,17 @@
  **/
 package io.matthewnelson.kmp.tor.resource.tor
 
-import kotlin.experimental.ExperimentalNativeApi
+import io.matthewnelson.kmp.tor.core.api.annotation.InternalKmpTorApi
+import io.matthewnelson.kmp.tor.resource.tor.internal.RESOURCE_CONFIG
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
-class TorResourceNativeUnitTest: TorResourceBaseTest() {
-
-    @OptIn(ExperimentalNativeApi::class)
-    override val isWindows: Boolean = Platform.osFamily == OsFamily.WINDOWS
+@OptIn(InternalKmpTorApi::class)
+class TorResourcesAndroidTest: TorResourcesBaseTest() {
 
     @Test
-    fun stub() {}
+    fun givenResourceConfig_whenAndroidEmulator_thenConfigLoadsOnlyGeoips() {
+        assertEquals(0, RESOURCE_CONFIG.errors.size)
+        assertEquals(2, RESOURCE_CONFIG.resources.size)
+    }
 }

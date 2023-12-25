@@ -21,7 +21,7 @@ import io.matthewnelson.kmp.file.*
 import kotlin.random.Random
 import kotlin.test.*
 
-abstract class TorResourceBaseTest {
+abstract class TorResourcesBaseTest {
 
     open val isWindows: Boolean = false
     private val testDir = SysTempDir.resolve("kmp_tor_test")
@@ -33,7 +33,7 @@ abstract class TorResourceBaseTest {
         // Will check extraction uses mkdirs instead of mkdir (which would fail)
         val workDir = testDir.resolve(random)
 
-        val paths = TorResource(workDir.toString().toFile()).install()
+        val paths = TorResources(workDir.toString().toFile()).install()
         println(paths)
 
         val geoip = paths.geoip

@@ -44,18 +44,16 @@ have a `GPL` license are able to take advantage of the new functionality, and pr
 ### Compilation
 
 `tor` is compiled via the `external/task.sh` script using `Docker` in order to maintain 
-reproducability. The maintainer then creates detached code signatures for Apple/Windows 
-targets which are checked into `git`; this is so others wishing to verify reproducability 
-of the `tor` binaries they are running (or providing to their users) can do so. More on that later.
+reproducability. Detached code signatures are generated for Apple/Windows builds which 
+are checked into `git`; this is so others wishing to verify reproducability of the `tor` 
+binaries they are running (or providing to their users) can do so.
 
 You can view the `help` output of `task.sh` by running `./external/task.sh` from the project's 
 root directory.
 
 ```
-# clone repository
+# git clone https://github.com/05nelsonm/kmp-tor-resource.git
 $ cd kmp-tor-resource
-$ git checkout master
-$ git pull
 $ ./external/task.sh
 ```
 
@@ -80,9 +78,11 @@ Running `./external/task.sh package` after a `build` task will do the following.
 
 After "packaging" all resources, an additional step for Node.js is performed.
  - `geoip`, `geoip6`, and all `tor` files are published to `Npmjs` via the
-   `library/npmjs` module (See https://www.npmjs.com/package/kmp-tor-resource-tor).
- - The `library/resource-tor` module then uses that `npm` dependency in order to provide 
-   the resources via Kotlin Multiplatform.
+   `library/npmjs` module.
+     - See https://www.npmjs.com/package/kmp-tor-resource-tor
+     - See https://www.npmjs.com/package/kmp-tor-resource-tor-gpl
+ - The `library/resource-tor` and `library/resource-tor-gpl` modules then uses that `npm` dependency 
+   in order to provide the resources via Kotlin Multiplatform.
 
 ### Distribution
 
@@ -99,7 +99,7 @@ The [kmp-tor][url-kmp-tor] project will handle all of this behind the scenes.
 If you are not using that, simply call:
 
 ```kotlin
-val paths = TorResource(installationDir = "/path/to/my/tor/dir").install()
+val paths = TorResources(installationDir = "/path/to/my/tor/dir".toFile()).install()
 println(paths.toString())
 
 // Paths.Tor: [
@@ -114,7 +114,7 @@ It will either throw an exception or extract the resources to the specified dire
      - **Android Runtime (Emulators and Devices):**
          - It will search for `libtor.so` within the application's `nativeLibraryDir` and return that path
          - All of this happens automatically and no configuration is needed.
-         - See the `library/resource-initializer` module for more details on how it does that
+         - See the [core-resource-initializer][url-core-resource-initializer]
      - **Android Unit Tests:**
          - You can add the `resource-android-unit-test` dependency and reflection will be used to
            source the correct `tor` binary resource for the given host/architecture that the tests 
@@ -231,3 +231,4 @@ TODO: gradle configuration for android
 [url-license]: https://www.apache.org/licenses/LICENSE-2.0
 [url-kotlin]: https://kotlinlang.org
 [url-kmp-tor]: https://github.com/05nelsonm/kmp-tor
+[url-core-resource-initializer]: https://github.com/05nelsonm/kmp-tor-core/tree/master/library/core-resource-initializer
