@@ -47,19 +47,41 @@ See [BUILD.md](BUILD.md)
 
 ### Compilation
 
+Tor and its dependencies are compiled from source using the following versions 
+
+<!-- TAG_VERSION -->
+<!-- TAG_DEPENDENCIES -->
+
+|          | git tag                 |
+|----------|-------------------------|
+| libevent | `release-2.1.12-stable` |
+| openssl  | `openssl-3.2.0`         |
+| tor      | `tor-0.4.8.10`          |
+| lzma     | `v5.4.5`                |
+| zlib     | `v1.3`                  |
+
 `tor` is compiled via the `external/task.sh` script using `Docker` in order to maintain 
-reproducability. Detached code signatures are generated for Apple/Windows builds which 
-are checked into `git`; this is so others wishing to verify reproducability of the `tor` 
-binaries they are running (or providing to their users) can do so.
+reproducability.
+
+Detached code signatures are generated for Apple/Windows builds which are checked into 
+`git`; this is so others wishing to verify reproducability of the `tor` binaries they 
+are running (or providing to their users) can do so.
 
 You can view the `help` output of `task.sh` by running `./external/task.sh` from the project's 
 root directory.
 
 ```
-# git clone https://github.com/05nelsonm/kmp-tor-resource.git
+$ git clone https://github.com/05nelsonm/kmp-tor-resource.git
 $ cd kmp-tor-resource
 $ ./external/task.sh
 ```
+
+<details>
+    <summary>Example Image</summary>
+
+![image][url-task-image]
+
+</details>
 
 ### Packaging
 
@@ -236,3 +258,4 @@ TODO: gradle configuration for android
 [url-kotlin]: https://kotlinlang.org
 [url-kmp-tor]: https://github.com/05nelsonm/kmp-tor
 [url-core-resource-initializer]: https://github.com/05nelsonm/kmp-tor-core/tree/master/library/core-resource-initializer
+[url-task-image]: https://github.com/05nelsonm/kmp-tor-resource/assets/44778092/4c77c211-b3ac-41c2-ba39-c2267eff15c1
