@@ -876,8 +876,20 @@ export LZMA_CFLAGS="-I$DIR_SCRIPT/xz/include"
 export LZMA_LIBS="$DIR_SCRIPT/xz/lib/liblzma.a"
 
 cp -R "$DIR_EXTERNAL/tor" "$DIR_TMP"
-cd "$DIR_TMP/tor"
-./autogen.sh > "$DIR_SCRIPT/tor/logs/autogen.log" 2> "$DIR_SCRIPT/tor/logs/autogen.err"'
+cd "$DIR_TMP/tor"'
+
+  if [ "$os_arch" = "aarch64" ]; then
+    case "$os_name" in
+      "ios"|"tvosos"|"watchos")
+        __conf:SCRIPT '
+# https://gitlab.torproject.org/tpo/core/tor/-/issues/40903
+sed -i "s+__builtin___clear_cache((void\*)code, (void\*)pos);+return true;+" "src/ext/equix/hashx/src/compiler_a64.c"
+'
+        ;;
+    esac
+  fi
+
+  __conf:SCRIPT './autogen.sh > "$DIR_SCRIPT/tor/logs/autogen.log" 2> "$DIR_SCRIPT/tor/logs/autogen.err"'
   __conf:SCRIPT "$CONF_TOR > \"\$DIR_SCRIPT/tor/logs/configure.log\" 2> \"\$DIR_SCRIPT/tor/logs/configure.err\"
 make clean > /dev/null 2>&1
 make -j\"\$NUM_JOBS\" > \"\$DIR_SCRIPT/tor/logs/make.log\" 2> \"\$DIR_SCRIPT/tor/logs/make.err\"
@@ -892,8 +904,20 @@ echo \"
 \""
   __conf:SCRIPT '
 cp -R "$DIR_EXTERNAL/tor" "$DIR_TMP/tor-gpl"
-cd "$DIR_TMP/tor-gpl"
-./autogen.sh > "$DIR_SCRIPT/tor-gpl/logs/autogen.log" 2> "$DIR_SCRIPT/tor-gpl/logs/autogen.err"'
+cd "$DIR_TMP/tor-gpl"'
+
+  if [ "$os_arch" = "aarch64" ]; then
+    case "$os_name" in
+      "ios"|"tvos"|"watchos")
+        __conf:SCRIPT '
+# https://gitlab.torproject.org/tpo/core/tor/-/issues/40903
+sed -i "s+__builtin___clear_cache((void\*)code, (void\*)pos);+return true;+" "src/ext/equix/hashx/src/compiler_a64.c"
+'
+        ;;
+    esac
+  fi
+
+  __conf:SCRIPT './autogen.sh > "$DIR_SCRIPT/tor-gpl/logs/autogen.log" 2> "$DIR_SCRIPT/tor-gpl/logs/autogen.err"'
   __conf:SCRIPT "$CONF_TOR_GPL > \"\$DIR_SCRIPT/tor-gpl/logs/configure.log\" 2> \"\$DIR_SCRIPT/tor-gpl/logs/configure.err\"
 make clean > /dev/null 2>&1
 make -j\"\$NUM_JOBS\" > \"\$DIR_SCRIPT/tor-gpl/logs/make.log\" 2> \"\$DIR_SCRIPT/tor-gpl/logs/make.err\"
