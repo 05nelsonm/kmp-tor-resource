@@ -17,10 +17,7 @@
 
 package io.matthewnelson.kmp.tor.resource.validation
 
-import com.android.build.api.dsl.LibraryExtension
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.getByName
-import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import java.io.File
 import javax.inject.Inject
 
@@ -84,28 +81,12 @@ abstract class TorResourceValidationExtension: ResourceValidation {
     private var isGeoipConfigured = false
 
     @Throws(IllegalStateException::class)
-    fun configureTorAndroidJniResources() {
-        check(project.plugins.hasPlugin("com.android.library")) {
-            "The 'com.android.library' plugin is required to utilize this function"
-        }
+    fun configureTorAndroidJniResources() { configureAndroidJniResourcesProtected() }
 
-        project.extensions.getByName<LibraryExtension>("android").apply {
-            configureAndroidJniResources()
-        }
-    }
-
-    val jvmTorLibResourcesSrcDir: File get() = jvmLibResourcesSrcDir()
+    val jvmTorLibResourcesSrcDir: File get() = jvmLibResourcesSrcDirProtected()
 
     @Throws(IllegalStateException::class)
-    fun configureTorNativeResources() {
-        check(project.plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
-            "The 'org.jetbrains.kotlin.multiplatform' plugin is required to utilize this function"
-        }
-
-        project.extensions.getByName<KotlinMultiplatformExtension>("kotlin").apply {
-            configureNativeResources()
-        }
-    }
+    fun configureTorNativeResources() { configureNativeResourcesProtected() }
 
     val jvmGeoipResourcesSrcDir: File get() {
         val mockResourcesSrc = rootProjectDir
@@ -256,68 +237,93 @@ abstract class TorResourceValidationExtension: ResourceValidation {
         ),
     )}
 
-    final override val nativeResourceHashes by lazy { setOf(
-        NativeResourceHash(
-            sourceSetName = "iosArm64",
-            ktFileName = "resource_tor_gz.kt",
-            hash = hashNativeIosArm64,
-        ),
-        NativeResourceHash(
-            sourceSetName = "iosSimulatorArm64",
-            ktFileName = "resource_tor_gz.kt",
-            hash = hashNativeIosSimulatorArm64,
-        ),
-        NativeResourceHash(
-            sourceSetName = "iosX64",
-            ktFileName = "resource_tor_gz.kt",
-            hash = hashNativeIosX64,
-        ),
-        NativeResourceHash(
-            sourceSetName = "linuxArm64",
-            ktFileName = "resource_tor_gz.kt",
-            hash = hashNativeLinuxArm64,
-        ),
-        NativeResourceHash(
-            sourceSetName = "linuxX64",
-            ktFileName = "resource_tor_gz.kt",
-            hash = hashNativeLinuxX64,
-        ),
-        NativeResourceHash(
-            sourceSetName = "macosArm64",
-            ktFileName = "resource_tor_gz.kt",
-            hash = hashNativeMacosArm64,
-        ),
-        NativeResourceHash(
-            sourceSetName = "macosX64",
-            ktFileName = "resource_tor_gz.kt",
-            hash = hashNativeMacosX64,
-        ),
-        NativeResourceHash(
-            sourceSetName = "mingwX64",
-            ktFileName = "resource_tor_exe_gz.kt",
-            hash = hashNativeMingwX64,
-        ),
-        NativeResourceHash(
-            sourceSetName = "native",
-            ktFileName = "resource_geoip6_gz.kt",
-            hash = hashGeoip6GZ,
-        ),
-        NativeResourceHash(
-            sourceSetName = "native",
-            ktFileName = "resource_geoip_gz.kt",
-            hash = hashGeoipGZ,
-        ),
-//        NativeResourceHash(
-//            sourceSetName = "tvos",
-//            ktFileName = "resource_tor_gz.kt",
-//            hash = "TODO",
-//        ),
-//        NativeResourceHash(
-//            sourceSetName = "watchos",
-//            ktFileName = "resource_tor_gz.kt",
-//            hash = "TODO",
-//        ),
-    )}
+    final override val nativeResourceHashes by lazy { buildMap {
+        put(
+            "iosArm64",
+            setOf(
+                NativeResourceHash(
+                    ktFileName = "resource_tor_gz.kt",
+                    hash = hashNativeIosArm64,
+                ),
+            )
+        )
+        put(
+            "iosSimulatorArm64",
+            setOf(
+                NativeResourceHash(
+                    ktFileName = "resource_tor_gz.kt",
+                    hash = hashNativeIosSimulatorArm64,
+                ),
+            )
+        )
+        put(
+            "iosX64",
+            setOf(
+                NativeResourceHash(
+                    ktFileName = "resource_tor_gz.kt",
+                    hash = hashNativeIosX64,
+                ),
+            )
+        )
+        put(
+            "linuxArm64",
+            setOf(
+                NativeResourceHash(
+                    ktFileName = "resource_tor_gz.kt",
+                    hash = hashNativeLinuxArm64,
+                ),
+            )
+        )
+        put(
+            "linuxX64",
+            setOf(
+                NativeResourceHash(
+                    ktFileName = "resource_tor_gz.kt",
+                    hash = hashNativeLinuxX64,
+                ),
+            )
+        )
+        put(
+            "macosArm64",
+            setOf(
+                NativeResourceHash(
+                    ktFileName = "resource_tor_gz.kt",
+                    hash = hashNativeMacosArm64,
+                ),
+            )
+        )
+        put(
+            "macosX64",
+            setOf(
+                NativeResourceHash(
+                    ktFileName = "resource_tor_gz.kt",
+                    hash = hashNativeMacosX64,
+                ),
+            )
+        )
+        put(
+            "mingwX64",
+            setOf(
+                NativeResourceHash(
+                    ktFileName = "resource_tor_exe_gz.kt",
+                    hash = hashNativeMingwX64,
+                ),
+            )
+        )
+        put(
+            "native",
+            setOf(
+                NativeResourceHash(
+                    ktFileName = "resource_geoip6_gz.kt",
+                    hash = hashGeoip6GZ,
+                ),
+                NativeResourceHash(
+                    ktFileName = "resource_geoip_gz.kt",
+                    hash = hashGeoipGZ,
+                ),
+            )
+        )
+    }}
 
     internal companion object {
         internal const val NAME = "torResourceValidation"
