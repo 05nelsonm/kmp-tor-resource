@@ -196,9 +196,15 @@ MACOS_TARGETS="JVM,JS,IOS_ARM64,IOS_X64,IOS_SIMULATOR_ARM64,MACOS_ARM64,MACOS_X6
 
 - Check `resource-validation` error reports for any errors
 ```bash
+cat library/resource-tor/build/reports/resource-validation/resource-tor/iosArm64.err
+cat library/resource-tor/build/reports/resource-validation/resource-tor/iosSimulatorArm64.err
+cat library/resource-tor/build/reports/resource-validation/resource-tor/iosX64.err
 cat library/resource-tor/build/reports/resource-validation/resource-tor/macosArm64.err
 cat library/resource-tor/build/reports/resource-validation/resource-tor/macosX64.err
 cat library/resource-tor/build/reports/resource-validation/resource-tor/native.err
+cat library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/iosArm64.err
+cat library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/iosSimulatorArm64.err
+cat library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/iosX64.err
 cat library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/macosArm64.err
 cat library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/macosX64.err
 cat library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/native.err

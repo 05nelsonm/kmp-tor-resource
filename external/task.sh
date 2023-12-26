@@ -61,11 +61,11 @@ function build:all:desktop { ## Builds all Linux, macOS, Windows targets
 #  build:freebsd:x86_64
 #}
 
-#function build:all:ios { ## Builds all iOS targets
-#  build:ios-simulator:aarch64
-#  build:ios-simulator:x86_64
-#  build:ios:aarch64
-#}
+function build:all:ios { ## Builds all iOS targets
+  build:ios-simulator:aarch64
+  build:ios-simulator:x86_64
+  build:ios:aarch64
+}
 
 function build:all:linux-libc { ## Builds all Linux Libc targets
   build:linux-libc:aarch64
@@ -88,9 +88,9 @@ function build:all:macos { ## Builds all macOS and macOS LTS targets
   build:macos:x86_64
 }
 
-function build:all:mobile { ## Builds all Android targets
+function build:all:mobile { ## Builds all Android and iOS targets
   build:all:android
-#  build:all:ios
+  build:all:ios
 }
 
 function build:all:mingw { ## Builds all Windows targets
@@ -138,35 +138,34 @@ function build:android:x86_64 { ## Builds Android x86_64
   __exec:docker:run
 }
 
-# TODO: Fix ios-*:aarch64 link errors
-#function build:ios-simulator:aarch64 { ## Builds iOS Simulator arm64
-#  local os_name="ios"
-#  local os_subtype="-simulator"
-#  local os_arch="aarch64"
-#  local openssl_target="iossimulator-xcrun"
-#  local cc_clang="yes"
-#  __build:configure:target:init
-#  __exec:docker:run
-#}
-#
-#function build:ios-simulator:x86_64 { ## Builds iOS Simulator x86_64
-#  local os_name="ios"
-#  local os_subtype="-simulator"
-#  local os_arch="x86_64"
-#  local openssl_target="iossimulator-xcrun"
-#  local cc_clang="yes"
-#  __build:configure:target:init
-#  __exec:docker:run
-#}
-#
-#function build:ios:aarch64 { ## Builds iOS arm64
-#  local os_name="ios"
-#  local os_arch="aarch64"
-#  local openssl_target="ios64-xcrun"
-#  local cc_clang="yes"
-#  __build:configure:target:init
-#  __exec:docker:run
-#}
+function build:ios-simulator:aarch64 { ## Builds iOS Simulator arm64
+  local os_name="ios"
+  local os_subtype="-simulator"
+  local os_arch="aarch64"
+  local openssl_target="iossimulator-xcrun"
+  local cc_clang="yes"
+  __build:configure:target:init
+  __exec:docker:run
+}
+
+function build:ios-simulator:x86_64 { ## Builds iOS Simulator x86_64
+  local os_name="ios"
+  local os_subtype="-simulator"
+  local os_arch="x86_64"
+  local openssl_target="iossimulator-xcrun"
+  local cc_clang="yes"
+  __build:configure:target:init
+  __exec:docker:run
+}
+
+function build:ios:aarch64 { ## Builds iOS arm64
+  local os_name="ios"
+  local os_arch="aarch64"
+  local openssl_target="ios64-xcrun"
+  local cc_clang="yes"
+  __build:configure:target:init
+  __exec:docker:run
+}
 
 #function build:freebsd:aarch64 { ## Builds FreeBSD aarch64
 #  local os_name="freebsd"
@@ -390,6 +389,9 @@ function package { ## Packages build dir output
 
     __package:native "linux-libc/aarch64" "tor" "linuxArm64Main"
     __package:native "linux-libc/x86_64" "tor" "linuxX64Main"
+    __package:native:codesigned "ios/aarch64" "tor" "iosArm64Main"
+    __package:native:codesigned "ios-simulator/aarch64" "tor" "iosSimulatorArm64Main"
+    __package:native:codesigned "ios-simulator/x86_64" "tor" "iosX64Main"
     __package:native:codesigned "macos/aarch64" "tor" "macosArm64Main"
     __package:native:codesigned "macos/x86_64" "tor" "macosX64Main"
     __package:native:codesigned "mingw/x86_64" "tor.exe" "mingwX64Main"
@@ -413,11 +415,27 @@ function sign:apple { ## 2 ARGS - [1]: /path/to/key.p12  [2]: /path/to/app/store
   local os_subtype="-lts"
   __signature:generate:apple "$1" "$2" "aarch64"
   __signature:generate:apple "$1" "$2" "x86_64"
+  unset os_subtype
 
   module="resource-tor-gpl"
   __signature:generate:apple "$1" "$2" "aarch64"
   __signature:generate:apple "$1" "$2" "x86_64"
+  local os_subtype="-lts"
+  __signature:generate:apple "$1" "$2" "aarch64"
+  __signature:generate:apple "$1" "$2" "x86_64"
   unset os_subtype
+
+  os_name="ios"
+  module="resource-tor"
+  __signature:generate:apple "$1" "$2" "aarch64"
+  local os_subtype="-simulator"
+  __signature:generate:apple "$1" "$2" "aarch64"
+  __signature:generate:apple "$1" "$2" "x86_64"
+  unset os_subtype
+
+  module="resource-tor-gpl"
+  __signature:generate:apple "$1" "$2" "aarch64"
+  local os_subtype="-simulator"
   __signature:generate:apple "$1" "$2" "aarch64"
   __signature:generate:apple "$1" "$2" "x86_64"
 }
@@ -877,8 +895,20 @@ export LZMA_CFLAGS="-I$DIR_SCRIPT/xz/include"
 export LZMA_LIBS="$DIR_SCRIPT/xz/lib/liblzma.a"
 
 cp -R "$DIR_EXTERNAL/tor" "$DIR_TMP"
-cd "$DIR_TMP/tor"
-./autogen.sh > "$DIR_SCRIPT/tor/logs/autogen.log" 2> "$DIR_SCRIPT/tor/logs/autogen.err"'
+cd "$DIR_TMP/tor"'
+
+  if [ "$os_arch" = "aarch64" ]; then
+    case "$os_name" in
+      "ios"|"tvosos"|"watchos")
+        __conf:SCRIPT '
+# https://gitlab.torproject.org/tpo/core/tor/-/issues/40903
+sed -i "s+__builtin___clear_cache((void\*)code, (void\*)pos);+return true;+" "src/ext/equix/hashx/src/compiler_a64.c"
+'
+        ;;
+    esac
+  fi
+
+  __conf:SCRIPT './autogen.sh > "$DIR_SCRIPT/tor/logs/autogen.log" 2> "$DIR_SCRIPT/tor/logs/autogen.err"'
   __conf:SCRIPT "$CONF_TOR > \"\$DIR_SCRIPT/tor/logs/configure.log\" 2> \"\$DIR_SCRIPT/tor/logs/configure.err\"
 make clean > /dev/null 2>&1
 make -j\"\$NUM_JOBS\" > \"\$DIR_SCRIPT/tor/logs/make.log\" 2> \"\$DIR_SCRIPT/tor/logs/make.err\"
@@ -893,8 +923,20 @@ echo \"
 \""
   __conf:SCRIPT '
 cp -R "$DIR_EXTERNAL/tor" "$DIR_TMP/tor-gpl"
-cd "$DIR_TMP/tor-gpl"
-./autogen.sh > "$DIR_SCRIPT/tor-gpl/logs/autogen.log" 2> "$DIR_SCRIPT/tor-gpl/logs/autogen.err"'
+cd "$DIR_TMP/tor-gpl"'
+
+  if [ "$os_arch" = "aarch64" ]; then
+    case "$os_name" in
+      "ios"|"tvos"|"watchos")
+        __conf:SCRIPT '
+# https://gitlab.torproject.org/tpo/core/tor/-/issues/40903
+sed -i "s+__builtin___clear_cache((void\*)code, (void\*)pos);+return true;+" "src/ext/equix/hashx/src/compiler_a64.c"
+'
+        ;;
+    esac
+  fi
+
+  __conf:SCRIPT './autogen.sh > "$DIR_SCRIPT/tor-gpl/logs/autogen.log" 2> "$DIR_SCRIPT/tor-gpl/logs/autogen.err"'
   __conf:SCRIPT "$CONF_TOR_GPL > \"\$DIR_SCRIPT/tor-gpl/logs/configure.log\" 2> \"\$DIR_SCRIPT/tor-gpl/logs/configure.err\"
 make clean > /dev/null 2>&1
 make -j\"\$NUM_JOBS\" > \"\$DIR_SCRIPT/tor-gpl/logs/make.log\" 2> \"\$DIR_SCRIPT/tor-gpl/logs/make.err\"
@@ -1239,12 +1281,16 @@ function __signature:generate:apple {
   DIR_TMP="$(mktemp -d)"
   trap 'rm -rf "$DIR_TMP"' SIGINT ERR
 
-  # TODO: handle non-macos
-  local dir_bundle="$DIR_TMP/KmpTor.app"
-  local dir_bundle_macos="$dir_bundle/Contents/MacOS"
-  local dir_bundle_libs="$dir_bundle_macos/Tor"
-  mkdir -p "$dir_bundle_libs"
-  echo '<?xml version="1.0" encoding="UTF-8"?>
+  local dir_lib_location=
+
+  if [ "$os_name" = "macos" ]; then
+    local dir_bundle="$DIR_TMP/KmpTor.app"
+    local dir_bundle_macos="$dir_bundle/Contents/MacOS"
+    local dir_bundle_libs="$dir_bundle_macos/Tor"
+    dir_lib_location="$dir_bundle_libs"
+
+    mkdir -p "$dir_bundle_libs"
+    echo '<?xml version="1.0" encoding="UTF-8"?>
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key>
@@ -1256,21 +1302,30 @@ function __signature:generate:apple {
 </dict>
 </plist>' > "$dir_bundle/Contents/Info.plist"
 
-  cp "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" "$dir_bundle_macos/program"
-  cp -a "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" "$dir_bundle_libs/$file_name"
+    cp "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" "$dir_bundle_macos/program"
+    cp -a "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" "$dir_bundle_libs/$file_name"
 
-  ${RCODESIGN} sign \
-    --p12-file "$1" \
-    --code-signature-flags runtime \
-    "$dir_bundle"
+    ${RCODESIGN} sign \
+      --p12-file "$1" \
+      --code-signature-flags runtime \
+      "$dir_bundle"
 
-  echo ""
-  sleep 1
+    echo ""
+    sleep 1
 
-  ${RCODESIGN} notary-submit \
-    --api-key-path "$2" \
-    --staple \
-    "$dir_bundle"
+    ${RCODESIGN} notary-submit \
+      --api-key-path "$2" \
+      --staple \
+      "$dir_bundle"
+  else
+    cp -a "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" "$DIR_TMP"
+    dir_lib_location="$DIR_TMP"
+
+    ${RCODESIGN} sign \
+      --p12-file "$1" \
+      --code-signature-flags runtime \
+      "$DIR_TMP/$file_name"
+  fi
 
   mkdir -p "$DIR_TASK/codesign/$module/$os_name$os_subtype/$3"
   rm -rf "$DIR_TASK/codesign/$module/$os_name$os_subtype/$3/$file_name.signature"
@@ -1280,7 +1335,7 @@ function __signature:generate:apple {
   ../tooling diff-cli create \
     --diff-ext-name ".signature" \
     "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" \
-    "$dir_bundle_libs/$file_name" \
+    "$dir_lib_location/$file_name" \
     "$DIR_TASK/codesign/$module/$os_name$os_subtype/$3"
 
   echo ""
