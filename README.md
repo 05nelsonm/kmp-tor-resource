@@ -10,6 +10,7 @@
 ![badge-platform-jvm]
 ![badge-platform-js-node]
 ![badge-platform-linux]
+![badge-platform-ios]
 ![badge-platform-macos]
 ![badge-platform-windows]
 ![badge-support-apple-silicon]
@@ -264,4 +265,4 @@ TODO: gradle configuration for android
 [url-kmp-tor]: https://github.com/05nelsonm/kmp-tor
 [url-kmp-tor-core]: https://github.com/05nelsonm/kmp-tor-core
 [url-core-resource-initializer]: https://github.com/05nelsonm/kmp-tor-core/tree/master/library/core-resource-initializer
-[url-task-image]: https://github.com/05nelsonm/kmp-tor-resource/assets/44778092/4c77c211-b3ac-41c2-ba39-c2267eff15c1
+[url-task-image]: https://github.com/05nelsonm/kmp-tor-resource/assets/44778092/8be9197e-4135-43ad-9629-e18ef0e90523
