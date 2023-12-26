@@ -410,20 +410,20 @@ function sign:apple { ## 2 ARGS - [1]: /path/to/key.p12  [2]: /path/to/app/store
   local os_name="macos"
   local file_name="tor"
   local module="resource-tor"
-#  __signature:generate:apple "$1" "$2" "aarch64"
-#  __signature:generate:apple "$1" "$2" "x86_64"
-#  local os_subtype="-lts"
-#  __signature:generate:apple "$1" "$2" "aarch64"
-#  __signature:generate:apple "$1" "$2" "x86_64"
-#  unset os_subtype
-#
-#  module="resource-tor-gpl"
-#  __signature:generate:apple "$1" "$2" "aarch64"
-#  __signature:generate:apple "$1" "$2" "x86_64"
-#  local os_subtype="-lts"
-#  __signature:generate:apple "$1" "$2" "aarch64"
-#  __signature:generate:apple "$1" "$2" "x86_64"
-#  unset os_subtype
+  __signature:generate:apple "$1" "$2" "aarch64"
+  __signature:generate:apple "$1" "$2" "x86_64"
+  local os_subtype="-lts"
+  __signature:generate:apple "$1" "$2" "aarch64"
+  __signature:generate:apple "$1" "$2" "x86_64"
+  unset os_subtype
+
+  module="resource-tor-gpl"
+  __signature:generate:apple "$1" "$2" "aarch64"
+  __signature:generate:apple "$1" "$2" "x86_64"
+  local os_subtype="-lts"
+  __signature:generate:apple "$1" "$2" "aarch64"
+  __signature:generate:apple "$1" "$2" "x86_64"
+  unset os_subtype
 
   os_name="ios"
   module="resource-tor"
