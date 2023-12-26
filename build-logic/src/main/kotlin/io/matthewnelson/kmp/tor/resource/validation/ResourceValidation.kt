@@ -18,6 +18,7 @@ import com.android.build.api.dsl.LibraryExtension
 import io.matthewnelson.encoding.base16.Base16
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.getByName
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import java.io.File
 import java.io.IOException
@@ -31,7 +32,8 @@ sealed class ResourceValidation(
 
     protected abstract val androidLibHashes: Set<AndroidLibHash>
     protected abstract val jvmLibHashes: Set<JvmLibHash>
-    protected abstract val nativeResourceHashes: Set<NativeResourceHash>
+    // <SourceSet name, Set<hashes>>
+    protected abstract val nativeResourceHashes: Map<String, Set<NativeResourceHash>>
 
     private val androidJniErrors = mutableSetOf<String>()
     private val jvmErrors = mutableSetOf<String>()
@@ -51,9 +53,18 @@ sealed class ResourceValidation(
         .resolve("resource-validation")
         .resolve(moduleName)
 
-    protected fun LibraryExtension.configureAndroidJniResources() {
+    protected fun configureAndroidJniResourcesProtected() {
         check(androidLibHashes.isNotEmpty()) { "androidLibHashes cannot be empty" }
+        check(project.plugins.hasPlugin("com.android.library")) {
+            "The 'com.android.library' plugin is required to utilize this function"
+        }
 
+        project.extensions.getByName<LibraryExtension>("android").apply {
+            configureAndroidJniResources()
+        }
+    }
+
+    private fun LibraryExtension.configureAndroidJniResources() {
         if (isAndroidConfigured) return
 
         packaging {
@@ -108,7 +119,7 @@ sealed class ResourceValidation(
         generateReport(reportFileName = "android", errors = androidJniErrors)
     }
 
-    protected fun jvmLibResourcesSrcDir(): File {
+    protected fun jvmLibResourcesSrcDirProtected(): File {
         check(jvmLibHashes.isNotEmpty()) { "jvmLibHashes cannot be empty" }
 
         val mockResourcesSrc = rootProjectDir
@@ -160,8 +171,22 @@ sealed class ResourceValidation(
         }
     }
 
-    protected fun KotlinMultiplatformExtension.configureNativeResources() {
+    protected fun configureNativeResourcesProtected() {
         check(nativeResourceHashes.isNotEmpty()) { "nativeResourceHashes cannot be empty" }
+        check(project.plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
+            "The 'org.jetbrains.kotlin.multiplatform' plugin is required to utilize this function"
+        }
+
+        project.extensions.getByName<KotlinMultiplatformExtension>("kotlin").apply {
+            configureNativeResources()
+        }
+    }
+
+    private fun KotlinMultiplatformExtension.configureNativeResources() {
+        check(nativeResourceHashes.isNotEmpty()) { "nativeResourceHashes cannot be empty" }
+        check(project.plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
+            "The 'org.jetbrains.kotlin.multiplatform' plugin is required to utilize this function"
+        }
 
         if (isNativeConfigured) return
 
@@ -177,26 +202,25 @@ sealed class ResourceValidation(
             .resolve(moduleName)
 
         with(sourceSets) {
-            nativeResourceHashes.forEach { nativeResource ->
-                var errors = nativeErrors[nativeResource.sourceSetName]
+            nativeResourceHashes.forEach { (sourceSet, hashes) ->
+                var errors = nativeErrors[sourceSet]
 
                 if (errors == null) {
                     errors = mutableSetOf()
-                    nativeErrors[nativeResource.sourceSetName] = errors
+                    nativeErrors[sourceSet] = errors
                 }
 
-                val srcSet = findByName("${nativeResource.sourceSetName}Main") ?: return@forEach
+                val srcSet = findByName("${sourceSet}Main") ?: return@forEach
 
-                val error = nativeResource.validate(modulePackageName, packageModuleDir)
-
-                val kotlinSrcDir = if (error != null) {
+                // check all entries for given source set
+                for (hash in hashes) {
+                    val error = hash.validate(sourceSet, modulePackageName, packageModuleDir) ?: continue
                     errors.add(error)
-                    nativeResource.kotlinSrcDir(mockResourceModuleDir)
-                } else {
-                    nativeResource.kotlinSrcDir(packageModuleDir)
                 }
 
-                srcSet.kotlin.srcDir(kotlinSrcDir)
+                val moduleDir = if (errors.isEmpty()) packageModuleDir else mockResourceModuleDir
+
+                srcSet.kotlin.srcDir(NativeResourceHash.kotlinSrcDir(sourceSet, moduleDir))
             }
         }
 
@@ -287,23 +311,30 @@ sealed class ResourceValidation(
     }
 
     data class NativeResourceHash internal constructor(
-        val sourceSetName: String,
         val ktFileName: String,
         val hash: String,
     ) {
 
-        internal fun kotlinSrcDir(moduleDir: File): File {
-            return moduleDir
-                .resolve("src")
-                .resolve("${sourceSetName}Main")
-                .resolve("kotlin")
+        internal companion object {
+
+            @JvmStatic
+            internal fun kotlinSrcDir(
+                sourceSetName: String,
+                moduleDir: File,
+            ): File {
+                return moduleDir
+                    .resolve("src")
+                    .resolve("${sourceSetName}Main")
+                    .resolve("kotlin")
+            }
         }
 
         internal fun validate(
+            sourceSetName: String,
             modulePackageName: String,
             packageModuleDir: File,
         ): String? {
-            val file = kotlinSrcDir(packageModuleDir)
+            val file = kotlinSrcDir(sourceSetName, packageModuleDir)
                 .resolve(modulePackageName.replace('.', '/'))
                 .resolve("internal")
                 .resolve(ktFileName)
