@@ -92,27 +92,25 @@ sealed class ResourceValidation(
 
                 if (errors.isNotEmpty()) {
                     this@ResourceValidation.androidJniErrors.addAll(errors)
-
-                    // Use mock resources
-                    jniLibs.srcDir(rootProjectDir
-                        .resolve("library")
-                        .resolve(moduleName)
-                        .resolve("mock-resources")
-                        .resolve("src")
-                        .resolve("androidMain")
-                        .resolve("jniLibs")
-                    )
-
-                    return@forEach
                 }
+            }
 
-                // Use external/build/package libs
-                jniLibs.srcDir(packageDir
+            val jniSrcDir = if (androidJniErrors.isEmpty()) {
+                packageDir
                     .resolve("src")
                     .resolve("androidMain")
                     .resolve("jniLibs")
-                )
+            } else {
+                rootProjectDir
+                    .resolve("library")
+                    .resolve(moduleName)
+                    .resolve("mock-resources")
+                    .resolve("src")
+                    .resolve("androidMain")
+                    .resolve("jniLibs")
             }
+
+            jniLibs.srcDir(jniSrcDir)
         }
 
         isAndroidConfigured = true
@@ -183,11 +181,6 @@ sealed class ResourceValidation(
     }
 
     private fun KotlinMultiplatformExtension.configureNativeResources() {
-        check(nativeResourceHashes.isNotEmpty()) { "nativeResourceHashes cannot be empty" }
-        check(project.plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
-            "The 'org.jetbrains.kotlin.multiplatform' plugin is required to utilize this function"
-        }
-
         if (isNativeConfigured) return
 
         val mockResourceModuleDir = rootProjectDir
