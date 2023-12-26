@@ -1,6 +1,6 @@
 # kmp-tor-resource
 [![badge-license]][url-license]
-<!-- [![badge-latest-release]][url-latest-release] -->
+[![badge-latest-release]][url-latest-release]
 
 [![badge-kotlin]][url-kotlin]
 [![badge-build-env]][url-build-env]
@@ -18,20 +18,22 @@
 ![badge-support-linux-arm]
 
 This project is focused on the compilation, packaging, distribution and installation of `tor`
-resources for Kotlin Multiplatform, primarily to be consumed as a dependency by the 
-[kmp-tor][url-kmp-tor] project.
+resources for Kotlin Multiplatform, primarily to be consumed as a dependency for [kmp-tor][url-kmp-tor].
 
-2 versions of `tor` are built; 1 **with** `--enable-gpl`, and 1 with**out**. Modules 
-`resource-tor` (no `--enable-gpl`) and `resource-tor-gpl` (yes `--enable-gpl`) are positionally 
-identical with the same package names, classes, resource names/locations, etc. The only difference 
-between them are the compiled `tor` binaries provided.
+2 versions of `tor` are built; 1 **with** `--enable-gpl`, and 1 with**out**.
+
+ - `resource-tor` (no `--enable-gpl`)
+ - `resource-tor-gpl` (yes `--enable-gpl`)
+
+They are positionally identical with the same package names, classes, resource names/locations, 
+etc. The only difference between them are the compiled `tor` binaries provided.
 
 Only **1** of the dependencies can be had for a project, as a conflict will occur if both are 
 present. This is to respect the `GPL` licensed code `tor` is utilizing such that projects who 
 have a `GPL` license are able to take advantage of the new functionality, and projects who do 
 **not** have a `GPL` license can still utilize `tor` without infringing on the `GPL` license.
 
-### Building
+### Build Verification
 
 See [BUILD.md](BUILD.md)
 
@@ -118,9 +120,8 @@ After "packaging" all resources, an additional step for Node.js is performed.
 New releases will be published to Maven Central and can be consumed as a Kotlin Multiplatform 
 dependency.
 
-Currently, there are no Release or `SNAPSHOT` publications of the `2.0.0` build. The plan is to 
-publish a `SNAPSHOT` in order to work on [kmp-tor][url-kmp-tor] `2.0.0`. Once that work is complete,
-a Release will be made for `kmp-tor-resource`.
+Currently, there is only a `SNAPSHOT` publication in order to work on [kmp-tor][url-kmp-tor] `2.0.0`. 
+Once that work is complete a Release will be made for `kmp-tor-resource`.
 
 ### Installation
 

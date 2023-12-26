@@ -41,7 +41,7 @@ NPMJS_AUTH_TOKEN=<auth token>
 ```
 
 - Inspect the terminal output
-    - `README.md` present
+    - `README.md` is present
     - `index.js` is present
     - geoip files should be about `1MB` each
     - tor files should be about `3MB` each
@@ -67,8 +67,7 @@ cat library/npmjs/build/reports/resource-validation/resource-tor-gpl/jvm-geoip.e
 - Verify that `.kotlin-js-store/yarn.lock` is using the release 
   publication dependency (should not be using `SNAPSHOT` version).
 ```bash
-cat .kotlin-js-store/yarn.lock | grep "kmp-tor-resource-tor@"
-cat .kotlin-js-store/yarn.lock | grep "kmp-tor-resource-tor-gpl@"
+cat .kotlin-js-store/yarn.lock | grep -e "kmp-tor-resource-tor@" -e "kmp-tor-resource-tor-gpl@"
 ```
 
 - Commit Changes
@@ -138,7 +137,15 @@ cat library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl/
 git push -u origin release_"$VERSION_NAME"
 ```
 
-<!-- TODO: Move darwin native libs over to macOS machine somehow -->
+- Push resources for `macOS` publications
+```bash
+git checkout -b release_resources_"$VERSION_NAME"
+mkdir -p external/build-release
+cp -R external/build/package external/build-release
+git add --all
+git commit -S -m "$VERSION_NAME release resources"
+git push -u origin release_resources_"$VERSION_NAME"
+```
 
 ### Macos
 
@@ -165,10 +172,17 @@ bash
 VERSION_NAME="<version name>"
 ```
 
-- Pull the latest code from release branch
+- Pull the latest code
 ```bash
 git checkout master
 git pull
+```
+
+- Move resources to `external/build`
+```bash
+git checkout release_resources_"$VERSION_NAME"
+./external/task.sh clean
+cp -R external/build-release external/build
 git checkout release_"$VERSION_NAME"
 ```
 
@@ -292,10 +306,12 @@ git push origin "$VERSION_NAME"
 ```
 
 - Delete release branch on GitHub
+- Delete release resources branch on GitHub
 
 - Delete local release branch
 ```bash
 git branch -D release_"$VERSION_NAME"
+git branch -D release_resources_"$VERSION_NAME"
 ```
 
 ### Macos
@@ -309,6 +325,7 @@ git pull
 - Delete local release branch
 ```bash
 git branch -D release_"$VERSION_NAME"
+git branch -D release_resources_"$VERSION_NAME"
 ```
 
 - Shutdown VMs (if not needed anymore)
