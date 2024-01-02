@@ -139,12 +139,12 @@ git push -u origin release_"$VERSION_NAME"
 
 - Push resources for `macOS` publications
 ```bash
-git checkout -b release_resources_"$VERSION_NAME"
+git checkout -b release_RESOURCES
 mkdir -p external/build-release
 cp -R external/build/package external/build-release
 git add --all
 git commit -S -m "$VERSION_NAME release resources"
-git push -u origin release_resources_"$VERSION_NAME"
+git push -u origin release_RESOURCES
 ```
 
 ### Macos
@@ -180,7 +180,7 @@ git pull
 
 - Move resources to `external/build`
 ```bash
-git checkout release_resources_"$VERSION_NAME"
+git checkout release_RESOURCES
 ./external/task.sh clean
 cp -R external/build-release external/build
 git checkout release_"$VERSION_NAME"
@@ -311,7 +311,8 @@ git push origin "$VERSION_NAME"
 - Delete local release branch
 ```bash
 git branch -D release_"$VERSION_NAME"
-git branch -D release_resources_"$VERSION_NAME"
+git branch -D release_RESOURCES
+git fetch origin --prune
 ```
 
 ### Macos
@@ -325,7 +326,8 @@ git pull
 - Delete local release branch
 ```bash
 git branch -D release_"$VERSION_NAME"
-git branch -D release_resources_"$VERSION_NAME"
+git branch -D release_RESOURCES
+git fetch origin --prune
 ```
 
 - Shutdown VMs (if not needed anymore)
