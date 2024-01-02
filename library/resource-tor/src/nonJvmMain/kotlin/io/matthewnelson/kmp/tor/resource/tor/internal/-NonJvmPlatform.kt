@@ -16,10 +16,7 @@
 package io.matthewnelson.kmp.tor.resource.tor.internal
 
 import io.matthewnelson.kmp.file.File
-import io.matthewnelson.kmp.tor.core.resource.ImmutableMap
-import io.matthewnelson.kmp.tor.core.api.annotation.InternalKmpTorApi
 
 // no-op
-@OptIn(InternalKmpTorApi::class)
 @Suppress("ACTUAL_ANNOTATIONS_NOT_MATCH_EXPECT")
-internal actual fun ImmutableMap<String, File>.findLibTor(): Map<String, File> = this
+internal actual fun Map<String, File>.findLibTor(): Map<String, File> = this

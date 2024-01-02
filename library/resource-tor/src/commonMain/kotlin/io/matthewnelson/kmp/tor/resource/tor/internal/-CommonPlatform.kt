@@ -16,7 +16,6 @@
 package io.matthewnelson.kmp.tor.resource.tor.internal
 
 import io.matthewnelson.kmp.file.File
-import io.matthewnelson.kmp.tor.core.resource.ImmutableMap
 import io.matthewnelson.kmp.tor.core.api.annotation.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.core.resource.Resource
 import kotlin.jvm.JvmSynthetic
@@ -32,5 +31,4 @@ internal expect val RESOURCE_CONFIG: Resource.Config
 // For Android to parse nativeLibraryDir
 @JvmSynthetic
 @Throws(IllegalStateException::class)
-@OptIn(InternalKmpTorApi::class)
-internal expect fun ImmutableMap<String, File>.findLibTor(): Map<String, File>
+internal expect fun Map<String, File>.findLibTor(): Map<String, File>
