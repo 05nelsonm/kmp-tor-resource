@@ -236,11 +236,6 @@ PUBLISH_TASKS=$(./gradlew tasks -PKMP_TARGETS="$MACOS_TARGETS" |
 
 ### Linux
 
-- Re-enable YubiKey touch for signing
-```bash
-ykman openpgp keys set-touch sig on
-```
-
 - The [gradle-maven-publish-plugin](https://github.com/vanniktech/gradle-maven-publish-plugin) should have automatically
   closed the staged repositories, but if it did not:
     - Close publications (Don't release yet)
@@ -254,6 +249,21 @@ ykman openpgp keys set-touch sig on
 ```bash
 ./gradlew clean -PCHECK_PUBLICATION -DKMP_TARGETS_ALL
 ./gradlew :tools:check-publication:build --refresh-dependencies -PCHECK_PUBLICATION -DKMP_TARGETS_ALL
+```
+
+### macOS
+
+- Check Publication
+```bash
+./gradlew clean -PCHECK_PUBLICATION -DKMP_TARGETS_ALL
+./gradlew :tools:check-publication:build --refresh-dependencies -PCHECK_PUBLICATION -DKMP_TARGETS_ALL
+```
+
+### Linux
+
+- Re-enable YubiKey touch for signing
+```bash
+ykman openpgp keys set-touch sig on
 ```
 
 - **Release** publications from Sonatype OSS Nexus StagingRepositories manager
