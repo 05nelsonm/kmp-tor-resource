@@ -17,8 +17,8 @@ package io.matthewnelson.kmp.tor.resource.tor.internal
 
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.tor.resource.tor.TorResources
-import io.matthewnelson.kmp.tor.core.resource.initializer.KmpTorResourceInitializer
 import io.matthewnelson.kmp.tor.core.api.annotation.InternalKmpTorApi
+import io.matthewnelson.kmp.tor.core.lib.locator.KmpTorLibLocator
 import io.matthewnelson.kmp.tor.core.resource.OSHost
 import io.matthewnelson.kmp.tor.core.resource.OSInfo
 import io.matthewnelson.kmp.tor.core.resource.Resource
@@ -55,11 +55,11 @@ internal actual val RESOURCE_CONFIG: Resource.Config by lazy {
             // to the nativeLib directory. This is required as
             // android does not allow execution from the app dir
             // (cannot download executables and run them).
-            if (KmpTorResourceInitializer.Impl.INSTANCE.findLib("libtor.so") != null) {
+            if (KmpTorLibLocator.find("libtor.so") != null) {
                 return@create
             }
 
-            if (KmpTorResourceInitializer.Impl.INSTANCE.isInitialized) {
+            if (KmpTorLibLocator.isInitialized()) {
                 error("""
                     Faild to find libtor.so within nativeLibraryDir
         
@@ -69,7 +69,7 @@ internal actual val RESOURCE_CONFIG: Resource.Config by lazy {
                     gradle.properties:   'android.bundle.enableUncompressedNativeLibs' is set to 'false'
                 """.trimIndent())
             } else {
-                error(KmpTorResourceInitializer.errorMsg())
+                error(KmpTorLibLocator.errorMsg())
             }
 
             return@create
@@ -127,6 +127,6 @@ internal actual val RESOURCE_CONFIG: Resource.Config by lazy {
 internal actual fun Map<String, File>.findLibTor(): Map<String, File> {
     if (contains(ALIAS_TOR)) return this
 
-    val lib = KmpTorResourceInitializer.Impl.INSTANCE.requireLib("libtor.so")
+    val lib = KmpTorLibLocator.require("libtor.so")
     return toMutableMap().apply { put(ALIAS_TOR, lib) }
 }

@@ -20,13 +20,9 @@ import io.matthewnelson.diff.core.internal.apply.Apply
 import io.matthewnelson.diff.core.internal.create.Create
 import io.matthewnelson.diff.core.internal.InternalDiffApi
 import io.matthewnelson.diff.core.internal.system
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.datetime.toInstant
 import okio.*
 import okio.Path.Companion.toPath
 import kotlin.jvm.JvmField
-import kotlin.jvm.JvmName
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
 

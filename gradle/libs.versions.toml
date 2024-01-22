@@ -11,13 +11,12 @@ gradle-kotlin = "1.9.21"
 gradle-publish-maven = "0.25.3"
 gradle-publish-npm = "3.4.1"
 
-kmp-tor-core = "2.0.0-alpha05"
-
+kmp-tor-core = "2.0.0-alpha06"
 kotlincrypto-hash = "0.4.0"
 kotlinx-cli = "0.3.6"
-kotlinx-datetime = "0.4.1"
+kotlinx-datetime = "0.5.0"
 
-okio = "3.6.0"
+okio = "3.7.0"
 
 [libraries]
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidx-test-core" }
@@ -33,8 +32,7 @@ gradle-publish-maven = { module = "com.vanniktech:gradle-maven-publish-plugin", 
 
 kmp-tor-core-api = { module = "io.matthewnelson.kmp-tor:core-api", version.ref = "kmp-tor-core" }
 kmp-tor-core-resource = { module = "io.matthewnelson.kmp-tor:core-resource", version.ref = "kmp-tor-core" }
-kmp-tor-core-resource-initializer = { module = "io.matthewnelson.kmp-tor:core-resource-initializer", version.ref = "kmp-tor-core" }
-
+kmp-tor-core-lib-locator = { module = "io.matthewnelson.kmp-tor:core-lib-locator", version.ref = "kmp-tor-core" }
 kotlincrypto-hash-sha2 = { module = "org.kotlincrypto.hash:sha2", version.ref = "kotlincrypto-hash" }
 kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
