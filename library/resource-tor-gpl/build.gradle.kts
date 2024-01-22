@@ -40,7 +40,7 @@ kmpConfiguration {
 
             sourceSetMain {
                 dependencies {
-                    implementation(libs.kmp.tor.core.resource.initializer)
+                    implementation(libs.kmp.tor.core.lib.locator)
                 }
             }
 

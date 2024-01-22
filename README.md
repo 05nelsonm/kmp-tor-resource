@@ -144,7 +144,7 @@ It will either throw an exception or extract the resources to the specified dire
      - **Android Runtime (Emulators and Devices):**
          - It will search for `libtor.so` within the application's `nativeLibraryDir` and return that path
          - All of this happens automatically and no configuration is needed.
-         - See the [core-resource-initializer][url-core-resource-initializer]
+         - See the [core-lib-locator][url-core-lib-locator]
      - **Android Unit Tests:**
          - You can add the `resource-android-unit-test` dependency and reflection will be used to
            source the correct `tor` binary resource for the given host/architecture that the tests 
@@ -265,5 +265,5 @@ TODO: gradle configuration for android
 [url-kotlin]: https://kotlinlang.org
 [url-kmp-tor]: https://github.com/05nelsonm/kmp-tor
 [url-kmp-tor-core]: https://github.com/05nelsonm/kmp-tor-core
-[url-core-resource-initializer]: https://github.com/05nelsonm/kmp-tor-core/tree/master/library/core-resource-initializer
+[url-core-lib-locator]: https://github.com/05nelsonm/kmp-tor-core/tree/master/library/core-lib-locator
 [url-task-image]: https://github.com/05nelsonm/kmp-tor-resource/assets/44778092/8be9197e-4135-43ad-9629-e18ef0e90523
