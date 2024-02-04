@@ -69,8 +69,8 @@ abstract class TorResourceValidationExtension: ResourceValidation {
     protected open val hashJvmMingwX86_64: String = "7627c3826333946e421ada71f813f51e672651577c2fa688575fe1046d10a17d"
 
     protected open val hashNativeIosArm64: String = "7df6e525f18e33331b40faba4a8e98c876428b7eb34c2d4e248068e96fe9d50f"
-    protected open val hashNativeIosSimulatorArm64: String = "19d40526da4c82883a15d1731057cfc31002ed8b2505bdc4d8eaeefcaa0f1202"
-    protected open val hashNativeIosX64: String = "5b6d6792b9f049ebdc054899896d948a33144c772c2b60eb60140f82121dc8f6"
+    protected open val hashNativeIosSimulatorArm64: String = "7658a9e7af98e38c5f701226a5597e08963d1507cbd624c4d562ad4ae31dbf17"
+    protected open val hashNativeIosX64: String = "c062ac1e393cf688f36bedf69684bfe851ef9d4a5160b19d07b74b4963e53402"
     protected open val hashNativeLinuxArm64: String = "341ddf5e66ff86077b00f4a2c71f83c25dcad9df5290a3eeff49c7df33a5bb9e"
     protected open val hashNativeLinuxX64: String = "4d453d77f122c9a73664ccfe9356faef7b5df2938f0575912b57be9d469f9863"
     protected open val hashNativeMacosArm64: String = "7658a9e7af98e38c5f701226a5597e08963d1507cbd624c4d562ad4ae31dbf17"
