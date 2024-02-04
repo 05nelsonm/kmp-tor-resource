@@ -62,8 +62,6 @@ function build:all:desktop { ## Builds all Linux, macOS, Windows targets
 #}
 
 function build:all:ios { ## Builds all iOS targets
-  build:ios-simulator:aarch64
-  build:ios-simulator:x86_64
   build:ios:aarch64
 }
 
@@ -133,26 +131,6 @@ function build:android:x86_64 { ## Builds Android x86_64
   local os_arch="x86_64"
   local openssl_target="android-x86_64"
   local ndk_abi="x86_64"
-  local cc_clang="yes"
-  __build:configure:target:init
-  __exec:docker:run
-}
-
-function build:ios-simulator:aarch64 { ## Builds iOS Simulator arm64
-  local os_name="ios"
-  local os_subtype="-simulator"
-  local os_arch="aarch64"
-  local openssl_target="iossimulator-xcrun"
-  local cc_clang="yes"
-  __build:configure:target:init
-  __exec:docker:run
-}
-
-function build:ios-simulator:x86_64 { ## Builds iOS Simulator x86_64
-  local os_name="ios"
-  local os_subtype="-simulator"
-  local os_arch="x86_64"
-  local openssl_target="iossimulator-xcrun"
   local cc_clang="yes"
   __build:configure:target:init
   __exec:docker:run
@@ -352,50 +330,16 @@ function package { ## Packages build dir output
   DIR_STAGING="$(mktemp -d)"
   trap 'rm -rf "$DIR_STAGING"' SIGINT ERR
 
-  local module=
-  for module in $(echo "resource-tor,resource-tor-gpl" | tr "," " "); do
-    __package:geoip "geoip"
-    __package:geoip "geoip6"
+  local module="resource-tor"
+  local libname="tor"
+  __package:geoip "geoip"
+  __package:geoip "geoip6"
+  __package:libs
 
-    __package:android "arm64-v8a"
-    __package:android "armeabi-v7a"
-    __package:android "x86"
-    __package:android "x86_64"
-
-    __package:jvm "linux-android/aarch64" "tor"
-    __package:jvm "linux-android/armv7" "tor"
-    __package:jvm "linux-android/x86" "tor"
-    __package:jvm "linux-android/x86_64" "tor"
-    __package:jvm "linux-libc/aarch64" "tor"
-    __package:jvm "linux-libc/armv7" "tor"
-    __package:jvm "linux-libc/ppc64" "tor"
-    __package:jvm "linux-libc/x86" "tor"
-    __package:jvm "linux-libc/x86_64" "tor"
-
-    __package:jvm:codesigned "macos-lts/aarch64" "tor"
-    __package:jvm:codesigned "macos-lts/x86_64" "tor"
-
-    # Jvm/Js utilize the LTS builds. Need to move them into
-    # their final resting place 'macos-lts' -> 'macos'
-    local dir_native="build/package/$module/src/jvmMain/resources/io/matthewnelson/kmp/tor/resource/tor/native"
-    if [ -d "$dir_native/macos-lts" ]; then
-      rm -rf "$dir_native/macos"
-      mv -v "$dir_native/macos-lts" "$dir_native/macos"
-    fi
-    unset dir_native
-
-    __package:jvm:codesigned "mingw/x86" "tor.exe"
-    __package:jvm:codesigned "mingw/x86_64" "tor.exe"
-
-    __package:native "linux-libc/aarch64" "tor" "linuxArm64Main"
-    __package:native "linux-libc/x86_64" "tor" "linuxX64Main"
-    __package:native:codesigned "ios/aarch64" "tor" "iosArm64Main"
-    __package:native:codesigned "ios-simulator/aarch64" "tor" "iosSimulatorArm64Main"
-    __package:native:codesigned "ios-simulator/x86_64" "tor" "iosX64Main"
-    __package:native:codesigned "macos/aarch64" "tor" "macosArm64Main"
-    __package:native:codesigned "macos/x86_64" "tor" "macosX64Main"
-    __package:native:codesigned "mingw/x86_64" "tor.exe" "mingwX64Main"
-  done
+  module="resource-tor-gpl"
+  __package:geoip "geoip"
+  __package:geoip "geoip6"
+  __package:libs
 
   rm -rf "$DIR_STAGING"
   trap - SIGINT ERR
@@ -428,16 +372,9 @@ function sign:apple { ## 2 ARGS - [1]: /path/to/key.p12  [2]: /path/to/app/store
   os_name="ios"
   module="resource-tor"
   __signature:generate:apple "$1" "$2" "aarch64"
-  local os_subtype="-simulator"
-  __signature:generate:apple "$1" "$2" "aarch64"
-  __signature:generate:apple "$1" "$2" "x86_64"
-  unset os_subtype
 
   module="resource-tor-gpl"
   __signature:generate:apple "$1" "$2" "aarch64"
-  local os_subtype="-simulator"
-  __signature:generate:apple "$1" "$2" "aarch64"
-  __signature:generate:apple "$1" "$2" "x86_64"
 }
 
 function sign:mingw { ## 2 ARGS - [1]: /path/to/file.key [2]: /path/to/cert.cer
@@ -1148,6 +1085,69 @@ function __exec:docker:run {
   trap - SIGINT
 }
 
+function __package:libs {
+  __require:var_set "$libname" "libname"
+
+  __package:android "arm64-v8a"
+  __package:android "armeabi-v7a"
+  __package:android "x86"
+  __package:android "x86_64"
+
+  __package:jvm "linux-android/aarch64" "$libname"
+  __package:jvm "linux-android/armv7" "$libname"
+  __package:jvm "linux-android/x86" "$libname"
+  __package:jvm "linux-android/x86_64" "$libname"
+  __package:jvm "linux-libc/aarch64" "$libname"
+  __package:jvm "linux-libc/armv7" "$libname"
+  __package:jvm "linux-libc/ppc64" "$libname"
+  __package:jvm "linux-libc/x86" "$libname"
+  __package:jvm "linux-libc/x86_64" "$libname"
+
+  __package:jvm:codesigned "macos-lts/aarch64" "$libname"
+  __package:jvm:codesigned "macos-lts/x86_64" "$libname"
+
+  # Jvm/Js utilize the LTS builds. Need to move them into
+  # their final resting place 'macos-lts' -> 'macos'
+  local dir_native="build/package/$module/src/jvmMain/resources/io/matthewnelson/kmp/tor/resource/tor/native"
+  if [ -d "$dir_native/macos-lts" ]; then
+    rm -rf "$dir_native/macos"
+    mv -v "$dir_native/macos-lts" "$dir_native/macos"
+  fi
+  unset dir_native
+
+  __package:jvm:codesigned "mingw/x86" "$libname.exe"
+  __package:jvm:codesigned "mingw/x86_64" "$libname.exe"
+
+  __package:native "linux-libc/aarch64" "$libname" "linuxArm64Main"
+  __package:native "linux-libc/x86_64" "$libname" "linuxX64Main"
+  __package:native:codesigned "ios/aarch64" "$libname" "iosArm64Main"
+  __package:native:codesigned "macos/aarch64" "$libname" "macosArm64Main"
+  __package:native:codesigned "macos/x86_64" "$libname" "macosX64Main"
+  __package:native:codesigned "mingw/x86_64" "$libname.exe" "mingwX64Main"
+
+  # Executables for ios simulator targets are actually their
+  # respective macOS binaries for the given architecture; this
+  # is because they are "simulators", not emulators.
+  #
+  # Calling posix_spawn for an executable built against the simulator
+  # SDK would result in failure via
+  # `DYLD_ROOT_PATH not set for simulator program`; they must be built
+  # for the system the simulator is operating on (macOS).
+  #
+  # See Issue #33
+  local dir_src="build/package/$module/src"
+  if [ -d "$dir_src/macosArm64Main" ]; then
+    rm -rf "$dir_src/iosSimulatorArm64Main"
+    cp -R "$dir_src/macosArm64Main" "$dir_src/iosSimulatorArm64Main"
+    echo "coppied: '$dir_src/macosArm64Main' -> '$dir_src/iosSimulatorArm64Main"
+  fi
+  if [ -d "$dir_src/macosX64Main" ]; then
+    rm -rf "$dir_src/iosX64Main"
+    cp -R "$dir_src/macosX64Main" "$dir_src/iosX64Main"
+    echo "coppied: '$dir_src/macosX64Main' -> '$dir_src/iosX64Main"
+  fi
+}
+
 function __package:geoip {
   local permissions="664"
   local gzip="yes"
@@ -1161,7 +1161,7 @@ function __package:geoip {
 function __package:android {
   local permissions="755"
   # no gzip
-  __package "build/out/$module/android/$1" "androidMain/jniLibs/$1" "libtor.so"
+  __package "build/out/$module/android/$1" "androidMain/jniLibs/$1" "lib$libname.so"
 }
 
 function __package:jvm {
