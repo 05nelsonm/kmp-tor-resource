@@ -11,7 +11,7 @@ gradle-kotlin = "1.9.21"
 gradle-publish-maven = "0.25.3"
 gradle-publish-npm = "3.4.1"
 
-kmp-tor-core = "2.0.0-alpha06"
+kmp-tor-core = "2.0.0-alpha07"
 kotlincrypto-hash = "0.4.0"
 kotlinx-cli = "0.3.6"
 kotlinx-datetime = "0.5.0"
