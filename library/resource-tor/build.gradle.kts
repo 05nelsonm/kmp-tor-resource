@@ -21,6 +21,7 @@ plugins {
 kmpConfiguration {
     configureShared(
         androidNamespace = "io.matthewnelson.kmp.tor.resource.tor",
+        java9ModuleName = "io.matthewnelson.kmp.tor.resource.tor",
         publish = true,
     ) {
 
