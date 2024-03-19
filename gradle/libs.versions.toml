@@ -2,17 +2,17 @@
 androidx-test-core = "1.5.0"
 androidx-test-runner = "1.5.2"
 
-encoding = "2.1.0"
+encoding = "2.2.1"
 
 gradle-android = "8.1.4"
 gradle-binary-compat = "0.14.0"
-gradle-kmp-configuration = "0.2.0"
-gradle-kotlin = "1.9.22"
+gradle-kmp-configuration = "0.2.1"
+gradle-kotlin = "1.9.23"
 gradle-publish-maven = "0.27.0"
 gradle-publish-npm = "3.4.1"
 
-kmp-tor-core = "2.0.0-alpha09"
-kotlincrypto-hash = "0.4.0"
+kmp-tor-core = "2.0.0-alpha10"
+kotlincrypto-hash = "0.5.1"
 kotlinx-cli = "0.3.6"
 kotlinx-datetime = "0.5.0"
 
