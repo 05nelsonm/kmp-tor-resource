@@ -377,20 +377,18 @@ function sign:apple { ## 2 ARGS - [1]: /path/to/key.p12  [2]: /path/to/app/store
   __signature:generate:apple "$1" "$2" "aarch64"
 }
 
-function sign:mingw { ## 2 ARGS - [1]: /path/to/file.key [2]: /path/to/cert.cer
-  # shellcheck disable=SC2128
-  if [ $# -ne 2 ]; then
-    __error "Usage: $0 $FUNCNAME /path/to/file.key /path/to/cert.cer"
-  fi
+function sign:mingw { ## Codesign mingw binaries (see codesign/windows.pkcs11.sample)
+  . "$DIR_TASK/codesign/windows.pkcs11"
 
   local file_name="tor.exe"
   local module="resource-tor"
-  __signature:generate:mingw "$1" "$2" "x86"
-  __signature:generate:mingw "$1" "$2" "x86_64"
+
+  __signature:generate:mingw "x86"
+  __signature:generate:mingw "x86_64"
 
   module="resource-tor-gpl"
-  __signature:generate:mingw "$1" "$2" "x86"
-  __signature:generate:mingw "$1" "$2" "x86_64"
+  __signature:generate:mingw "x86"
+  __signature:generate:mingw "x86_64"
 }
 
 function verify { ## Checks the build/package directory output against expected sha256 hashes
@@ -1345,45 +1343,57 @@ function __signature:generate:apple {
   trap - SIGINT ERR
 }
 
+# shellcheck disable=SC2154
 function __signature:generate:mingw {
   __require:var_set "$module" "module"
   __require:var_set "$file_name" "file_name"
   __require:cmd "$OSSLSIGNCODE" "osslsigncode"
-  __require:file_exists "$1" "key file does not exist"
-  __require:file_exists "$2" "cert file does not exist"
-  __require:var_set "$3" "arch"
+  __require:var_set "$1" "arch"
 
-  if [ ! -f "$DIR_TASK/build/out/$module/mingw/$3/$file_name" ]; then
+  __require:file_exists "$gen_pkcs11engine_path" "windows.pkcs11[gen_pkcs11engine_path] file does not exist"
+  __require:file_exists "$gen_pkcs11module_path" "windows.pkcs11[gen_pkcs11module_path] file does not exist"
+  __require:var_set "$gen_model" "windows.pkcs11[gen_model] not set"
+  __require:var_set "$gen_manufacturer" "windows.pkcs11[gen_manufacturer] not set"
+  __require:var_set "$gen_serial" "windows.pkcs11[gen_serial] not set"
+  __require:var_set "$gen_ts" "windows.pkcs11[gen_ts] not set"
+  __require:file_exists "$gen_cert_path" "windows.pkcs11[gen_cert_path] file does not exist"
+  __require:var_set "$gen_id" "windows.pkcs11[gen_id] not set"
+
+  local pkcs11_url="pkcs11:model=$gen_model;manufacturer=$gen_manufacturer;serial=$gen_serial;id=$gen_id;type=private"
+
+  if [ ! -f "$DIR_TASK/build/out/$module/mingw/$1/$file_name" ]; then
     echo "
-    $file_name not found for mingw/$3. Skipping...
+    $file_name not found for mingw/$1. Skipping...
     "
     return 0
   fi
 
   echo "
-    Creating detached signature for build/out/$module/mingw/$3/$file_name
+    Creating detached signature for build/out/$module/mingw/$1/$file_name
   "
 
   DIR_TMP="$(mktemp -d)"
   trap 'rm -rf "$DIR_TMP"' SIGINT ERR
 
   ${OSSLSIGNCODE} sign \
-    -key "$1" \
-    -certs "$2" \
-    -t "http://timestamp.comodoca.com" \
-    -in "$DIR_TASK/build/out/$module/mingw/$3/$file_name" \
+    -pkcs11engine "$gen_pkcs11engine_path" \
+    -pkcs11module "$gen_pkcs11module_path" \
+    -key "$pkcs11_url" \
+    -certs "$gen_cert_path" \
+    -ts "$gen_ts" \
+    -in "$DIR_TASK/build/out/$module/mingw/$1/$file_name" \
     -out "$DIR_TMP/$file_name"
 
-  mkdir -p "$DIR_TASK/codesign/$module/mingw/$3"
-  rm -rf "$DIR_TASK/codesign/$module/mingw/$3/$file_name.signature"
+  mkdir -p "$DIR_TASK/codesign/$module/mingw/$1"
+  rm -rf "$DIR_TASK/codesign/$module/mingw/$1/$file_name.signature"
 
   echo ""
 
   ../tooling diff-cli create \
     --diff-ext-name ".signature" \
-    "$DIR_TASK/build/out/$module/mingw/$3/$file_name" \
+    "$DIR_TASK/build/out/$module/mingw/$1/$file_name" \
     "$DIR_TMP/$file_name" \
-    "$DIR_TASK/codesign/$module/mingw/$3"
+    "$DIR_TASK/codesign/$module/mingw/$1"
 
   echo ""
 
