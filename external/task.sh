@@ -1381,6 +1381,7 @@ function __signature:generate:mingw {
     -key "$pkcs11_url" \
     -certs "$gen_cert_path" \
     -ts "$gen_ts" \
+    -h "sha256" \
     -in "$DIR_TASK/build/out/$module/mingw/$1/$file_name" \
     -out "$DIR_TMP/$file_name"
 
