@@ -23,6 +23,8 @@ git checkout -b release_"$VERSION_NAME"
 
 - Update `version` in project's `README.md` documentation
 
+- Update `tag` in project's `docs/BUILD.md` documentation (step 2)
+
 - Update `CHANGELOG.md`
 
 - Ensure that credentials for `Npmjs` are set in `~/.gradle/gradle.properties`

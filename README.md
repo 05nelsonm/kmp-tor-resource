@@ -35,7 +35,7 @@ have a `GPL` license are able to take advantage of the new functionality, and pr
 
 ### Build Verification
 
-See [BUILD.md](BUILD.md)
+See [BUILD.md](docs/BUILD.md)
 
 ### Jvm/Node.js Supported Operating Systems & Architectures
 
