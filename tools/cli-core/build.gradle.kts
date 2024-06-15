@@ -27,9 +27,9 @@ kmpConfiguration {
             compileTargetCompatibility = JavaVersion.VERSION_1_8
         }
 
-        linuxX64()
-        macosAll()
-        mingwAll()
+//        linuxX64()
+//        macosAll()
+//        mingwAll()
 
         common {
             sourceSetMain {

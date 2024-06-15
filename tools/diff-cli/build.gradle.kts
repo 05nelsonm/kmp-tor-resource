@@ -18,7 +18,7 @@ plugins {
 }
 
 kmpConfiguration {
-    configureTool(project, mainKtPath = "io.matthewnelson.diff.cli") {
+    configureTool(project, mainKtPath = "io.matthewnelson.diff.cli", enableNative = false) {
         common {
             sourceSetMain {
                 dependencies {
