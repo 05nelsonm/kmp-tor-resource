@@ -20,32 +20,30 @@ plugins {
 kmpConfiguration {
     configure {
         jvm {
-            target { withJava() }
-
             kotlinJvmTarget = JavaVersion.VERSION_1_8
             compileSourceCompatibility = JavaVersion.VERSION_1_8
             compileTargetCompatibility = JavaVersion.VERSION_1_8
         }
 
-        js {
-            target { nodejs {
-                @Suppress("RedundantSamConstructor")
-                testTask(Action { useMocha { timeout = "30s" } })
-            } }
-
-            sourceSetMain {
-                dependencies {
-                    implementation(libs.okio.node)
-                }
-            }
-        }
-
-        iosAll()
-        linuxAll()
-        macosAll()
-        mingwAll()
-        tvosAll()
-        watchosAll()
+//        js {
+//            target { nodejs {
+//                @Suppress("RedundantSamConstructor")
+//                testTask(Action { useMocha { timeout = "30s" } })
+//            } }
+//
+//            sourceSetMain {
+//                dependencies {
+//                    implementation(libs.okio.node)
+//                }
+//            }
+//        }
+//
+//        iosAll()
+//        linuxAll()
+//        macosAll()
+//        mingwAll()
+//        tvosAll()
+//        watchosAll()
 
         common {
             sourceSetMain {

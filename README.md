@@ -237,9 +237,9 @@ TODO: gradle configuration for android
 [badge-license]: https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat
 
 <!-- TAG_DEPENDENCIES -->
-[badge-kotlin]: https://img.shields.io/badge/kotlin-1.9.23-blue.svg?logo=kotlin
+[badge-kotlin]: https://img.shields.io/badge/kotlin-1.9.24-blue.svg?logo=kotlin
 [badge-build-env]: https://img.shields.io/badge/build--env-0.1.3-blue.svg?logo=docker
-[badge-kmp-tor-core]: https://img.shields.io/badge/kmp--tor--core-2.0.0--alpha10-blue.svg?style=flat
+[badge-kmp-tor-core]: https://img.shields.io/badge/kmp--tor--core-2.0.0-blue.svg?style=flat
 
 <!-- TAG_PLATFORMS -->
 [badge-platform-android]: http://img.shields.io/badge/-android-6EDB8D.svg?style=flat
