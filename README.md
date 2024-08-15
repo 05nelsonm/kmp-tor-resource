@@ -63,7 +63,7 @@ Tor and its dependencies are compiled from source using the following versions
 | openssl  | `openssl-3.2.0`         |
 | tor      | `tor-0.4.8.10`          |
 | xz       | `v5.6.2`                |
-| zlib     | `v1.3`                  |
+| zlib     | `v1.3.1`                |
 
 `tor` is compiled via the `external/task.sh` script using `Docker` in order to maintain 
 reproducability.
