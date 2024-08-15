@@ -43,39 +43,39 @@ abstract class TorResourceValidationExtension: ResourceValidation {
     ): super(project, moduleName, modulePackageName = "io.matthewnelson.kmp.tor.resource.tor")
 
     // Hashes for geoip/geoip6 files are identical for GPL/non-GPL, and Jvm/Native
-    private val hashGeoipGZ: String = "67cd2f146fbe6d572aedb394d966a0581d8ba040361fd475cdd7519a4216847f"
-    private val hashGeoip6GZ: String = "ee9b64481effb235dd10565dfc987f53fd175fc97615eabed10345707e50b61f"
+    private val hashGeoipGZ: String = "e3873cefd2810175e9cffbf5b3b236a809c198c564cde81110bfb940b6accc37"
+    private val hashGeoip6GZ: String = "9ac7c1e81c7483f288be894ff245134c49b7a5e06439d728622c00057ba81be0"
 
-    protected open val hashAndroidAarch64: String = "9046e7b6938fcf4c88a1e242a4b4dc1495a3563d94f472b1512f8d6fe8327aa8"
-    protected open val hashAndroidArmv7: String = "24770369165f712810906f6e561f6ca9683ea522e78a7d666496b3b3b91ad6c1"
-    protected open val hashAndroidX86: String = "f2813e91c68cce65c0ba38c5aaf1f97979a14615462a885b936189049152daa5"
-    protected open val hashAndroidX86_64: String = "93c839025409a62b5f1657ae4be1692267eb988fea42359b07c81ae8fe660af1"
+    protected open val hashAndroidAarch64: String = "13daaaf147a098bcb035009f61b2f222be1a7962aae50d3a1d7e2a7ea98efe5a"
+    protected open val hashAndroidArmv7: String = "b43c389df59039d5eeaf2d679f312144fa91a1651b755471751d9b6a81ad09d7"
+    protected open val hashAndroidX86: String = "cb1d49f4fb68e430b277e81b784e980a9dbbcf88bf7e6f6bf8b393d651ce6ee9"
+    protected open val hashAndroidX86_64: String = "9690a709c3b555d7a47092f023bf8bbd0bd133814e38dab30c395d56c5a8ec89"
 
-    protected open val hashJvmLinuxAndroidAarch64: String = "2a745aae3c2e0985d38d258fe5b74b996908b17826b047d335d4ac984e3fc5cd"
-    protected open val hashJvmLinuxAndroidArmv7: String = "7f4d761e6aa134c248195444ad60fbccf406d23a1d6c1d68928ea59d38f3dbd3"
-    protected open val hashJvmLinuxAndroidX86: String = "81159423eadbd161c5e45fe69ff0908b5b5098e4d0964e1077b4c24783b2443b"
-    protected open val hashJvmLinuxAndroidX86_64: String = "c434c3d861fc0c848280c8b688c11babb72075d7b33f033d574b88496521fbb1"
+    protected open val hashJvmLinuxAndroidAarch64: String = "57ad474d15946d9ec2709b28c162ac9da24ff0c55a4b1643ce72881883e9d8e6"
+    protected open val hashJvmLinuxAndroidArmv7: String = "e545ec3553ba31fe04e9c620fc246024570d2c594026c12ee150c14b36b5976c"
+    protected open val hashJvmLinuxAndroidX86: String = "2e2648f7cb8dc7459fd518228327e0d46f63fb30a3211ce2310c62798583aa94"
+    protected open val hashJvmLinuxAndroidX86_64: String = "0064dcbaaff0c3d92d753fb9bd6017b829ed2b2d12da2b7cbdd72872b3a1bcbc"
 
-    protected open val hashJvmLinuxLibcAarch64: String = "341ddf5e66ff86077b00f4a2c71f83c25dcad9df5290a3eeff49c7df33a5bb9e"
-    protected open val hashJvmLinuxLibcArmv7: String = "ff2bf19a88bd64ac3fecd45625a078679c2f13bcaa3b28ed5afdbf4084defb8f"
-    protected open val hashJvmLinuxLibcPpc64: String = "ea81effccca032bc6776e77725b6685f9c333e93f9e80714a4995e8e35dd0b26"
-    protected open val hashJvmLinuxLibcX86: String = "490a8a0a7f4ceb14f553726be7d4b357c391bfac4086217b0f0f93944c0f50d2"
-    protected open val hashJvmLinuxLibcX86_64: String = "4d453d77f122c9a73664ccfe9356faef7b5df2938f0575912b57be9d469f9863"
+    protected open val hashJvmLinuxLibcAarch64: String = "49ad1505c66ea17eccdc48761e406eef75a4cc5575cd19d48e7d183f1faf9d0d"
+    protected open val hashJvmLinuxLibcArmv7: String = "a9afec260d5569278d38af8f689fd83140fc44789d2418418e8ee8e998606e96"
+    protected open val hashJvmLinuxLibcPpc64: String = "64bea20250126dfef49db744f3b5444024353c5959615358c450aad5c6e74a74"
+    protected open val hashJvmLinuxLibcX86: String = "d52463086a118cb9c72b0cf0dffa3c410f5cb321246480c4cc4e99a0f6e5b1b9"
+    protected open val hashJvmLinuxLibcX86_64: String = "ccbcb36839f99f5dbcc4f0d3d5bc719e180b00b8bdc033c72c21aaaed09bf364"
 
-    protected open val hashJvmMacosAarch64: String = "a81e210c14937197949a5e6eb9979338962aedb4cbb03010390eec7570e180bf"
-    protected open val hashJvmMacosX86_64: String = "762a11f117f2237732915ce630d60f2d69e49aa2553e71f094ac3aed58b034d6"
+    protected open val hashJvmMacosAarch64: String = "7d1b0a831113b0f81093064aa29240dbbe7baeeb4f32e9b8394342dd9a6367c6"
+    protected open val hashJvmMacosX86_64: String = "1ea0e9d59309e879f8d9b4cd4e95e1f05be64952fe671c650486783368d45ad5"
 
-    protected open val hashJvmMingwX86: String = "e093a36db1e6410541873b32d1e1143a33633f377de15dc4afc38e60e223ebbc"
-    protected open val hashJvmMingwX86_64: String = "7627c3826333946e421ada71f813f51e672651577c2fa688575fe1046d10a17d"
+    protected open val hashJvmMingwX86: String = "5d42022964c527c994c3b78b6d43d882bf726b5a3fff2292ea60c6988a277482"
+    protected open val hashJvmMingwX86_64: String = "3b69341dc453057f3b8cb51e4957bc8d72e04ede543413123014ef0fd320f877"
 
-    protected open val hashNativeIosArm64: String = "7df6e525f18e33331b40faba4a8e98c876428b7eb34c2d4e248068e96fe9d50f"
-    protected open val hashNativeIosSimulatorArm64: String = "7658a9e7af98e38c5f701226a5597e08963d1507cbd624c4d562ad4ae31dbf17"
-    protected open val hashNativeIosX64: String = "c062ac1e393cf688f36bedf69684bfe851ef9d4a5160b19d07b74b4963e53402"
-    protected open val hashNativeLinuxArm64: String = "341ddf5e66ff86077b00f4a2c71f83c25dcad9df5290a3eeff49c7df33a5bb9e"
-    protected open val hashNativeLinuxX64: String = "4d453d77f122c9a73664ccfe9356faef7b5df2938f0575912b57be9d469f9863"
-    protected open val hashNativeMacosArm64: String = "7658a9e7af98e38c5f701226a5597e08963d1507cbd624c4d562ad4ae31dbf17"
-    protected open val hashNativeMacosX64: String = "c062ac1e393cf688f36bedf69684bfe851ef9d4a5160b19d07b74b4963e53402"
-    protected open val hashNativeMingwX64: String = "7627c3826333946e421ada71f813f51e672651577c2fa688575fe1046d10a17d"
+    protected open val hashNativeIosArm64: String = "b980ee5ba2511ba9afc1c62c226a54f1d665ac3fcb9b104c27d0dcb522a8084b"
+    protected open val hashNativeIosSimulatorArm64: String = "5c8d025ca774ae0f518a3011ec72126213992ec086f35f6e55e5a273551d6788"
+    protected open val hashNativeIosX64: String = "f134f93ffea1f93ebab72908ba1013241e59823477d8215378d01f04f51c8f65"
+    protected open val hashNativeLinuxArm64: String = "49ad1505c66ea17eccdc48761e406eef75a4cc5575cd19d48e7d183f1faf9d0d"
+    protected open val hashNativeLinuxX64: String = "ccbcb36839f99f5dbcc4f0d3d5bc719e180b00b8bdc033c72c21aaaed09bf364"
+    protected open val hashNativeMacosArm64: String = "5c8d025ca774ae0f518a3011ec72126213992ec086f35f6e55e5a273551d6788"
+    protected open val hashNativeMacosX64: String = "f134f93ffea1f93ebab72908ba1013241e59823477d8215378d01f04f51c8f65"
+    protected open val hashNativeMingwX64: String = "3b69341dc453057f3b8cb51e4957bc8d72e04ede543413123014ef0fd320f877"
 
     private val geoipErrors = mutableSetOf<String>()
     private var isGeoipConfigured = false
