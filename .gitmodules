@@ -6,7 +6,7 @@
 	url = https://github.com/openssl/openssl.git
 [submodule "external/xz"]
 	path = external/xz
-	url = https://git.tukaani.org/xz.git
+	url = https://github.com/tukaani-project/xz
 [submodule "external/tor"]
 	path = external/tor
 	url = https://gitlab.torproject.org/tpo/core/tor.git
