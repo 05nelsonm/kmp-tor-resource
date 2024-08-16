@@ -638,6 +638,7 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
   --disable-shared \
   --disable-xz \
   --disable-xzdec \
+  --enable-small \
   --host="$CROSS_TRIPLE" \
   --prefix="$DIR_SCRIPT/xz"'
 
@@ -764,16 +765,15 @@ make clean > /dev/null
 make -j\"\$NUM_JOBS\" > \"\$DIR_SCRIPT/zlib/logs/make.log\" 2> \"\$DIR_SCRIPT/zlib/logs/make.err\"
 make install >> \"\$DIR_SCRIPT/zlib/logs/make.log\" 2>> \"\$DIR_SCRIPT/zlib/logs/make.err\""
 
-  # LZMA
+  # XZ
   __conf:SCRIPT "
 echo \"
-    Building lzma for \$TASK_TARGET
+    Building xz for \$TASK_TARGET
     LOGS >> $DIR_BUILD/xz/logs
 \""
   __conf:SCRIPT 'cp -R "$DIR_EXTERNAL/xz" "$DIR_TMP"'
   __conf:SCRIPT "cd \"\$DIR_TMP/xz\"
-./autogen.sh --no-po4a \\
-  --no-doxygen > \"\$DIR_SCRIPT/xz/logs/autogen.log\" 2> \"\$DIR_SCRIPT/xz/logs/autogen.err\"
+./autogen.sh --no-po4a > \"\$DIR_SCRIPT/xz/logs/autogen.log\" 2> \"\$DIR_SCRIPT/xz/logs/autogen.err\"
 $CONF_XZ > \"\$DIR_SCRIPT/xz/logs/configure.log\" 2> \"\$DIR_SCRIPT/xz/logs/configure.err\"
 make clean > /dev/null
 make -j\"\$NUM_JOBS\" > \"\$DIR_SCRIPT/xz/logs/make.log\" 2> \"\$DIR_SCRIPT/xz/logs/make.err\"
