@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+import kotlinx.validation.ApiValidationExtension
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
@@ -25,7 +26,6 @@ plugins {
 }
 
 allprojects {
-
     findProperty("GROUP")?.let { group = it }
     findProperty("VERSION_NAME")?.let { version = it }
     findProperty("POM_DESCRIPTION")?.let { description = it.toString() }
@@ -33,13 +33,11 @@ allprojects {
     repositories {
         mavenCentral()
         google()
-        gradlePluginPortal()
     }
-
 }
 
 @Suppress("PropertyName")
-val CHECK_PUBLICATION = (findProperty("CHECK_PUBLICATION") as? String) != null
+val CHECK_PUBLICATION = findProperty("CHECK_PUBLICATION") != null
 
 plugins.withType<YarnPlugin> {
     the<YarnRootExtension>().lockFileDirectory = rootDir.resolve(".kotlin-js-store")
@@ -49,7 +47,7 @@ plugins.withType<YarnPlugin> {
 }
 
 @Suppress("LocalVariableName")
-apiValidation {
+extensions.configure(ApiValidationExtension::class.java) {
     val KMP_TARGETS_ALL = System.getProperty("KMP_TARGETS_ALL") != null
     val KMP_TARGETS = (findProperty("KMP_TARGETS") as? String)?.split(',')
 
