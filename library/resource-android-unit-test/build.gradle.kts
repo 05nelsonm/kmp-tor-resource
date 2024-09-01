@@ -20,6 +20,10 @@ plugins {
 
 kmpConfiguration {
     configure {
+        options {
+            useUniqueModuleNames = true
+        }
+
         androidLibrary(namespace = "io.matthewnelson.kmp.tor.resource.android.unit.test") {
             target { publishLibraryVariants("release") }
 
