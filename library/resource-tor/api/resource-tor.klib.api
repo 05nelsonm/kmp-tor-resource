@@ -1,0 +1,13 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.matthewnelson.kmp-tor:resource-tor>
+final class io.matthewnelson.kmp.tor.resource.tor/TorResources : io.matthewnelson.kmp.tor.core.api/ResourceInstaller<io.matthewnelson.kmp.tor.core.api/ResourceInstaller.Paths.Tor> { // io.matthewnelson.kmp.tor.resource.tor/TorResources|null[0]
+    constructor <init>(io.matthewnelson.kmp.file/File) // io.matthewnelson.kmp.tor.resource.tor/TorResources.<init>|<init>(io.matthewnelson.kmp.file.File){}[0]
+
+    final fun install(): io.matthewnelson.kmp.tor.core.api/ResourceInstaller.Paths.Tor // io.matthewnelson.kmp.tor.resource.tor/TorResources.install|install(){}[0]
+}
