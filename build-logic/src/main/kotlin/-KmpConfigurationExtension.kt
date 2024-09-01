@@ -29,6 +29,10 @@ fun KmpConfigurationExtension.configureShared(
     action: Action<KmpConfigurationContainerDsl>
 ) {
     configure {
+        options {
+            useUniqueModuleNames = true
+        }
+
         if (androidNamespace != null) {
             androidLibrary(namespace = androidNamespace) {
                 if (publish) target { publishLibraryVariants("release") }
@@ -120,7 +124,7 @@ internal const val MODULE_NAME: String = "$moduleName"
             } else {
                 // If project version is not SNAPSHOT, this
                 // will inhibit releasing to MavenCentral w/o
-                // firsting making a release publication to
+                // first making a release publication to
                 // Npmjs of the resources.
                 "${project.version}"
             }

@@ -1,30 +1,26 @@
 [versions]
+gradle-android = "8.2.2"
+gradle-binary-compat = "0.14.0"
+gradle-kmp-configuration = "0.3.2"
+gradle-kotlin = "1.9.24"
+gradle-publish-maven = "0.29.0"
+gradle-publish-npm = "3.4.1"
+
+kmp-tor-core = "2.0.1"
+
+# tests & tools
 androidx-test-core = "1.5.0"
 androidx-test-runner = "1.5.2"
 
-encoding = "2.2.1"
+encoding = "2.2.2"
 
-gradle-android = "8.2.2"
-gradle-binary-compat = "0.14.0"
-gradle-kmp-configuration = "0.2.2"
-gradle-kotlin = "1.9.24"
-gradle-publish-maven = "0.28.0"
-gradle-publish-npm = "3.4.1"
-
-kmp-tor-core = "2.0.0"
-kotlincrypto-hash = "0.5.1"
+kotlincrypto-hash = "0.5.3"
 kotlinx-cli = "0.3.6"
 kotlinx-datetime = "0.5.0"
 
 okio = "3.7.0"
 
 [libraries]
-androidx-test-core = { module = "androidx.test:core", version.ref = "androidx-test-core" }
-androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
-
-encoding-base16 = { module = "io.matthewnelson.encoding:base16", version.ref = "encoding" }
-encoding-base64 = { module = "io.matthewnelson.encoding:base64", version.ref = "encoding" }
-
 gradle-android = { module = "com.android.tools.build:gradle", version.ref = "gradle-android" }
 gradle-kmp-configuration = { module = "io.matthewnelson:gradle-kmp-configuration-plugin", version.ref = "gradle-kmp-configuration" }
 gradle-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "gradle-kotlin" }
@@ -33,6 +29,14 @@ gradle-publish-maven = { module = "com.vanniktech:gradle-maven-publish-plugin", 
 kmp-tor-core-api = { module = "io.matthewnelson.kmp-tor:core-api", version.ref = "kmp-tor-core" }
 kmp-tor-core-resource = { module = "io.matthewnelson.kmp-tor:core-resource", version.ref = "kmp-tor-core" }
 kmp-tor-core-lib-locator = { module = "io.matthewnelson.kmp-tor:core-lib-locator", version.ref = "kmp-tor-core" }
+
+# tests & tools
+androidx-test-core = { module = "androidx.test:core", version.ref = "androidx-test-core" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
+
+encoding-base16 = { module = "io.matthewnelson.encoding:base16", version.ref = "encoding" }
+encoding-base64 = { module = "io.matthewnelson.encoding:base64", version.ref = "encoding" }
+
 kotlincrypto-hash-sha2 = { module = "org.kotlincrypto.hash:sha2", version.ref = "kotlincrypto-hash" }
 kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
