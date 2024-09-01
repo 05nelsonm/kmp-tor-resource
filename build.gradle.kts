@@ -51,6 +51,11 @@ extensions.configure(ApiValidationExtension::class.java) {
     val KMP_TARGETS_ALL = System.getProperty("KMP_TARGETS_ALL") != null
     val KMP_TARGETS = (findProperty("KMP_TARGETS") as? String)?.split(',')
 
+    // Only enable when selectively enabled targets are not being passed via cli.
+    // See https://github.com/Kotlin/binary-compatibility-validator/issues/269
+    @OptIn(kotlinx.validation.ExperimentalBCVApi::class)
+    klib.enabled = KMP_TARGETS == null
+
     if (CHECK_PUBLICATION) {
         ignoredProjects.add("check-publication")
     } else {
