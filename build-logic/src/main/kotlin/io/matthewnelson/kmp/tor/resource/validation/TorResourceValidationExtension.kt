@@ -68,7 +68,7 @@ abstract class TorResourceValidationExtension: ResourceValidation {
     protected open val hashJvmMingwX86: String = "5d42022964c527c994c3b78b6d43d882bf726b5a3fff2292ea60c6988a277482"
     protected open val hashJvmMingwX86_64: String = "3b69341dc453057f3b8cb51e4957bc8d72e04ede543413123014ef0fd320f877"
 
-    protected open val hashNativeIosArm64: String = "b980ee5ba2511ba9afc1c62c226a54f1d665ac3fcb9b104c27d0dcb522a8084b"
+    protected open val hashNativeIosArm64: String = "c2f1f4438dbbe99a724c58dd224b1da157febfd69d4ae122a83e8bd59e367191"
     protected open val hashNativeIosSimulatorArm64: String = "5c8d025ca774ae0f518a3011ec72126213992ec086f35f6e55e5a273551d6788"
     protected open val hashNativeIosX64: String = "f134f93ffea1f93ebab72908ba1013241e59823477d8215378d01f04f51c8f65"
     protected open val hashNativeLinuxArm64: String = "49ad1505c66ea17eccdc48761e406eef75a4cc5575cd19d48e7d183f1faf9d0d"

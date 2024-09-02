@@ -49,7 +49,7 @@ abstract class TorGPLResourceValidationExtension @Inject internal constructor(
     override val hashJvmMingwX86: String = "402e1717f736ff4e7c4e9387a1d91fc98515129ec9c2360591d6c816beb547b7"
     override val hashJvmMingwX86_64: String = "7a75807309c18dddd081384f86dd4b70e777f6008387d21aa04e019b8afdf4c5"
 
-    override val hashNativeIosArm64: String = "cdf12383215622a187099dab9632b1b0bcd30e28663ac76fea86f7b6f9543eb7"
+    override val hashNativeIosArm64: String = "975060749e488ce86a2a6acf897fef2279b5d6c29cf939af3542b2048495be96"
     override val hashNativeIosSimulatorArm64: String = "b578c457178855a4d3e1a3b3ddc3e9337a146fcbd90144c796df617c76c7ab7b"
     override val hashNativeIosX64: String = "6eda719e8ad858772ae623672a45cbc447175cbbaf8a96e8f82357339dee74df"
     override val hashNativeLinuxArm64: String = "c8492f1e2bdbbe25d8b9787fd571d17d557ff5c157dca7db5dc3b2bb181185ec"
