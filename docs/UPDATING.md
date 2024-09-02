@@ -15,9 +15,10 @@
    ./external/task.sh build:all
    ```
 
-5) Generate code signatures. NOTE: `sign:apple` needs paths to key info, mingw needs HSM.
+5) Generate code signatures. NOTE: `sign:apple` tasks needs paths to key info, mingw needs HSM.
    ```shell
-   ./external/task.sh sign:apple
+   ./external/task.sh sign:apple:ios
+   ./external/task.sh sign:apple:macos
    ./external/task.sh sign:mingw
    ```
 

@@ -345,36 +345,44 @@ function package { ## Packages build dir output
   trap - SIGINT ERR
 }
 
-function sign:apple { ## 2 ARGS - [1]: /path/to/key.p12  [2]: /path/to/app/store/connect/api_key.json
+function sign:apple:ios { ## 1 ARG  - [1]: smartcard-slot (e.g. 9d)
+  # shellcheck disable=SC2128
+  if [ $# -ne 1 ]; then
+    __error "Usage: $0 $FUNCNAME <smartcard-slot (e.g. 9d)>"
+  fi
+
+  local os_name="ios"
+  local file_name="tor"
+  local module="resource-tor"
+  __signature:generate:apple "aarch64" "$1"
+
+  module="resource-tor-gpl"
+  __signature:generate:apple "aarch64" "$1"
+}
+
+function sign:apple:macos { ## 2 ARGS - [1]: smartcard-slot (e.g. 9c)  [2]: /path/to/app/store/connect/api_key.json
   # shellcheck disable=SC2128
   if [ $# -ne 2 ]; then
-    __error "Usage: $0 $FUNCNAME /path/to/key.p12 /path/to/app/store/connect/api_key.json"
+    __error "Usage: $0 $FUNCNAME <smartcard-slot (e.g. 9c)> /path/to/app/store/connect/api_key.json"
   fi
 
   local os_name="macos"
   local file_name="tor"
   local module="resource-tor"
-  __signature:generate:apple "$1" "$2" "aarch64"
-  __signature:generate:apple "$1" "$2" "x86_64"
+  __signature:generate:apple "aarch64" "$1" "$2"
+  __signature:generate:apple "x86_64" "$1" "$2"
   local os_subtype="-lts"
-  __signature:generate:apple "$1" "$2" "aarch64"
-  __signature:generate:apple "$1" "$2" "x86_64"
+  __signature:generate:apple "aarch64" "$1" "$2"
+  __signature:generate:apple "x86_64" "$1" "$2"
   unset os_subtype
 
   module="resource-tor-gpl"
-  __signature:generate:apple "$1" "$2" "aarch64"
-  __signature:generate:apple "$1" "$2" "x86_64"
+  __signature:generate:apple "aarch64" "$1" "$2"
+  __signature:generate:apple "x86_64" "$1" "$2"
   local os_subtype="-lts"
-  __signature:generate:apple "$1" "$2" "aarch64"
-  __signature:generate:apple "$1" "$2" "x86_64"
+  __signature:generate:apple "aarch64" "$1" "$2"
+  __signature:generate:apple "x86_64" "$1" "$2"
   unset os_subtype
-
-  os_name="ios"
-  module="resource-tor"
-  __signature:generate:apple "$1" "$2" "aarch64"
-
-  module="resource-tor-gpl"
-  __signature:generate:apple "$1" "$2" "aarch64"
 }
 
 function sign:mingw { ## Codesign mingw binaries (see codesign/windows.pkcs11.sample)
@@ -1261,80 +1269,77 @@ function __signature:generate:apple {
   __require:var_set "$file_name" "file_name"
   __require:var_set "$os_name" "os_name"
   __require:cmd "$RCODESIGN" "rcodesign"
-  __require:file_exists "$1" "p12 file does not exist"
-  __require:file_exists "$2" "App Store Connect api key file does not exist"
-  __require:var_set "$3" "arch"
+  __require:var_set "$1" "arch"
+  __require:var_set "$2" "smartcard-slot"
+  # $3 App Store Connect api-key (macos only)
 
-  if [ ! -f "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" ]; then
+  if [ ! -f "$DIR_TASK/build/out/$module/$os_name$os_subtype/$1/$file_name" ]; then
     echo "
-    $file_name not found for $module/$os_name$os_subtype:$3. Skipping...
+    $file_name not found for $module/$os_name$os_subtype:$1. Skipping...
     "
     return 0
   fi
 
+  # Relative location within template bundle
+  local dir_libs=
+  local executable=
+
+  case "$os_name" in
+    "macos")
+      __require:file_exists "$3" "App Store Connect api key file does not exist"
+      executable="Contents/MacOS/KmpTorResource"
+      dir_libs="Contents/MacOS/NativeLibs"
+      ;;
+    "ios")
+      executable="KmpTorResource"
+      dir_libs="Executables"
+      ;;
+    *)
+      __error "Unknown os_name[$os_name]"
+      ;;
+  esac
+
   echo "
-    Creating detached signature for build/out/$module/$os_name$os_subtype/$3/$file_name
+    Creating detached signature for build/out/$module/$os_name$os_subtype/$1/$file_name
   "
 
   DIR_TMP="$(mktemp -d)"
   trap 'rm -rf "$DIR_TMP"' SIGINT ERR
 
-  local dir_lib_location=
+  cp -R "$DIR_TASK/codesign/template/$os_name/KmpTorResource.app" "$DIR_TMP"
+  rm -rf "$DIR_TMP/KmpTorResource.app/$dir_libs/.gitkeep"
+  cp "$DIR_TASK/build/out/$module/$os_name$os_subtype/$1/$file_name" "$DIR_TMP/KmpTorResource.app/$executable"
+  cp -a "$DIR_TASK/build/out/$module/$os_name$os_subtype/$1/$file_name" "$DIR_TMP/KmpTorResource.app/$dir_libs/$file_name"
+
+  ${RCODESIGN} sign \
+    --code-signature-flags runtime \
+    --code-signature-flags "$dir_libs/$file_name:runtime" \
+    --smartcard-slot "$2" \
+    "$DIR_TMP/KmpTorResource.app"
 
   if [ "$os_name" = "macos" ]; then
-    local dir_bundle="$DIR_TMP/KmpTor.app"
-    local dir_bundle_macos="$dir_bundle/Contents/MacOS"
-    local dir_bundle_libs="$dir_bundle_macos/Tor"
-    dir_lib_location="$dir_bundle_libs"
-
-    mkdir -p "$dir_bundle_libs"
-    echo '<?xml version="1.0" encoding="UTF-8"?>
-<plist version="1.0">
-<dict>
-    <key>CFBundleExecutable</key>
-    <string>program</string>
-    <key>CFBundleIdentifier</key>
-    <string>io.matthewnelson</string>
-    <key>LSUIElement</key>
-    <true/>
-</dict>
-</plist>' > "$dir_bundle/Contents/Info.plist"
-
-    cp "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" "$dir_bundle_macos/program"
-    cp -a "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" "$dir_bundle_libs/$file_name"
-
-    ${RCODESIGN} sign \
-      --p12-file "$1" \
-      --code-signature-flags runtime \
-      "$dir_bundle"
-
+    # Developer ID certificate (macOS only)
     echo ""
     sleep 1
 
+    # maximum wait time is set to 45m
     ${RCODESIGN} notary-submit \
-      --api-key-path "$2" \
+      --api-key-path "$3" \
+      --max-wait-seconds "2700" \
       --staple \
-      "$dir_bundle"
-  else
-    cp -a "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" "$DIR_TMP"
-    dir_lib_location="$DIR_TMP"
-
-    ${RCODESIGN} sign \
-      --p12-file "$1" \
-      --code-signature-flags runtime \
-      "$DIR_TMP/$file_name"
+      "$DIR_TMP/KmpTorResource.app"
   fi
 
-  mkdir -p "$DIR_TASK/codesign/$module/$os_name$os_subtype/$3"
-  rm -rf "$DIR_TASK/codesign/$module/$os_name$os_subtype/$3/$file_name.signature"
+  mkdir -p "$DIR_TASK/codesign/$module/$os_name$os_subtype/$1"
+  rm -rf "$DIR_TASK/codesign/$module/$os_name$os_subtype/$1/$file_name.signature"
 
   echo ""
 
   ../tooling diff-cli create \
     --diff-ext-name ".signature" \
-    "$DIR_TASK/build/out/$module/$os_name$os_subtype/$3/$file_name" \
-    "$dir_lib_location/$file_name" \
-    "$DIR_TASK/codesign/$module/$os_name$os_subtype/$3"
+    "$DIR_TASK/build/out/$module/$os_name$os_subtype/$1/$file_name" \
+    "$DIR_TMP/KmpTorResource.app/$dir_libs/$file_name" \
+    "$DIR_TASK/codesign/$module/$os_name$os_subtype/$1"
 
   echo ""
 
