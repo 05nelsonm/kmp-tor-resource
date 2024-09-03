@@ -43,19 +43,19 @@ abstract class TorGPLResourceValidationExtension @Inject internal constructor(
     override val hashJvmLinuxLibcX86: String = "3caa33ac51195495163e0ffcc714185b638e4532ce4d807ff2525dcd6a5d4acb"
     override val hashJvmLinuxLibcX86_64: String = "ffdb6866ba86f7011f77459f4772ef6c3f857bd9362acec345a306141f9a4fe3"
 
-    override val hashJvmMacosAarch64: String = "e284d16d584661599b8bd15a3b8700c989c184a418ff2370d6c01652723d61c3"
-    override val hashJvmMacosX86_64: String = "d63565a6e1129e7bdaff6fcde295df7ab528c77b3699ca13655bdd74b52921a7"
+    override val hashJvmMacosAarch64: String = "a81d824e305a12fd4cf4af1281ede74ca8ee5888a76dd3335a297494a0bc1e07"
+    override val hashJvmMacosX86_64: String = "0a8f67c33e4b35010b86172a7474c8ffb0ff44ce5d32fd0db126fafb5bd9b9f3"
 
     override val hashJvmMingwX86: String = "402e1717f736ff4e7c4e9387a1d91fc98515129ec9c2360591d6c816beb547b7"
     override val hashJvmMingwX86_64: String = "7a75807309c18dddd081384f86dd4b70e777f6008387d21aa04e019b8afdf4c5"
 
     override val hashNativeIosArm64: String = "975060749e488ce86a2a6acf897fef2279b5d6c29cf939af3542b2048495be96"
-    override val hashNativeIosSimulatorArm64: String = "b578c457178855a4d3e1a3b3ddc3e9337a146fcbd90144c796df617c76c7ab7b"
-    override val hashNativeIosX64: String = "6eda719e8ad858772ae623672a45cbc447175cbbaf8a96e8f82357339dee74df"
+    override val hashNativeIosSimulatorArm64: String = "08545a904e10f64123280f808b5a75c1f31134aa73117c3e9aceb92a7bac697b"
+    override val hashNativeIosX64: String = "2c6730e9f7171859d33a0b870719784d680725be7cb6c9afb8ea1e223eb8b258"
     override val hashNativeLinuxArm64: String = "c8492f1e2bdbbe25d8b9787fd571d17d557ff5c157dca7db5dc3b2bb181185ec"
     override val hashNativeLinuxX64: String = "ffdb6866ba86f7011f77459f4772ef6c3f857bd9362acec345a306141f9a4fe3"
-    override val hashNativeMacosArm64: String = "b578c457178855a4d3e1a3b3ddc3e9337a146fcbd90144c796df617c76c7ab7b"
-    override val hashNativeMacosX64: String = "6eda719e8ad858772ae623672a45cbc447175cbbaf8a96e8f82357339dee74df"
+    override val hashNativeMacosArm64: String = "08545a904e10f64123280f808b5a75c1f31134aa73117c3e9aceb92a7bac697b"
+    override val hashNativeMacosX64: String = "2c6730e9f7171859d33a0b870719784d680725be7cb6c9afb8ea1e223eb8b258"
     override val hashNativeMingwX64: String = "7a75807309c18dddd081384f86dd4b70e777f6008387d21aa04e019b8afdf4c5"
 
     internal companion object {

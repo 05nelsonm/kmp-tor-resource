@@ -62,19 +62,19 @@ abstract class TorResourceValidationExtension: ResourceValidation {
     protected open val hashJvmLinuxLibcX86: String = "d52463086a118cb9c72b0cf0dffa3c410f5cb321246480c4cc4e99a0f6e5b1b9"
     protected open val hashJvmLinuxLibcX86_64: String = "ccbcb36839f99f5dbcc4f0d3d5bc719e180b00b8bdc033c72c21aaaed09bf364"
 
-    protected open val hashJvmMacosAarch64: String = "7d1b0a831113b0f81093064aa29240dbbe7baeeb4f32e9b8394342dd9a6367c6"
-    protected open val hashJvmMacosX86_64: String = "1ea0e9d59309e879f8d9b4cd4e95e1f05be64952fe671c650486783368d45ad5"
+    protected open val hashJvmMacosAarch64: String = "1a01ab2de1279f27e246cbbc3154e12d9dfe3f174351f685158b35ae0c3863bb"
+    protected open val hashJvmMacosX86_64: String = "89aa82f9290924873adc4b7de21d82b54bc2e2fc34f8c03272b565e6a8da48ee"
 
     protected open val hashJvmMingwX86: String = "5d42022964c527c994c3b78b6d43d882bf726b5a3fff2292ea60c6988a277482"
     protected open val hashJvmMingwX86_64: String = "3b69341dc453057f3b8cb51e4957bc8d72e04ede543413123014ef0fd320f877"
 
     protected open val hashNativeIosArm64: String = "c2f1f4438dbbe99a724c58dd224b1da157febfd69d4ae122a83e8bd59e367191"
-    protected open val hashNativeIosSimulatorArm64: String = "5c8d025ca774ae0f518a3011ec72126213992ec086f35f6e55e5a273551d6788"
-    protected open val hashNativeIosX64: String = "f134f93ffea1f93ebab72908ba1013241e59823477d8215378d01f04f51c8f65"
+    protected open val hashNativeIosSimulatorArm64: String = "d0ccb9ce411d9a46d841f78da519580a676669743b7817f57255dea305eacc48"
+    protected open val hashNativeIosX64: String = "2251993b856df25dbc2b426e755e843887760125a2d3c739090ee6278166c7c7"
     protected open val hashNativeLinuxArm64: String = "49ad1505c66ea17eccdc48761e406eef75a4cc5575cd19d48e7d183f1faf9d0d"
     protected open val hashNativeLinuxX64: String = "ccbcb36839f99f5dbcc4f0d3d5bc719e180b00b8bdc033c72c21aaaed09bf364"
-    protected open val hashNativeMacosArm64: String = "5c8d025ca774ae0f518a3011ec72126213992ec086f35f6e55e5a273551d6788"
-    protected open val hashNativeMacosX64: String = "f134f93ffea1f93ebab72908ba1013241e59823477d8215378d01f04f51c8f65"
+    protected open val hashNativeMacosArm64: String = "d0ccb9ce411d9a46d841f78da519580a676669743b7817f57255dea305eacc48"
+    protected open val hashNativeMacosX64: String = "2251993b856df25dbc2b426e755e843887760125a2d3c739090ee6278166c7c7"
     protected open val hashNativeMingwX64: String = "3b69341dc453057f3b8cb51e4957bc8d72e04ede543413123014ef0fd320f877"
 
     private val geoipErrors = mutableSetOf<String>()

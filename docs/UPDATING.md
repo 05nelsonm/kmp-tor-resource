@@ -33,3 +33,8 @@
    ```
 
 8) Update expected hash values in `build-logic/src/main/kotlin/io/matthewnelson/kmp/tor/resource/validation`
+
+9) Re-run verification to ensure updated values are correct
+   ```shell
+   ./external/task.sh verify:all
+   ```
