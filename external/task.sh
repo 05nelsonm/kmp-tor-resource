@@ -574,7 +574,12 @@ mkdir -p "$DIR_SCRIPT/libevent/include"
 mkdir -p "$DIR_SCRIPT/libevent/lib"
 mkdir -p "$DIR_SCRIPT/libevent/logs"
 
+mkdir -p "$DIR_SCRIPT/tor/include"
+mkdir -p "$DIR_SCRIPT/tor/lib"
 mkdir -p "$DIR_SCRIPT/tor/logs"
+
+mkdir -p "$DIR_SCRIPT/tor-gpl/include"
+mkdir -p "$DIR_SCRIPT/tor-gpl/lib"
 mkdir -p "$DIR_SCRIPT/tor-gpl/logs"
 
 export LD_LIBRARY_PATH="$DIR_SCRIPT/libevent/lib:$DIR_SCRIPT/openssl/lib:$DIR_SCRIPT/xz/lib:$DIR_SCRIPT/zlib/lib:$LD_LIBRARY_PATH"
@@ -856,6 +861,8 @@ sed -i "s+__builtin___clear_cache((void\*)code, (void\*)pos);+return true;+" "sr
 make clean > /dev/null 2>&1
 make -j\"\$NUM_JOBS\" > \"\$DIR_SCRIPT/tor/logs/make.log\" 2> \"\$DIR_SCRIPT/tor/logs/make.err\"
 make install >> \"\$DIR_SCRIPT/tor/logs/make.log\" 2>> \"\$DIR_SCRIPT/tor/logs/make.err\"
+cp -a \"src/feature/api/tor_api.h\" \"\$DIR_SCRIPT/tor/include\"
+cp -a \"libtor.a\" \"\$DIR_SCRIPT/tor/lib\"
 "
 
   # TOR_GPL
@@ -884,6 +891,8 @@ sed -i "s+__builtin___clear_cache((void\*)code, (void\*)pos);+return true;+" "sr
 make clean > /dev/null 2>&1
 make -j\"\$NUM_JOBS\" > \"\$DIR_SCRIPT/tor-gpl/logs/make.log\" 2> \"\$DIR_SCRIPT/tor-gpl/logs/make.err\"
 make install >> \"\$DIR_SCRIPT/tor-gpl/logs/make.log\" 2>> \"\$DIR_SCRIPT/tor-gpl/logs/make.err\"
+cp -a \"src/feature/api/tor_api.h\" \"\$DIR_SCRIPT/tor-gpl/include\"
+cp -a \"libtor.a\" \"\$DIR_SCRIPT/tor-gpl/lib\"
 "
 
   # out
