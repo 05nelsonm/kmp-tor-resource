@@ -288,16 +288,6 @@ js-yaml@4.1.0:
   dependencies:
     argparse "^2.0.1"
 
-kmp-tor-resource-tor-gpl@408.12.0-SNAPSHOT.1:
-  version "408.12.0-SNAPSHOT.1"
-  resolved "https://registry.yarnpkg.com/kmp-tor-resource-tor-gpl/-/kmp-tor-resource-tor-gpl-408.12.0-SNAPSHOT.1.tgz#b0afa8af371d39e97737d15ca9b15875f58eb3f9"
-  integrity sha512-a7W9uHNo/tba8TID0xB6LJlhC0alrUNezSKqckpnWatYkdG4etUFfn7hKGtFGsRb5HI5hXirKLs2IaDkGcTK7A==
-
-kmp-tor-resource-tor@408.12.0-SNAPSHOT.1:
-  version "408.12.0-SNAPSHOT.1"
-  resolved "https://registry.yarnpkg.com/kmp-tor-resource-tor/-/kmp-tor-resource-tor-408.12.0-SNAPSHOT.1.tgz#c9bb451c889f7083cabe48409dc7f9eaf96e200f"
-  integrity sha512-y2ozdQckjYLBR+RvAXryQtwUbYpdGJxvLsV0jHjv5XSX1HIzaCVkSMl74Imzn0Nlb+EYYBYMFDn5EP0yxiS7ew==
-
 locate-path@^6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/locate-path/-/locate-path-6.0.0.tgz#55321eb309febbc59c4801d931a72452a681d286"

@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-import io.matthewnelson.kmp.configuration.ExperimentalKmpConfigurationApi
-
 plugins {
     id("configuration")
     id("resource-validation")
 }
 
 kmpConfiguration {
-    configureShared(androidNamespace = "io.matthewnelson.kmp.tor.resource.tor", publish = true) {
+    configureShared(
+        androidNamespace = "io.matthewnelson.kmp.tor.resource.tor",
+        java9ModuleName = "io.matthewnelson.kmp.tor.resource.tor",
+        publish = true,
+    ) {
 
         androidLibrary {
             android {
@@ -58,9 +60,6 @@ kmpConfiguration {
         }
 
         jvm {
-            @OptIn(ExperimentalKmpConfigurationApi::class)
-            java9ModuleInfoName = "io.matthewnelson.kmp.tor.resource.tor"
-
             sourceSetMain {
                 resources.srcDir(torResourceValidation.jvmTorLibResourcesSrcDir)
                 resources.srcDir(torResourceValidation.jvmGeoipResourcesSrcDir)

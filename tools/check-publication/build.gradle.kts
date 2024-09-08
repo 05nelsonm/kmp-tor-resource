@@ -39,14 +39,15 @@ kmpConfiguration {
         androidLibrary {
             sourceSetMain {
                 dependencies {
-                    // Should be a SEPARATE publication from resource-tor-jvm
-                    implementation("$group:resource-tor-android:$version")
-                    implementation("$group:resource-tor-gpl-android:$version")
+                    // Should be a SEPARATE publication from -jvm
+                    implementation("$group:resource-shared-tor-android:$version")
+                    implementation("$group:resource-shared-tor-gpl-android:$version")
                 }
             }
             sourceSetTest {
                 dependencies {
-                    implementation("$group:resource-android-unit-test:$version")
+                    implementation("$group:resource-android-unit-test-tor:$version")
+                    implementation("$group:resource-android-unit-test-tor-gpl:$version")
                 }
             }
         }
@@ -54,8 +55,17 @@ kmpConfiguration {
         jvm {
             sourceSetMain {
                 dependencies {
-                    implementation("$group:resource-tor-jvm:$version")
-                    implementation("$group:resource-tor-gpl-jvm:$version")
+                    implementation("$group:resource-shared-tor-jvm:$version")
+                    implementation("$group:resource-shared-tor-gpl-jvm:$version")
+                }
+            }
+        }
+
+        js {
+            sourceSetMain {
+                dependencies {
+                    implementation("$group:resource-shared-tor-js:$version")
+                    implementation("$group:resource-shared-tor-gpl-js:$version")
                 }
             }
         }
@@ -63,9 +73,19 @@ kmpConfiguration {
         common {
             sourceSetMain {
                 dependencies {
-                    implementation("$group:resource-tor:$version")
-                    implementation("$group:resource-tor-gpl:$version")
+                    implementation("$group:resource-shared-geoip:$version")
+                    implementation("$group:resource-exec-tor:$version")
+                    implementation("$group:resource-exec-tor-gpl:$version")
+                    implementation("$group:resource-static-tor:$version")
+                    implementation("$group:resource-static-tor-gpl:$version")
                 }
+            }
+        }
+
+        nonNative {
+            dependencies {
+                implementation("$group:resource-shared-tor:$version")
+                implementation("$group:resource-shared-tor-gpl:$version")
             }
         }
     }

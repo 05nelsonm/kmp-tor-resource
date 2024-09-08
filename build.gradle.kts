@@ -33,6 +33,13 @@ allprojects {
     repositories {
         mavenCentral()
         google()
+
+        if (version.toString().endsWith("-SNAPSHOT")) {
+            // Only allow snapshot dependencies for non-release versions.
+            // This would cause a build failure if attempting to make a release
+            // while depending on a -SNAPSHOT version (such as core).
+            maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+        }
     }
 }
 
@@ -60,12 +67,16 @@ extensions.configure(ApiValidationExtension::class.java) {
         ignoredProjects.add("check-publication")
     } else {
         nonPublicMarkers.add("io.matthewnelson.diff.core.internal.InternalDiffApi")
-        nonPublicMarkers.add("io.matthewnelson.kmp.tor.core.api.annotation.InternalKmpTorApi")
+        nonPublicMarkers.add("io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi")
 
         // Don't check these projects when building JVM only or Android only
         if (!KMP_TARGETS_ALL && KMP_TARGETS?.containsAll(setOf("ANDROID", "JVM")) == false) {
-            ignoredProjects.add("resource-tor")
-            ignoredProjects.add("resource-tor-gpl")
+            ignoredProjects.add("resource-shared-tor")
+            ignoredProjects.add("resource-shared-tor-gpl")
+            ignoredProjects.add("resource-exec-tor")
+            ignoredProjects.add("resource-exec-tor-gpl")
+            ignoredProjects.add("resource-static-tor")
+            ignoredProjects.add("resource-static-tor-gpl")
         }
     }
 }
