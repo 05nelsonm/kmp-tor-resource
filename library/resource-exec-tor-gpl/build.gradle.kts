@@ -18,5 +18,5 @@ plugins {
 }
 
 kmpConfiguration {
-    configureExecTor(libs, isGpl = true) {}
+    configureExecTor(project) {}
 }

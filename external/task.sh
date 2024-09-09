@@ -330,16 +330,17 @@ function package { ## Packages build dir output
   DIR_STAGING="$(mktemp -d)"
   trap 'rm -rf "$DIR_STAGING"' SIGINT ERR
 
-  local module="resource-tor"
-  local libname="tor"
+  local module="resource-shared-geoip"
+  local libname=
   __package:geoip "geoip"
   __package:geoip "geoip6"
-  __package:libs
 
-  module="resource-tor-gpl"
-  __package:geoip "geoip"
-  __package:geoip "geoip6"
-  __package:libs
+#  module="resource-tor"
+#  libname="tor"
+#  __package:libs
+#
+#  module="resource-tor-gpl"
+#  __package:libs
 
   rm -rf "$DIR_STAGING"
   trap - SIGINT ERR
@@ -410,27 +411,7 @@ function verify { ## Checks the build/package directory output against expected 
   ./gradlew clean -PKMP_TARGETS="$kmp_targets"
   ./gradlew prepareKotlinBuildScriptModel -PKMP_TARGETS="$kmp_targets"
 
-  local dir_module_reports=
-  local errs=
-  local file_err=
-
-  dir_module_reports="$DIR_TASK/../library/resource-tor/build/reports/resource-validation/resource-tor"
-  errs=$(ls "$dir_module_reports")
-
-  echo ""
-  for file_err in $errs; do
-    echo "resource-tor/$file_err:"
-    cat "$dir_module_reports/$file_err"
-  done
-  echo ""
-
-  dir_module_reports="$DIR_TASK/../library/resource-tor-gpl/build/reports/resource-validation/resource-tor-gpl"
-  errs=$(ls "$dir_module_reports")
-  for file_err in $errs; do
-    echo "resource-tor-gpl/$file_err:"
-    cat "$dir_module_reports/$file_err"
-  done
-  echo ""
+  __verify:report "resource-shared-geoip"
 }
 
 # Does not show up in help output. The `verify` task does not
@@ -441,6 +422,23 @@ function verify { ## Checks the build/package directory output against expected 
 function verify:all {
   local include_android="yes"
   verify
+}
+
+function __verify:report {
+  __require:var_set "$1" "module name"
+
+  local dir_module_reports=
+  local errs=
+  local file_err=
+
+  dir_module_reports="$DIR_TASK/../library/$1/build/reports/resource-validation/$1"
+  errs=$(ls "$dir_module_reports")
+
+  for file_err in $errs; do
+    echo "$1/$file_err:"
+    cat "$dir_module_reports/$file_err"
+  done
+  echo ""
 }
 
 function __build:cleanup {
@@ -1167,9 +1165,9 @@ function __package:geoip {
   local permissions="664"
   local gzip="yes"
 
-  __package "tor/src/config" "jvmAndroidMain/resources/io/matthewnelson/kmp/tor/resource/tor" "$1"
+  __package "tor/src/config" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/shared/geoip" "$1"
 
-  local native_resource="io.matthewnelson.kmp.tor.resource.tor.internal"
+  local native_resource="io.matthewnelson.kmp.tor.resource.shared.geoip.internal"
   __package "tor/src/config" "nativeMain" "$1"
 }
 

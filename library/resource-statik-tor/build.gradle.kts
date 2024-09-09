@@ -18,5 +18,5 @@ plugins {
 }
 
 kmpConfiguration {
-    configureStatikTor(libs, isGpl = false) {}
+    configureStatikTor(project) {}
 }

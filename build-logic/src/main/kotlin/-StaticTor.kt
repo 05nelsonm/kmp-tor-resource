@@ -17,12 +17,17 @@ import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
+import org.gradle.api.Project
+import org.gradle.kotlin.dsl.the
 
 fun KmpConfigurationExtension.configureStatikTor(
-    libs: LibrariesForLibs,
-    isGpl: Boolean,
+    project: Project,
     action: Action<KmpConfigurationContainerDsl>,
 ) {
+    require(project.name.startsWith("resource-statik-tor")) { "Invalid project" }
+
+    val libs = project.the<LibrariesForLibs>()
+    val isGpl = project.name.endsWith("gpl")
     val suffix = if (isGpl) "-gpl" else ""
 
     configureShared(
@@ -31,6 +36,12 @@ fun KmpConfigurationExtension.configureStatikTor(
         publish = true,
     ) {
         androidLibrary {
+            sourceSetTest {
+                dependencies {
+                    implementation(project(":library:resource-android-unit-test-tor$suffix"))
+                }
+            }
+
             sourceSetTestInstrumented {
                 dependencies {
                     implementation(libs.androidx.test.core)
@@ -49,10 +60,16 @@ fun KmpConfigurationExtension.configureStatikTor(
             }
         }
 
+        // TODO: JNI
         kotlin {
             sourceSets.findByName("jvmAndroidMain")?.dependencies {
                 implementation(project(":library:resource-shared-tor$suffix"))
             }
+        }
+
+        // TODO: Native libtor.a cinterops
+        kotlin {
+
         }
 
         action.execute(this)

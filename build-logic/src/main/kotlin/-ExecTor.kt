@@ -17,12 +17,17 @@ import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
+import org.gradle.api.Project
+import org.gradle.kotlin.dsl.the
 
 fun KmpConfigurationExtension.configureExecTor(
-    libs: LibrariesForLibs,
-    isGpl: Boolean,
+    project: Project,
     action: Action<KmpConfigurationContainerDsl>,
 ) {
+    require(project.name.startsWith("resource-exec-tor")) { "Invalid project" }
+
+    val libs = project.the<LibrariesForLibs>()
+    val isGpl = project.name.endsWith("gpl")
     val suffix = if (isGpl) "-gpl" else ""
 
     configureShared(
@@ -37,11 +42,23 @@ fun KmpConfigurationExtension.configureExecTor(
                 }
             }
 
+            sourceSetTest {
+                dependencies {
+                    implementation(project(":library:resource-android-unit-test-tor$suffix"))
+                }
+            }
+
             sourceSetTestInstrumented {
                 dependencies {
                     implementation(libs.androidx.test.core)
                     implementation(libs.androidx.test.runner)
                 }
+            }
+        }
+
+        js {
+            sourceSetTest {
+                // TODO: NPM dependencies
             }
         }
 
@@ -60,6 +77,9 @@ fun KmpConfigurationExtension.configureExecTor(
                 implementation(project(":library:resource-shared-tor$suffix"))
             }
         }
+
+        // TODO: Native resources
+//        kotlin {}
 
         action.execute(this)
     }

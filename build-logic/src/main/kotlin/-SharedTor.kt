@@ -17,19 +17,39 @@ import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
+import org.gradle.api.Project
+import org.gradle.kotlin.dsl.the
 
 fun KmpConfigurationExtension.configureSharedTor(
-    libs: LibrariesForLibs,
-    isGpl: Boolean,
+    project: Project,
     action: Action<KmpConfigurationContainerDsl>,
 ) {
+    require(project.name.startsWith("resource-shared-tor")) { "Invalid project." }
+
+    val libs = project.the<LibrariesForLibs>()
+//    val isGpl = project.name.endsWith("gpl")
+
     configureShared(
         androidNamespace = "io.matthewnelson.kmp.tor.resource.shared.tor",
         java9ModuleName = "io.matthewnelson.kmp.tor.resource.shared.tor",
         excludeNative = true,
         publish = true,
     ) {
+        androidLibrary {
+            android {
+                // TODO: JniLibs
+            }
+        }
+
+        jvm {
+            sourceSetMain {
+                // TODO: Native Resources
+            }
+        }
+
         common {
+            pluginIds("resource-validation")
+
             sourceSetMain {
                 dependencies {
                     implementation(libs.kmp.tor.common.core)

@@ -13,10 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-plugins {
-    id("configuration")
-}
+package resource.validation
 
-kmpConfiguration {
-    configureStatikTor(project) {}
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import resource.validation.extensions.GeoipResourceValidationExtension
+
+open class ResourceValidationPlugin internal constructor(): Plugin<Project> {
+    override fun apply(target: Project) {
+        listOf(
+            GeoipResourceValidationExtension.NAME to GeoipResourceValidationExtension::class.java,
+        ).forEach { (name, clazz) ->
+            target.extensions.create(name, clazz, target)
+        }
+    }
 }

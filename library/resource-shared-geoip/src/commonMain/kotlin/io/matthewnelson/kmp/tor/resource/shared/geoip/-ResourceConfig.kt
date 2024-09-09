@@ -13,10 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-plugins {
-    id("configuration")
-}
+package io.matthewnelson.kmp.tor.resource.shared.geoip
 
-kmpConfiguration {
-    configureStatikTor(project) {}
-}
+import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
+import io.matthewnelson.kmp.tor.common.core.Resource
+import io.matthewnelson.kmp.tor.resource.shared.geoip.internal.platformConfigureGeoipResources
+
+@InternalKmpTorApi
+public const val ALIAS_GEOIP: String = "geoip"
+@InternalKmpTorApi
+public const val ALIAS_GEOIP6: String = "geoip6"
+
+@InternalKmpTorApi
+public fun Resource.Config.Builder.configureGeoipResources() { platformConfigureGeoipResources() }

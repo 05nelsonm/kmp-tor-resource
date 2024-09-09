@@ -13,10 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-plugins {
-    id("configuration")
-}
+package resource.validation.extensions.internal
 
-kmpConfiguration {
-    configureStatikTor(project) {}
-}
+import io.matthewnelson.encoding.base16.Base16
+import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
+import java.io.File
+import java.io.IOException
+import java.security.MessageDigest
+
+private val BASE_16 = Base16 { encodeToLowercase = true }
+
+@Throws(IOException::class)
+internal fun File.sha256(): String = MessageDigest
+    .getInstance("SHA-256")
+    .digest(readBytes())
+    .encodeToString(BASE_16)

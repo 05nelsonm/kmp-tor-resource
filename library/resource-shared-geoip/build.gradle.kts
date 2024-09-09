@@ -15,6 +15,7 @@
  **/
 plugins {
     id("configuration")
+    id("resource-validation")
 }
 
 kmpConfiguration {
@@ -22,6 +23,18 @@ kmpConfiguration {
         java9ModuleName = "io.matthewnelson.kmp.tor.resource.shared.geoip",
         publish = true,
     ) {
+        jvm {
+            sourceSetMain {
+                resources.srcDirs(geoipResourceValidation.jvmResourcesSrcDir())
+            }
+        }
+
+        js {
+            sourceSetMain {
+                // TODO: NPM dependency
+            }
+        }
+
         common {
             sourceSetMain {
                 dependencies {
@@ -29,5 +42,9 @@ kmpConfiguration {
                 }
             }
         }
+
+        nonNative {}
+
+        kotlin { geoipResourceValidation.configureNativeResources() }
     }
 }

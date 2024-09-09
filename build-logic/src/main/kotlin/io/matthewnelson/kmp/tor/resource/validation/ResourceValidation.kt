@@ -15,14 +15,11 @@
  **/package io.matthewnelson.kmp.tor.resource.validation
 
 import com.android.build.api.dsl.LibraryExtension
-import io.matthewnelson.encoding.base16.Base16
-import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.getByName
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import resource.validation.extensions.internal.sha256
 import java.io.File
-import java.io.IOException
-import java.security.MessageDigest
 
 sealed class ResourceValidation(
     protected val project: Project,
@@ -359,11 +356,4 @@ sealed class ResourceValidation(
             return "Failed to find the sha256 value for NativeResource: $file"
         }
     }
-}
-
-@Throws(IOException::class)
-internal fun File.sha256(): String {
-    return MessageDigest.getInstance("SHA-256")
-        .digest(readBytes())
-        .encodeToString(Base16 { encodeToLowercase = true })
 }

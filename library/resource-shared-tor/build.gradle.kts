@@ -18,5 +18,5 @@ plugins {
 }
 
 kmpConfiguration {
-    configureSharedTor(libs, isGpl = false) {}
+    configureSharedTor(project) {}
 }

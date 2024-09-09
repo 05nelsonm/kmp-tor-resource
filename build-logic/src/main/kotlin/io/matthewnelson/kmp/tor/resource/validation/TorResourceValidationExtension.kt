@@ -18,6 +18,7 @@
 package io.matthewnelson.kmp.tor.resource.validation
 
 import org.gradle.api.Project
+import resource.validation.extensions.internal.sha256
 import java.io.File
 import javax.inject.Inject
 

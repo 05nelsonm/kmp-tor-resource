@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-plugins {
-    id("configuration")
-}
+package io.matthewnelson.kmp.tor.resource.shared.geoip.internal
 
-kmpConfiguration {
-    configureStatikTor(project) {}
-}
+private const val PATH_RESOURCE = "/io/matthewnelson/kmp/tor/resource/shared/geoip"
+internal const val PATH_RESOURCE_GEOIP = "$PATH_RESOURCE/geoip.gz"
+internal const val PATH_RESOURCE_GEOIP6 = "$PATH_RESOURCE/geoip6.gz"

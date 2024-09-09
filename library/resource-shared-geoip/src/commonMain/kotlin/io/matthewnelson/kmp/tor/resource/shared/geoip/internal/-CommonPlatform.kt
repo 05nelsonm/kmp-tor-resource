@@ -13,7 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-package io.matthewnelson.kmp.tor.resource.shared.geoip
+@file:Suppress("KotlinRedundantDiagnosticSuppress")
 
-// TODO: Remove
-internal fun stub() { }
+package io.matthewnelson.kmp.tor.resource.shared.geoip.internal
+
+import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
+import io.matthewnelson.kmp.tor.common.core.Resource
+
+@OptIn(InternalKmpTorApi::class)
+@Suppress("NOTHING_TO_INLINE")
+internal expect inline fun Resource.Config.Builder.platformConfigureGeoipResources()
