@@ -25,7 +25,16 @@ import resource.validation.extensions.internal.SourceSetName.Companion.toSourceS
 import resource.validation.extensions.internal.ValidationHash
 import java.io.File
 
-
+/**
+ * Base abstraction for validating reproducability of packaged
+ * resources located in the `external/build/package` directory.
+ *
+ * e.g. (terminal)
+ *
+ *     ./external/task.sh build:all
+ *     ./external/task.sh package
+ *     ./external/task.sh verify
+ * */
 sealed class AbstractResourceValidationExtension(
     protected val project: Project,
     protected val moduleName: String,

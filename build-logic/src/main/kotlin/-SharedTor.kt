@@ -19,6 +19,7 @@ import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.the
+import resource.validation.extensions.SharedTorResourceValidationExtension
 
 fun KmpConfigurationExtension.configureSharedTor(
     project: Project,
@@ -27,7 +28,14 @@ fun KmpConfigurationExtension.configureSharedTor(
     require(project.name.startsWith("resource-shared-tor")) { "Invalid project." }
 
     val libs = project.the<LibrariesForLibs>()
-//    val isGpl = project.name.endsWith("gpl")
+    val isGpl = project.name.endsWith("gpl")
+    val resourceValidation by lazy {
+        if (isGpl) {
+            SharedTorResourceValidationExtension.GPL::class.java
+        } else {
+            SharedTorResourceValidationExtension::class.java
+        }.let { project.extensions.getByType(it) }
+    }
 
     configureShared(
         androidNamespace = "io.matthewnelson.kmp.tor.resource.shared.tor",
@@ -37,13 +45,13 @@ fun KmpConfigurationExtension.configureSharedTor(
     ) {
         androidLibrary {
             android {
-                // TODO: JniLibs
+                resourceValidation.configureAndroidJniResources()
             }
         }
 
         jvm {
             sourceSetMain {
-                // TODO: Native Resources
+                resources.srcDir(resourceValidation.jvmNativeLibResourcesSrcDir())
             }
         }
 

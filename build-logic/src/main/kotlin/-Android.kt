@@ -16,9 +16,10 @@
 import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import io.matthewnelson.kmp.configuration.extension.container.target.TargetAndroidContainer
-import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
+import org.gradle.api.Project
+import resource.validation.extensions.SharedTorResourceValidationExtension
 
 fun KmpConfigurationContainerDsl.androidLibrary(
     namespace: String,
@@ -51,10 +52,20 @@ fun KmpConfigurationContainerDsl.androidLibrary(
 }
 
 fun KmpConfigurationExtension.configureAndroidUnitTestTor(
-    libs: LibrariesForLibs,
-    isGpl: Boolean,
+    project: Project,
     action: Action<KmpConfigurationContainerDsl>,
 ) {
+    require(project.name.startsWith("resource-android-unit-test-tor")) { "Invalid project" }
+
+    val isGpl = project.name.endsWith("gpl")
+    val resourceValidation by lazy {
+        if (isGpl) {
+            SharedTorResourceValidationExtension.GPL::class.java
+        } else {
+            SharedTorResourceValidationExtension::class.java
+        }.let { project.extensions.getByType(it) }
+    }
+
     configure {
         options {
             useUniqueModuleNames = true
@@ -62,9 +73,15 @@ fun KmpConfigurationExtension.configureAndroidUnitTestTor(
 
         androidLibrary(namespace = "io.matthewnelson.kmp.tor.resource.android.unit.test.tor") {
             target { publishLibraryVariants("release") }
+
+            android {
+                sourceSets.getByName("main").resources {
+                    srcDir(resourceValidation.jvmNativeLibResourcesSrcDir())
+                }
+            }
         }
 
-        common { pluginIds("publication") }
+        common { pluginIds("publication", "resource-validation") }
 
         action.execute(this)
     }

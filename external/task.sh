@@ -330,35 +330,31 @@ function package { ## Packages build dir output
   DIR_STAGING="$(mktemp -d)"
   trap 'rm -rf "$DIR_STAGING"' SIGINT ERR
 
-  local module="resource-shared-geoip"
+  local dirname_out=
+  local dirname_final="resource-shared-geoip"
   local libname=
   __package:geoip "geoip"
   __package:geoip "geoip6"
 
-#  module="resource-tor"
-#  libname="tor"
-#  __package:libs
-#
-#  module="resource-tor-gpl"
-#  __package:libs
+  dirname_out="tor"
+  dirname_final="resource-shared-$dirname_out"
+  libname="tor"
+  __package:libs:shared
+
+  dirname_out="tor-gpl"
+  dirname_final="resource-shared-$dirname_out"
+  __package:libs:shared
+
+  dirname_out="tor"
+  dirname_final="resource-exec-$dirname_out"
+  __package:libs:native:exec
+
+  dirname_out="tor-gpl"
+  dirname_final="resource-exec-$dirname_out"
+  __package:libs:native:exec
 
   rm -rf "$DIR_STAGING"
   trap - SIGINT ERR
-}
-
-function sign:apple:ios { ## 1 ARG  - [1]: smartcard-slot (e.g. 9d)
-  # shellcheck disable=SC2128
-  if [ $# -ne 1 ]; then
-    __error "Usage: $0 $FUNCNAME <smartcard-slot (e.g. 9d)>"
-  fi
-
-  local os_name="ios"
-  local file_name="tor"
-  local module="resource-tor"
-  __signature:generate:apple "aarch64" "$1"
-
-  module="resource-tor-gpl"
-  __signature:generate:apple "aarch64" "$1"
 }
 
 function sign:apple:macos { ## 2 ARGS - [1]: smartcard-slot (e.g. 9c)  [2]: /path/to/app/store/connect/api_key.json
@@ -369,17 +365,20 @@ function sign:apple:macos { ## 2 ARGS - [1]: smartcard-slot (e.g. 9c)  [2]: /pat
 
   local os_name="macos"
   local file_name="tor"
-  local module="resource-tor"
+
+  local dirname_out="tor"
   __signature:generate:apple "aarch64" "$1" "$2"
   __signature:generate:apple "x86_64" "$1" "$2"
+
   local os_subtype="-lts"
   __signature:generate:apple "aarch64" "$1" "$2"
   __signature:generate:apple "x86_64" "$1" "$2"
   unset os_subtype
 
-  module="resource-tor-gpl"
+  dirname_out="tor-gpl"
   __signature:generate:apple "aarch64" "$1" "$2"
   __signature:generate:apple "x86_64" "$1" "$2"
+
   local os_subtype="-lts"
   __signature:generate:apple "aarch64" "$1" "$2"
   __signature:generate:apple "x86_64" "$1" "$2"
@@ -390,17 +389,17 @@ function sign:mingw { ## Codesign mingw binaries (see codesign/windows.pkcs11.sa
   . "$DIR_TASK/codesign/windows.pkcs11"
 
   local file_name="tor.exe"
-  local module="resource-tor"
+  local dirname_out="tor"
 
   __signature:generate:mingw "x86"
   __signature:generate:mingw "x86_64"
 
-  module="resource-tor-gpl"
+  dirname_out="tor-gpl"
   __signature:generate:mingw "x86"
   __signature:generate:mingw "x86_64"
 }
 
-function verify { ## Checks the build/package directory output against expected sha256 hashes
+function validate { ## Checks the build/package directory output against expected sha256 hashes
   local kmp_targets="JVM,LINUX_ARM64,LINUX_X64,MACOS_ARM64,MACOS_X64,MINGW_X64,IOS_ARM64,IOS_SIMULATOR_ARM64,IOS_X64,TVOS_ARM64,TVOS_SIMULATOR_ARM64,TVOS_X64,WATCHOS_ARM32,WATCHOS_ARM64,WATCHOS_DEVICE_ARM64,WATCHOS_SIMULATOR_ARM64,WATCHOS_X64"
 
   if [ -n "$include_android" ]; then
@@ -411,20 +410,24 @@ function verify { ## Checks the build/package directory output against expected 
   ./gradlew clean -PKMP_TARGETS="$kmp_targets"
   ./gradlew prepareKotlinBuildScriptModel -PKMP_TARGETS="$kmp_targets"
 
-  __verify:report "resource-shared-geoip"
+  __validate:report "resource-shared-geoip"
+  __validate:report "resource-shared-tor"
+  __validate:report "resource-shared-tor-gpl"
+  __validate:report "resource-exec-tor"
+  __validate:report "resource-exec-tor-gpl"
 }
 
-# Does not show up in help output. The `verify` task does not
+# Does not show up in help output. The `validate` task does not
 # include android, as the linux-android JVM binaries are the
 # same.
 #
 # Including ANDROID in KMP_TARGETS requires Java 17+
-function verify:all {
+function validate:all {
   local include_android="yes"
-  verify
+  validate
 }
 
-function __verify:report {
+function __validate:report {
   __require:var_set "$1" "module name"
 
   local dir_module_reports=
@@ -464,13 +467,13 @@ function __build:configure:target:init {
       __require:var_set "$ndk_abi" "ndk_abi"
 
       DIR_BUILD="build/stage/$os_name/$ndk_abi"
-      DIR_OUT_TOR="build/out/resource-tor/$os_name/$ndk_abi"
-      DIR_OUT_TOR_GPL="build/out/resource-tor-gpl/$os_name/$ndk_abi"
+      DIR_OUT_TOR="build/out/tor/$os_name/$ndk_abi"
+      DIR_OUT_TOR_GPL="build/out/tor-gpl/$os_name/$ndk_abi"
       ;;
     *)
       DIR_BUILD="build/stage/$os_name$os_subtype/$os_arch"
-      DIR_OUT_TOR="build/out/resource-tor/$os_name$os_subtype/$os_arch"
-      DIR_OUT_TOR_GPL="build/out/resource-tor-gpl/$os_name$os_subtype/$os_arch"
+      DIR_OUT_TOR="build/out/tor/$os_name$os_subtype/$os_arch"
+      DIR_OUT_TOR_GPL="build/out/tor-gpl/$os_name$os_subtype/$os_arch"
       ;;
   esac
 
@@ -540,8 +543,8 @@ readonly NUM_JOBS="$(nproc)"
 '
 
   if [ "$os_name" = "android" ]; then
-    __conf:SCRIPT "readonly DIR_OUT_TOR_ALT=\"\$DIR_EXTERNAL/build/out/resource-tor/linux-$os_name/$os_arch\""
-    __conf:SCRIPT "readonly DIR_OUT_TOR_GPL_ALT=\"\$DIR_EXTERNAL/build/out/resource-tor-gpl/linux-$os_name/$os_arch\""
+    __conf:SCRIPT "readonly DIR_OUT_TOR_ALT=\"\$DIR_EXTERNAL/build/out/tor/linux-$os_name/$os_arch\""
+    __conf:SCRIPT "readonly DIR_OUT_TOR_GPL_ALT=\"\$DIR_EXTERNAL/build/out/tor-gpl/linux-$os_name/$os_arch\""
     __conf:SCRIPT '
 rm -rf "$DIR_OUT_TOR_ALT"
 rm -rf "$DIR_OUT_TOR_GPL_ALT"'
@@ -1098,8 +1101,10 @@ function __exec:docker:run {
   trap - SIGINT
 }
 
-function __package:libs {
+function __package:libs:shared {
   __require:var_set "$libname" "libname"
+  __require:var_set "$dirname_final" "dirname_final"
+  __require:var_set "$dirname_out" "dirname_out"
 
   __package:android "arm64-v8a"
   __package:android "armeabi-v7a"
@@ -1121,7 +1126,7 @@ function __package:libs {
 
   # Jvm/Js utilize the LTS builds. Need to move them into
   # their final resting place 'macos-lts' -> 'macos'
-  local dir_native="build/package/$module/src/jvmMain/resources/io/matthewnelson/kmp/tor/resource/tor/native"
+  local dir_native="build/package/$dirname_final/src/jvmMain/resources/io/matthewnelson/kmp/tor/resource/shared/tor/native"
   if [ -d "$dir_native/macos-lts" ]; then
     rm -rf "$dir_native/macos"
     mv -v "$dir_native/macos-lts" "$dir_native/macos"
@@ -1130,35 +1135,18 @@ function __package:libs {
 
   __package:jvm:codesigned "mingw/x86" "$libname.exe"
   __package:jvm:codesigned "mingw/x86_64" "$libname.exe"
+}
 
-  __package:native "linux-libc/aarch64" "$libname" "linuxArm64Main"
-  __package:native "linux-libc/x86_64" "$libname" "linuxX64Main"
-  __package:native:codesigned "ios/aarch64" "$libname" "iosArm64Main"
-  __package:native:codesigned "macos/aarch64" "$libname" "macosArm64Main"
-  __package:native:codesigned "macos/x86_64" "$libname" "macosX64Main"
-  __package:native:codesigned "mingw/x86_64" "$libname.exe" "mingwX64Main"
+function __package:libs:native:exec {
+  __require:var_set "$libname" "libname"
+  __require:var_set "$dirname_final" "dirname_final"
+  __require:var_set "$dirname_out" "dirname_out"
 
-  # Executables for ios simulator targets are actually their
-  # respective macOS binaries for the given architecture; this
-  # is because they are "simulators", not emulators.
-  #
-  # Calling posix_spawn for an executable built against the simulator
-  # SDK would result in failure via
-  # `DYLD_ROOT_PATH not set for simulator program`; they must be built
-  # for the system the simulator is operating on (macOS).
-  #
-  # See Issue #33
-  local dir_src="build/package/$module/src"
-  if [ -d "$dir_src/macosArm64Main" ]; then
-    rm -rf "$dir_src/iosSimulatorArm64Main"
-    cp -R "$dir_src/macosArm64Main" "$dir_src/iosSimulatorArm64Main"
-    echo "coppied: '$dir_src/macosArm64Main' -> '$dir_src/iosSimulatorArm64Main"
-  fi
-  if [ -d "$dir_src/macosX64Main" ]; then
-    rm -rf "$dir_src/iosX64Main"
-    cp -R "$dir_src/macosX64Main" "$dir_src/iosX64Main"
-    echo "coppied: '$dir_src/macosX64Main' -> '$dir_src/iosX64Main"
-  fi
+  __package:native:exec "linux-libc/aarch64" "$libname" "linuxArm64Main"
+  __package:native:exec "linux-libc/x86_64" "$libname" "linuxX64Main"
+  __package:native:exec:codesigned "macos/aarch64" "$libname" "macosArm64Main"
+  __package:native:exec:codesigned "macos/x86_64" "$libname" "macosX64Main"
+  __package:native:exec:codesigned "mingw/x86_64" "$libname.exe" "mingwX64Main"
 }
 
 function __package:geoip {
@@ -1174,13 +1162,13 @@ function __package:geoip {
 function __package:android {
   local permissions="755"
   # no gzip
-  __package "build/out/$module/android/$1" "androidMain/jniLibs/$1" "lib$libname.so"
+  __package "build/out/$dirname_out/android/$1" "androidMain/jniLibs/$1" "lib$libname.so"
 }
 
 function __package:jvm {
   local permissions="755"
   local gzip="yes"
-  __package "build/out/$module/$1" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/tor/native/$1" "$2"
+  __package "build/out/$dirname_out/$1" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/shared/tor/native/$1" "$2"
 }
 
 function __package:jvm:codesigned {
@@ -1188,23 +1176,23 @@ function __package:jvm:codesigned {
   __package:jvm "$@"
 }
 
-function __package:native {
+function __package:native:exec {
   local permissions="755"
   local gzip="yes"
-  local native_resource="io.matthewnelson.kmp.tor.resource.tor.internal"
-  __package "build/out/$module/$1" "$3" "$2"
+  local native_resource="io.matthewnelson.kmp.tor.resource.exec.tor.internal"
+  __package "build/out/$dirname_out/$1" "$3" "$2"
 }
 
-function __package:native:codesigned {
+function __package:native:exec:codesigned {
   local detached_sig="$1"
-  __package:native "$@"
+  __package:native:exec "$@"
 }
 
 function __package {
   __require:var_set "$1" "Packaging target dir (relative to dir external/build/)"
-  __require:var_set "$2" "Binary module src path (e.g. external/package/resource-tor/src)"
+  __require:var_set "$2" "Binary module src path (e.g. external/package/resource-shared-tor/src)"
   __require:var_set "$3" "File name"
-  __require:var_set "$module" "module"
+  __require:var_set "$dirname_final" "dirname_final"
 
   __require:var_set "$permissions" "permissions"
   __require:var_set "$DIR_STAGING" "DIR_STAGING"
@@ -1216,7 +1204,7 @@ function __package {
     gzip:                 $gzip
     permissions:          $permissions
     NativeResource:       $native_resource
-    Module Src Dir:       build/package/$module/src/$2
+    Module Src Dir:       build/package/$dirname_final/src/$2
     "
     return 0
   fi
@@ -1232,7 +1220,7 @@ function __package {
 
   if [ -n "$detached_sig" ]; then
     ../tooling diff-cli apply \
-      "$DIR_TASK/codesign/$module/$detached_sig/$3.signature" \
+      "$DIR_TASK/codesign/$dirname_out/$detached_sig/$3.signature" \
       "$DIR_STAGING/$3"
   fi
 
@@ -1254,7 +1242,7 @@ function __package {
   # moved instead of being modified in place (see Issue #77).
   chmod "$permissions" "$DIR_STAGING/$3$file_ext"
 
-  local dir_module="$DIR_TASK/build/package/$module/src/$2"
+  local dir_module="$DIR_TASK/build/package/$dirname_final/src/$2"
 
   if [ -z "$native_resource" ]; then
     mkdir -p "$dir_module"
@@ -1272,7 +1260,7 @@ function __package {
 }
 
 function __signature:generate:apple {
-  __require:var_set "$module" "module"
+  __require:var_set "$dirname_out" "dirname_out"
   __require:var_set "$file_name" "file_name"
   __require:var_set "$os_name" "os_name"
   __require:cmd "$RCODESIGN" "rcodesign"
@@ -1280,9 +1268,9 @@ function __signature:generate:apple {
   __require:var_set "$2" "smartcard-slot"
   # $3 App Store Connect api-key (macos only)
 
-  if [ ! -f "$DIR_TASK/build/out/$module/$os_name$os_subtype/$1/$file_name" ]; then
+  if [ ! -f "$DIR_TASK/build/out/$dirname_out/$os_name$os_subtype/$1/$file_name" ]; then
     echo "
-    $file_name not found for $module/$os_name$os_subtype:$1. Skipping...
+    $file_name not found for $dirname_out/$os_name$os_subtype:$1. Skipping...
     "
     return 0
   fi
@@ -1307,7 +1295,7 @@ function __signature:generate:apple {
   esac
 
   echo "
-    Creating detached signature for build/out/$module/$os_name$os_subtype/$1/$file_name
+    Creating detached signature for build/out/$dirname_out/$os_name$os_subtype/$1/$file_name
   "
 
   DIR_TMP="$(mktemp -d)"
@@ -1315,8 +1303,8 @@ function __signature:generate:apple {
 
   cp -R "$DIR_TASK/codesign/template/$os_name/KmpTorResource.app" "$DIR_TMP"
   rm -rf "$DIR_TMP/KmpTorResource.app/$dir_libs/.gitkeep"
-  cp "$DIR_TASK/build/out/$module/$os_name$os_subtype/$1/$file_name" "$DIR_TMP/KmpTorResource.app/$executable"
-  cp -a "$DIR_TASK/build/out/$module/$os_name$os_subtype/$1/$file_name" "$DIR_TMP/KmpTorResource.app/$dir_libs/$file_name"
+  cp "$DIR_TASK/build/out/$dirname_out/$os_name$os_subtype/$1/$file_name" "$DIR_TMP/KmpTorResource.app/$executable"
+  cp -a "$DIR_TASK/build/out/$dirname_out/$os_name$os_subtype/$1/$file_name" "$DIR_TMP/KmpTorResource.app/$dir_libs/$file_name"
 
   ${RCODESIGN} sign \
     --code-signature-flags runtime \
@@ -1337,16 +1325,16 @@ function __signature:generate:apple {
       "$DIR_TMP/KmpTorResource.app"
   fi
 
-  mkdir -p "$DIR_TASK/codesign/$module/$os_name$os_subtype/$1"
-  rm -rf "$DIR_TASK/codesign/$module/$os_name$os_subtype/$1/$file_name.signature"
+  mkdir -p "$DIR_TASK/codesign/$dirname_out/$os_name$os_subtype/$1"
+  rm -rf "$DIR_TASK/codesign/$dirname_out/$os_name$os_subtype/$1/$file_name.signature"
 
   echo ""
 
   ../tooling diff-cli create \
     --diff-ext-name ".signature" \
-    "$DIR_TASK/build/out/$module/$os_name$os_subtype/$1/$file_name" \
+    "$DIR_TASK/build/out/$dirname_out/$os_name$os_subtype/$1/$file_name" \
     "$DIR_TMP/KmpTorResource.app/$dir_libs/$file_name" \
-    "$DIR_TASK/codesign/$module/$os_name$os_subtype/$1"
+    "$DIR_TASK/codesign/$dirname_out/$os_name$os_subtype/$1"
 
   echo ""
 
@@ -1357,7 +1345,7 @@ function __signature:generate:apple {
 
 # shellcheck disable=SC2154
 function __signature:generate:mingw {
-  __require:var_set "$module" "module"
+  __require:var_set "$dirname_out" "dirname_out"
   __require:var_set "$file_name" "file_name"
   __require:cmd "$OSSLSIGNCODE" "osslsigncode"
   __require:var_set "$1" "arch"
@@ -1373,7 +1361,7 @@ function __signature:generate:mingw {
 
   local pkcs11_url="pkcs11:model=$gen_model;manufacturer=$gen_manufacturer;serial=$gen_serial;id=$gen_id;type=private"
 
-  if [ ! -f "$DIR_TASK/build/out/$module/mingw/$1/$file_name" ]; then
+  if [ ! -f "$DIR_TASK/build/out/$dirname_out/mingw/$1/$file_name" ]; then
     echo "
     $file_name not found for mingw/$1. Skipping...
     "
@@ -1381,7 +1369,7 @@ function __signature:generate:mingw {
   fi
 
   echo "
-    Creating detached signature for build/out/$module/mingw/$1/$file_name
+    Creating detached signature for build/out/$dirname_out/mingw/$1/$file_name
   "
 
   DIR_TMP="$(mktemp -d)"
@@ -1394,19 +1382,19 @@ function __signature:generate:mingw {
     -certs "$gen_cert_path" \
     -ts "$gen_ts" \
     -h "sha256" \
-    -in "$DIR_TASK/build/out/$module/mingw/$1/$file_name" \
+    -in "$DIR_TASK/build/out/$dirname_out/mingw/$1/$file_name" \
     -out "$DIR_TMP/$file_name"
 
-  mkdir -p "$DIR_TASK/codesign/$module/mingw/$1"
-  rm -rf "$DIR_TASK/codesign/$module/mingw/$1/$file_name.signature"
+  mkdir -p "$DIR_TASK/codesign/$dirname_out/mingw/$1"
+  rm -rf "$DIR_TASK/codesign/$dirname_out/mingw/$1/$file_name.signature"
 
   echo ""
 
   ../tooling diff-cli create \
     --diff-ext-name ".signature" \
-    "$DIR_TASK/build/out/$module/mingw/$1/$file_name" \
+    "$DIR_TASK/build/out/$dirname_out/mingw/$1/$file_name" \
     "$DIR_TMP/$file_name" \
-    "$DIR_TASK/codesign/$module/mingw/$1"
+    "$DIR_TASK/codesign/$dirname_out/mingw/$1"
 
   echo ""
 

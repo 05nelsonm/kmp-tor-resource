@@ -21,6 +21,9 @@ import resource.validation.extensions.internal.ValidationHash
 import java.io.File
 import javax.inject.Inject
 
+/**
+ * Resoure validation and configuration for module `:library:resource-shared-geoip`
+ * */
 abstract class GeoipResourceValidationExtension @Inject internal constructor(
     project: Project,
 ): AbstractResourceValidationExtension(
@@ -29,8 +32,8 @@ abstract class GeoipResourceValidationExtension @Inject internal constructor(
     packageName = "io.matthewnelson.kmp.tor.resource.shared.geoip",
 ) {
 
-    private val hashGeoipGZ: String = "e3873cefd2810175e9cffbf5b3b236a809c198c564cde81110bfb940b6accc37"
-    private val hashGeoip6GZ: String = "9ac7c1e81c7483f288be894ff245134c49b7a5e06439d728622c00057ba81be0"
+    private val geoip: String = "e3873cefd2810175e9cffbf5b3b236a809c198c564cde81110bfb940b6accc37"
+    private val geoip6: String = "9ac7c1e81c7483f288be894ff245134c49b7a5e06439d728622c00057ba81be0"
 
     fun jvmResourcesSrcDir(): File = jvmResourcesSrcDirProtected(reportName = "jvm-geoip")
     fun configureNativeResources() { configureNativeResourcesProtected() }
@@ -38,23 +41,23 @@ abstract class GeoipResourceValidationExtension @Inject internal constructor(
     protected override val hashes: Set<ValidationHash> by lazy { setOf(
         ValidationHash.ResourceJvm(
             fileName = "geoip.gz",
-            hash = hashGeoipGZ,
+            hash = geoip,
         ),
         ValidationHash.ResourceJvm(
             fileName = "geoip6.gz",
-            hash = hashGeoip6GZ,
+            hash = geoip6,
         ),
         ValidationHash.ResourceNative(
             sourceSetName = "native".toSourceSetName(),
             ktFileName = "resource_geoip_gz.kt",
-            hash = hashGeoipGZ,
+            hash = geoip,
         ),
         ValidationHash.ResourceNative(
             sourceSetName = "native".toSourceSetName(),
             ktFileName = "resource_geoip6_gz.kt",
-            hash = hashGeoip6GZ,
+            hash = geoip6,
         ),
-    )}
+    ) }
 
     internal companion object {
         internal const val NAME = "geoipResourceValidation"

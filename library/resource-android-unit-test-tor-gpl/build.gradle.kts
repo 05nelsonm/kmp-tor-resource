@@ -18,5 +18,5 @@ plugins {
 }
 
 kmpConfiguration {
-    configureAndroidUnitTestTor(libs, isGpl = true) {}
+    configureAndroidUnitTestTor(project) {}
 }

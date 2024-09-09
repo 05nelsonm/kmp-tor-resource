@@ -19,6 +19,7 @@ import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.the
+import resource.validation.extensions.ExecTorResourceValidationExtension
 
 fun KmpConfigurationExtension.configureExecTor(
     project: Project,
@@ -29,6 +30,13 @@ fun KmpConfigurationExtension.configureExecTor(
     val libs = project.the<LibrariesForLibs>()
     val isGpl = project.name.endsWith("gpl")
     val suffix = if (isGpl) "-gpl" else ""
+    val resourceValidation by lazy {
+        if (isGpl) {
+            ExecTorResourceValidationExtension.GPL::class.java
+        } else {
+            ExecTorResourceValidationExtension::class.java
+        }.let { project.extensions.getByType(it) }
+    }
 
     configureShared(
         androidNamespace = "io.matthewnelson.kmp.tor.resource.exec.tor",
@@ -63,6 +71,8 @@ fun KmpConfigurationExtension.configureExecTor(
         }
 
         common {
+            pluginIds("resource-validation")
+
             sourceSetMain {
                 dependencies {
                     api(libs.kmp.tor.common.api)
@@ -78,8 +88,7 @@ fun KmpConfigurationExtension.configureExecTor(
             }
         }
 
-        // TODO: Native resources
-//        kotlin {}
+        kotlin { resourceValidation.configureNativeResources() }
 
         action.execute(this)
     }
