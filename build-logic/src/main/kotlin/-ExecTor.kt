@@ -95,6 +95,45 @@ fun KmpConfigurationExtension.configureExecTor(
 
         kotlin { resourceValidation.configureNativeResources() }
 
+        kotlin {
+            with(sourceSets) {
+                val sourceSets = listOf(
+                    true to "nonNative", // jvmAndroid + js
+                    true to "androidNative",
+                    true to "linux",
+                    true to "macos",
+                    true to "mingw",
+                    false to "ios",
+                    false to "tvos",
+                    false to "watchos",
+                ).map { (canRunExecutables, name) ->
+                    Triple(
+                        canRunExecutables,
+                        findByName(name + "Main"),
+                        findByName(name + "Test"),
+                    )
+                }
+
+                if (sourceSets.find { it.second != null } == null) return@kotlin
+
+                listOf(
+                    true to "exec",
+                    false to "nonExec",
+                ).forEach { (isSourceSetExec, name) ->
+                    val sourceMain = maybeCreate(name + "Main")
+                    val sourceTest = maybeCreate(name + "Test")
+                    sourceMain.dependsOn(getByName("commonMain"))
+                    sourceTest.dependsOn(getByName("commonTest"))
+
+                    sourceSets.forEach sets@ { (canRunExecutables, main, test) ->
+                        if (isSourceSetExec != canRunExecutables) return@sets
+                        main?.dependsOn(sourceMain)
+                        test?.dependsOn(sourceTest)
+                    }
+                }
+            }
+        }
+
         action.execute(this)
     }
 }
