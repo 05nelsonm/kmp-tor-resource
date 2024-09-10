@@ -64,12 +64,13 @@ fun KmpConfigurationExtension.configureShared(
         }
 
         if (!excludeNative) {
+//            androidNativeAll()
             iosAll()
             linuxAll()
             macosAll()
             mingwAll()
-            tvosAll()
-            watchosAll()
+//            tvosAll()
+//            watchosAll()
         }
 
         common {
