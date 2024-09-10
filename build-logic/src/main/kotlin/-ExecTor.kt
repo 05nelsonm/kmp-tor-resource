@@ -65,8 +65,13 @@ fun KmpConfigurationExtension.configureExecTor(
         }
 
         js {
+            // Only as test dependency. Consumers need to declare the npm dependency themselves
+            // when using `Node.js` because there is not currently a way to express exclusions
+            // for the individual platform publications (which `.all` provides).
             sourceSetTest {
-                // TODO: NPM dependencies
+                dependencies {
+                    implementation(npm("kmp-tor.resource-exec-tor${suffix}.all", project.npmVersion))
+                }
             }
         }
 

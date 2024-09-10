@@ -30,10 +30,13 @@ private class Loader private constructor() {
     init { throw IllegalStateException() }
 }
 
+@Suppress("FunctionName")
+internal fun LoaderClazz(): Class<*> = Loader::class.java
+
 @OptIn(InternalKmpTorApi::class)
 @Suppress("NOTHING_TO_INLINE")
 internal actual inline fun Resource.Config.Builder.platformConfigureGeoipResources() {
-    val clazz = Loader::class.java
+    val clazz = LoaderClazz()
 
     resource(ALIAS_GEOIP) {
         isExecutable = false

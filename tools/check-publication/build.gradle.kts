@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Matthew Nelson
+ * Copyright (c) 2023 Matthew Nelson
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,8 @@ kmpConfiguration {
                 dependencies {
                     implementation("$group:resource-shared-tor-js:$version")
                     implementation("$group:resource-shared-tor-gpl-js:$version")
+                    implementation(npm("kmp-tor.resource-exec-tor.all", project.npmVersion))
+                    implementation(npm("kmp-tor.resource-exec-tor-gpl.all", project.npmVersion))
                 }
             }
         }

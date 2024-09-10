@@ -69,7 +69,7 @@ cat library/npmjs/build/reports/resource-validation/resource-shared-tor-gpl/jvm.
 - Verify that `.kotlin-js-store/yarn.lock` is using the release 
   publication dependency (should not be using `SNAPSHOT` version).
 ```bash
-cat .kotlin-js-store/yarn.lock | grep -e "kmp-tor-resource-tor@" -e "kmp-tor-resource-tor-gpl@"
+cat .kotlin-js-store/yarn.lock | grep "kmp-tor.resource" | grep "@"
 ```
 
 - Commit Changes
@@ -120,7 +120,6 @@ cat library/resource-shared-tor/build/reports/resource-validation/resource-share
 cat library/resource-shared-tor/build/reports/resource-validation/resource-shared-tor/jvm.err
 cat library/resource-shared-tor-gpl/build/reports/resource-validation/resource-shared-tor-gpl/android.err
 cat library/resource-shared-tor-gpl/build/reports/resource-validation/resource-shared-tor-gpl/jvm.err
-
 cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/linuxArm64.err
 cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/linuxX64.err
 cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/mingwX64.err

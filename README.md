@@ -20,26 +20,56 @@
 This project is focused on the compilation, packaging, distribution and installation of `tor`
 resources for Kotlin Multiplatform, primarily to be consumed as a dependency for [kmp-tor][url-kmp-tor].
 
-2 versions of `tor` are built; 1 **with** `--enable-gpl`, and 1 with**out**.
+### Variants (`tor` & `tor-gpl`)
 
- - `resource-tor` (no `--enable-gpl`)
- - `resource-tor-gpl` (yes `--enable-gpl`)
+2 variants of `tor` are compiled; 1 **with** the flag `--enable-gpl`, and 1 with**out** it.
 
-They are positionally identical with the same package names, classes, resource names/locations, 
-etc. The only difference between them are the compiled `tor` binaries provided.
+Publications with the `-gpl` suffix are indicitive of the presence of the `--enable-gpl` compile 
+time flag.
 
-Only **1** of the dependencies can be had for a project, as a conflict will occur if both are 
-present. This is to respect the `GPL` licensed code `tor` is utilizing such that projects who 
+Both variants are positionally identical with the same package names, classes, resource 
+names/locations, etc. The only difference between them are the compilations of `tor` being provided.
+
+Only **1** variant can be had for a project, as a conflict will occur if both are present.
+
+e.g. (`build.gradle.kts`)
+```kotlin
+// BAD
+dependencies {
+    implementation("io.matthewnelson.kmp-tor:resource-exec-tor:$vKmpTorResource")
+    implementation("io.matthewnelson.kmp-tor:resource-exec-tor-gpl:$vKmpTorResource")
+}
+
+// BAD
+dependencies {
+    implementation("io.matthewnelson.kmp-tor:resource-exec-tor:$vKmpTorResource")
+    implementation("io.matthewnelson.kmp-tor:resource-statik-tor-gpl:$vKmpTorResource")
+}
+
+// GOOD! (non-gpl)
+dependencies {
+    implementation("io.matthewnelson.kmp-tor:resource-exec-tor:$vKmpTorResource")
+    implementation("io.matthewnelson.kmp-tor:resource-statik-tor:$vKmpTorResource")
+}
+
+// GOOD! (with --enable-gpl)
+dependencies {
+    implementation("io.matthewnelson.kmp-tor:resource-exec-tor-gpl:$vKmpTorResource")
+    implementation("io.matthewnelson.kmp-tor:resource-statik-tor-gpl:$vKmpTorResource")
+}
+```
+
+This is to respect the `GPL` licensed code `tor` is utilizing such that projects who 
 have a `GPL` license are able to take advantage of the new functionality, and projects who do 
-**not** have a `GPL` license can still utilize `tor` without infringing on the `GPL` license.
+**not** have a `GPL` license can still utilize `tor` without infringing on the license.
 
-### Build Verification
+### Build Reproducability
 
 See [BUILD.md](docs/BUILD.md)
 
 ### Jvm/Node.js Supported Operating Systems & Architectures
 
-**NOTE:** `macOS` and `Windows` binaries are code signed, so they work out of the box.
+**NOTE:** `macOS` and `Windows` compilations are code signed, so they work out of the box.
 
 |                 | x86 | x86_64 | armv7 | aarch64 | ppc64 |
 |-----------------|-----|--------|-------|---------|-------|
@@ -82,7 +112,7 @@ $ ./external/task.sh
 ```
 
 <details>
-    <summary>Example Image</summary>
+    <summary>Task help example</summary>
 
 ![image][url-task-image]
 
@@ -97,10 +127,10 @@ moved to their designated package module's resource directories
 Running `./external/task.sh package` after a `build` task will do the following.
 
 **Android/Jvm/Node.js:**
- - Android `tor` binaries (`libtor.so` files) are moved to the `src/androidMain/jniLibs/{ABI}` directory
- - `geoip` & `geoip6` files are `gzipped` and moved to the `src/jvmAndroidMain/resources` directory
- - Detached code signatures for macOS and Windows are applied to the compilied `tor` binaries (if needed)
- - `tor` binaries are `gzipped` and moved to the `src/jvmMain/resources` directory for their respective 
+ - Android compilations are moved to the `src/androidMain/jniLibs/{ABI}` directory.
+ - `geoip` & `geoip6` files are `gzipped` and moved to the `src/jvmMain/resources` directory.
+ - Detached code signatures for `macOS` and `Windows` are applied to the compilations (if needed).
+ - All compilations are `gzipped` and moved to the `src/jvmMain/resources` directory for their respective 
    hosts and architectures.
 
 **Native:**
@@ -108,129 +138,18 @@ Running `./external/task.sh package` after a `build` task will do the following.
    a `NativeResource` (e.g. `resource_tor_gz.kt`).
 
 After "packaging" all resources, an additional step for Node.js is performed.
- - `geoip`, `geoip6`, and all `tor` files are published to `Npmjs` via the
-   `library/npmjs` module.
-     - See https://www.npmjs.com/package/kmp-tor-resource-tor
-     - See https://www.npmjs.com/package/kmp-tor-resource-tor-gpl
- - The `library/resource-tor` and `library/resource-tor-gpl` modules then uses that `npm` dependency 
-   in order to provide the resources via Kotlin Multiplatform.
+ - `geoip`, `geoip6`, and all compilations are published to `Npmjs` via the `:library:npmjs` module.
+     - See https://www.npmjs.com/search?q=kmp-tor.resource-exec
 
 ### Distribution
+
+<!-- TODO: Replace with Get Started (add note about npm dependencies for Node.js) -->
 
 New releases will be published to Maven Central and can be consumed as a Kotlin Multiplatform 
 dependency.
 
 Currently, there is only a `SNAPSHOT` publication in order to work on [kmp-tor][url-kmp-tor] `2.0.0`. 
 Once that work is complete a Release will be made for `kmp-tor-resource`.
-
-### Installation
-
-The [kmp-tor][url-kmp-tor] project will handle all of this behind the scenes. 
-If you are not using that, simply call:
-
-```kotlin
-val paths = TorResources(installationDir = "/path/to/my/tor/dir".toFile()).install()
-println(paths.toString())
-
-// Paths.Tor: [
-//     geoip: /path/to/my/tor/dir/geoip
-//     geoip6: /path/to/my/tor/dir/geoip6
-//     tor: /path/to/my/tor/dir/tor
-// ]
-```
-
-It will either throw an exception or extract the resources to the specified directory
- - Note that for Android it will depend on a few things
-     - **Android Runtime (Emulators and Devices):**
-         - It will search for `libtor.so` within the application's `nativeLibraryDir` and return that path
-         - All of this happens automatically and no configuration is needed.
-         - See the [core-lib-locator][url-core-lib-locator]
-     - **Android Unit Tests:**
-         - You can add the `resource-android-unit-test` dependency and reflection will be used to
-           source the correct `tor` binary resource for the given host/architecture that the tests 
-           are running on (the exact same way Jvm does it).
-         - Use `testImplementation` when adding the dependency!!! Do **NOT** ship your app with that
-
-<!--
-
-TODO: gradle configuration for android
-
- - Ensure `JavaVersion` is greater than or equal to 8:
-   ```kotlin
-   // build.gradle.kts
-
-   android {
-       // ...
-
-       compileOptions {
-           sourceCompatibility = JavaVersion.VERSION_1_8
-           targetCompatibility = JavaVersion.VERSION_1_8
-       }
-
-       kotlinOptions {
-           jvmTarget = JavaVersion.VERSION_1_8.toString()
-       }
-   }
-   ```
-
- - Enable legacy packaging for `jniLibs` directory:
-   ```kotlin
-   // build.gradle.kts
-
-   android {
-       // ...
-
-       packagingOptions {
-           jniLibs.useLegacyPackaging = true
-       }
-   }
-   ```
-
- - Configure splits for each architecture by adding the following to your 
-   application module's `android` block:
-   ```kotlin
-   // build.gradle.kts
-
-   android {
-       // ...
-
-       splits {
-
-           // Configures multiple APKs based on ABI. This helps keep the size
-           // down, since PT binaries can be large.
-           abi {
-
-               // Enables building multiple APKs per ABI.
-               isEnable = true
-
-               // By default, all ABIs are included, so use reset() and include to specify
-               // that we only want APKs for x86 and x86_64, armeabi-v7a, and arm64-v8a.
-
-               // Resets the list of ABIs that Gradle should create APKs for to none.
-               reset()
-
-               // Specifies a list of ABIs that Gradle should create APKs for.
-               include("x86", "armeabi-v7a", "arm64-v8a", "x86_64")
-
-               // Specify whether you wish to also generate a universal APK that
-               // includes _all_ ABIs.
-               isUniversalApk = true
-           }
-       }
-   }
-   ```
-
- - If you are publishing your application to Google Play using app bundling,
-   add the following to your project's `gradle.properties` file:
-   ```groovy
-   android.bundle.enableUncompressedNativeLibs=false
-   ```
-
-     - You can also verify (prior to pushing your release to Google Play)
-       if the bundled apk extracts binaries on install correctly by using
-       the [bundletool][url-bundletool].
-
--->
 
 <!-- TAG_VERSION -->
 [badge-latest-release]: https://img.shields.io/badge/latest--release-408.12.0--SNAPSHOT-5d2f68.svg?logo=torproject&style=flat&logoColor=5d2f68
