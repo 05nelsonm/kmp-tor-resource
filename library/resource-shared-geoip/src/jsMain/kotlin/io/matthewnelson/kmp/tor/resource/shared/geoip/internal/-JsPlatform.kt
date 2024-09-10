@@ -22,23 +22,23 @@ import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.shared.geoip.ALIAS_GEOIP
 import io.matthewnelson.kmp.tor.resource.shared.geoip.ALIAS_GEOIP6
 
+private const val MODULE_NAME = "kmp-tor.resource-shared-geoip"
+
 @OptIn(InternalKmpTorApi::class)
 @Suppress("NOTHING_TO_INLINE")
 internal actual inline fun Resource.Config.Builder.platformConfigureGeoipResources() {
-    val name = "kmp-tor-resource-shared-geoip"
-
     resource(ALIAS_GEOIP) {
         isExecutable = false
         platform {
-            moduleName = name
-            resourcePath = PATH_RESOURCE_GEOIP
+            moduleName = MODULE_NAME
+            resourcePath = "geoip.gz"
         }
     }
     resource(ALIAS_GEOIP6) {
         isExecutable = false
         platform {
-            moduleName = name
-            resourcePath = PATH_RESOURCE_GEOIP6
+            moduleName = MODULE_NAME
+            resourcePath = "geoip6.gz"
         }
     }
 }

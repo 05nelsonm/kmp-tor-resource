@@ -22,7 +22,11 @@ import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.shared.geoip.ALIAS_GEOIP
 import io.matthewnelson.kmp.tor.resource.shared.geoip.ALIAS_GEOIP6
 
-internal class Loader private constructor() {
+private const val PATH_RESOURCE = "/io/matthewnelson/kmp/tor/resource/shared/geoip"
+private const val PATH_RESOURCE_GEOIP = "$PATH_RESOURCE/geoip.gz"
+private const val PATH_RESOURCE_GEOIP6 = "$PATH_RESOURCE/geoip6.gz"
+
+private class Loader private constructor() {
     init { throw IllegalStateException() }
 }
 

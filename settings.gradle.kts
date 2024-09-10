@@ -17,6 +17,7 @@ if (CHECK_PUBLICATION != null) {
     include(":tools:check-publication")
 } else {
     listOf(
+        "npmjs",
         "resource-android-unit-test-tor",
         "resource-android-unit-test-tor-gpl",
         "resource-exec-tor",

@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+import dev.petuska.npm.publish.extension.domain.NpmDependency
 import dev.petuska.npm.publish.extension.domain.NpmPackage
 import dev.petuska.npm.publish.extension.domain.NpmPackages
+import java.io.FileNotFoundException
 
 plugins {
     id("base")
@@ -23,12 +25,30 @@ plugins {
 }
 
 // Have to have as a standalone gradle module so that the publication
-// task is not created for the :library:binary module's js target. All
-// that is being done here is publication of resources so that they can
-// be consumed as a npm dependency from :library:binary module.
+// task is not created for the :library:resource-* module's js target.
+// All that is being done here is publication of resources so that they
+// can be consumed as a npm dependency from :library:resource-* module.
 npmPublish {
     val npmjsAuthToken = rootProject.findProperty("NPMJS_AUTH_TOKEN") as? String
     if (npmjsAuthToken.isNullOrBlank()) return@npmPublish
+
+    val srcResDirGeoip = geoipResourceValidation.jvmResourcesSrcDir()
+    val srcResDirTor = sharedTorResourceValidation.jvmNativeLibResourcesSrcDir()
+    val srcResDirTorGPL = sharedTorGPLResourceValidation.jvmNativeLibResourcesSrcDir()
+
+    project.rootProject.rootDir.resolve("mock-resources").let { mockResources ->
+        check(mockResources.exists()) { "mock-resources does not exist... dir name change?" }
+
+        listOf(srcResDirGeoip, srcResDirTor, srcResDirTorGPL).forEach { srcDir ->
+            // Configure NOTHING if mock resources are being utilized.
+            if (srcDir.path.startsWith(mockResources.path)) {
+                println("Skipping NPM publication configuration (mock resources are being used).")
+                return@npmPublish
+            }
+        }
+    }
+
+    val vPublications = createPublicationVersions()
 
     registries {
         npmjs {
@@ -38,103 +58,180 @@ npmPublish {
 
     if (properties["NPMJS_DRY_RUN"] != null) { dry.set(true) }
 
+    val targets = NativeTargets(
+        "linux-android",
+        "linux-libc",
+        "macos",
+        "mingw",
+    )
+
     packages {
-        val snapshotVersion = properties["NPMJS_SNAPSHOT_VERSION"]!!
-            .toString()
-            .toInt()
-
-        check(snapshotVersion >= 0) {
-            "NPMJS_SNAPSHOT_VERSION cannot be negative"
-        }
-
-        val vProject = "${project.version}"
-        if (vProject.endsWith("-SNAPSHOT")) {
-
-            // Only register snapshot task when project version is -SNAPSHOT
-            registerTorResources(
-                isGPL = false,
-                releaseVersion = "$vProject.$snapshotVersion",
+        vPublications.forEach { version ->
+            register(
+                version = version,
+                dirName = NpmjsDirName("resource-shared-geoip"),
+                configureFiles = {
+                    from(srcResDirGeoip.resolve("io/matthewnelson/kmp/tor/resource/shared/geoip"))
+                 },
             )
-            registerTorResources(
-                isGPL = true,
-                releaseVersion = "$vProject.$snapshotVersion",
-            )
-        } else {
-            check(snapshotVersion == 0) {
-                "NPMJS_SNAPSHOT_VERSION must be 0 for releases"
-            }
 
-            // Release will be XXXX.XX.##
-            // Increment the # for the next SNAPSHOT version
-            val increment = vProject.substringAfterLast('.').toInt() + 1
-            val nextVersion = vProject.substringBeforeLast('.') + ".$increment"
-
-            // Register both snapshot and release tasks when project
-            // version indicates a release so after maven publication
-            // and git tagging, updating VERSION_NAME with -SNAPSHOT
-            // there will be a "next release" waiting
-            registerTorResources(
-                isGPL = false,
-                releaseVersion = vProject,
-            )
-            registerTorResources(
-                isGPL = false,
-                releaseVersion = "$nextVersion-SNAPSHOT.$snapshotVersion",
-            )
-            registerTorResources(
-                isGPL = true,
-                releaseVersion = vProject,
-            )
-            registerTorResources(
-                isGPL = true,
-                releaseVersion = "$nextVersion-SNAPSHOT.$snapshotVersion",
+            registerAll(
+                targets = targets,
+                version = version,
+                srcResDirTor = srcResDirTor,
+                srcResDirTorGPL = srcResDirTorGPL,
             )
         }
     }
 }
 
-fun NpmPackages.registerTorResources(
-    isGPL: Boolean,
-    releaseVersion: String,
+private fun Project.createPublicationVersions(): List<PublicationVersion> {
+    val key = "NPMJS_SNAPSHOT_VERSION"
+    val vSnapshot = properties[key]?.toString()?.toIntOrNull()
+
+    check(vSnapshot != null && vSnapshot >= 0) {
+        "$key must be set to an integer greater than or equal to 0 (see gradle.properties)"
+    }
+
+    val vProject = project.version.toString()
+
+    return if (vProject.endsWith("-SNAPSHOT")) {
+        // SNAPSHOTs always get a positively incrementing
+        // number appended to them, statring from 0.
+        listOf("$vProject.$vSnapshot")
+    } else {
+        check(vSnapshot == 0) {
+            "$key must be set to 0 for release publications"
+        }
+
+        // Release will be XXX.YY.ZZ
+        //
+        // Increment ZZ for the "next" SNAPSHOT version so that
+        // upon updating gradle.properties after tagging & publication,
+        // there is a "zeroith" SNAPSHOT available for that next
+        // development iteration.
+        val vNext = vProject.indexOfLast { it == '.' }.let { i ->
+            val increment = vProject.substring(i + 1).toInt() + 1
+            vProject.substring(0, i + 1) + increment
+        }
+
+        // Always put release publication first
+        listOf(vProject, "$vNext-SNAPSHOT.$vSnapshot")
+    }.map { PublicationVersion(it) }
+}
+
+@JvmInline
+private value class NpmjsDirName(private val value: String) {
+    fun toPackageName(): String = "kmp-tor.$value"
+    override fun toString(): String = value
+}
+
+@JvmInline
+private value class PublicationVersion(private val value: String) {
+
+    val isSnapshot: Boolean get() = value.contains("SNAPSHOT")
+
+    fun registryNameFor(dirName: NpmjsDirName): String {
+        val stripped = dirName.toString()
+            .substringAfter("resource-")
+            .substringAfter("exec-")
+            .substringAfter("shared-")
+
+        return stripped + "." + if (isSnapshot) "snapshot" else "release"
+    }
+
+    override fun toString(): String = value
+}
+
+@JvmInline
+private value class NativeTargets private constructor(
+    private val targets: List<String>,
+): Iterable<String> {
+
+    constructor(vararg targets: String): this(targets.sorted())
+
+    init { require(targets.isNotEmpty()) { "NativeTargets cannot be empty" } }
+
+    override fun iterator(): Iterator<String> = targets.iterator()
+}
+
+private fun NpmPackages.registerAll(
+    targets: NativeTargets,
+    version: PublicationVersion,
+    srcResDirTor: File,
+    srcResDirTorGPL: File,
 ) {
-    val (suffix, geoipResourceSrcDir, torResourceSrcDir) = if (isGPL) {
-        Triple(
-            "-gpl",
-            torGPLResourceValidation.jvmGeoipResourcesSrcDir,
-            torGPLResourceValidation.jvmTorLibResourcesSrcDir
-        )
-    } else {
-        Triple(
-            "",
-            torResourceValidation.jvmGeoipResourcesSrcDir,
-            torResourceValidation.jvmTorLibResourcesSrcDir,
+    val pathNative = "io/matthewnelson/kmp/tor/resource/shared/tor/native"
+
+    listOf(srcResDirTor, srcResDirTorGPL).forEach { srcRes ->
+        val isGpl = srcRes.parentFile.parentFile.parent.endsWith("-gpl")
+        val npmjsDirBaseName = buildString {
+            append("resource-exec-tor")
+            if (isGpl) append("-gpl")
+        }
+
+        val dependenciesAll = targets.map { target ->
+            val nativeDir = srcRes.resolve(pathNative)
+            val targetDir = nativeDir.resolve(target)
+            check(targetDir.exists()) { "Directory missing: $targetDir" }
+
+            val npmjsDirName = NpmjsDirName("$npmjsDirBaseName.$target")
+
+            register(
+                version = version,
+                dirName = npmjsDirName,
+                configureFiles = { from(targetDir) },
+            )
+
+            npmjsDirName
+        }
+
+        register(
+            version = version,
+            dirName = NpmjsDirName("$npmjsDirBaseName.all"),
+            configurePkg = {
+                dependencies {
+                    dependenciesAll.forEach { dependency ->
+                        create(dependency.toPackageName()) {
+                            this.version.set(version.toString())
+                            type.set(NpmDependency.NORMAL)
+                        }
+                    }
+                }
+            }
         )
     }
+}
 
-    val name = if (releaseVersion.contains("SNAPSHOT")) {
-        "tor${suffix}-resources-snapshot"
-    } else {
-        "tor${suffix}-resources-release"
+private fun NpmPackages.register(
+    version: PublicationVersion,
+    dirName: NpmjsDirName,
+    configureFiles: Action<ConfigurableFileCollection> = Action {},
+    configurePkg: Action<NpmPackage> = Action {},
+) {
+    val readmeFile = projectDir.resolve(dirName.toString()).resolve("README.md")
+    if (!readmeFile.exists()) {
+        throw FileNotFoundException(readmeFile.path)
     }
 
-    register(name) {
-        packageName.set("kmp-tor-resource-tor$suffix")
-        version.set(releaseVersion)
-
+    register(version.registryNameFor(dirName)) {
+        packageName.set(dirName.toPackageName())
+        this.version.set(version.toString())
         main.set("index.js")
-        readme.set(projectDir.resolve("resource-tor$suffix").resolve("README.md"))
+        readme.set(readmeFile)
 
         files {
             from("index.js")
-            from(geoipResourceSrcDir)
-            from(torResourceSrcDir)
+            configureFiles.execute(this)
         }
 
-        packageInfoJson()
+        configurePkg.execute(this)
+
+        applyPackageInfoJson()
     }
 }
 
-fun NpmPackage.packageInfoJson() {
+private fun NpmPackage.applyPackageInfoJson() {
     packageJson {
         homepage.set("https://github.com/05nelsonm/${rootProject.name}")
         license.set("Apache 2.0")
@@ -156,5 +253,5 @@ fun NpmPackage.packageInfoJson() {
 }
 
 tasks.getByName("clean") {
-    projectDir.resolve("build").delete()
+    project.layout.buildDirectory.get().asFile.delete()
 }

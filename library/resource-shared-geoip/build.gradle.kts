@@ -43,8 +43,6 @@ kmpConfiguration {
             }
         }
 
-        nonNative {}
-
         kotlin { geoipResourceValidation.configureNativeResources() }
     }
 }
