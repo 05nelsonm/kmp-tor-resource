@@ -97,7 +97,7 @@ private fun Project.createPublicationVersions(): List<PublicationVersion> {
 
     return if (vProject.endsWith("-SNAPSHOT")) {
         // SNAPSHOTs always get a positively incrementing
-        // number appended to them, statring from 0.
+        // number appended to them, starting from 0.
         listOf("$vProject.$vSnapshot")
     } else {
         check(vSnapshot == 0) {
@@ -171,8 +171,7 @@ private fun NpmPackages.registerAll(
         }
 
         val dependenciesAll = targets.map { target ->
-            val nativeDir = srcRes.resolve(pathNative)
-            val targetDir = nativeDir.resolve(target)
+            val targetDir = srcRes.resolve(pathNative).resolve(target)
             check(targetDir.exists()) { "Directory missing: $targetDir" }
 
             val npmjsDirName = NpmjsDirName("$npmjsDirBaseName.$target")

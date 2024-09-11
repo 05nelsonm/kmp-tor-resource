@@ -16,10 +16,8 @@
 import io.matthewnelson.kmp.configuration.ExperimentalKmpConfigurationApi
 import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
-import io.matthewnelson.kmp.configuration.extension.container.target.TargetJsContainer
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
-import org.gradle.api.Project
 
 fun KmpConfigurationExtension.configureShared(
     androidNamespace: String? = null,
@@ -86,61 +84,5 @@ fun KmpConfigurationExtension.configureShared(
         kotlin { explicitApi() }
 
         action.execute(this)
-    }
-}
-
-// TODO: Move to plugin
-fun TargetJsContainer.configureTorNpmResources(project: Project) {
-    // Will either be `kmp-tor-resource-tor` or `kmp-tor-resource-tor-gpl`
-    val moduleName = "kmp-tor-${project.name}"
-
-    sourceSetMain {
-        val kotlinSrcDir = project.layout
-            .buildDirectory
-            .get()
-            .asFile
-            .resolve("generated")
-            .resolve("sources")
-            .resolve("buildConfig")
-            .resolve("jsMain")
-            .resolve("kotlin")
-
-        val config = kotlinSrcDir
-            .resolve("io")
-            .resolve("matthewnelson")
-            .resolve("kmp")
-            .resolve("tor")
-            .resolve("resource")
-            .resolve("tor")
-            .resolve("internal")
-
-        config.mkdirs()
-
-        config.resolve("BuildConfigJs.kt").writeText(
-"""package io.matthewnelson.kmp.tor.resource.tor.internal
-
-internal const val MODULE_NAME: String = "$moduleName"
-"""
-        )
-
-        kotlin.srcDir(kotlinSrcDir)
-
-        dependencies {
-            val npmVersion = if ("${project.version}".endsWith("-SNAPSHOT")) {
-                val snapshotVersion = project.properties["NPMJS_SNAPSHOT_VERSION"]
-                    .toString()
-                    .toInt()
-
-                "${project.version}.$snapshotVersion"
-            } else {
-                // If project version is not SNAPSHOT, this
-                // will inhibit releasing to MavenCentral w/o
-                // first making a release publication to
-                // Npmjs of the resources.
-                "${project.version}"
-            }
-
-            implementation(npm(moduleName, npmVersion))
-        }
     }
 }

@@ -17,29 +17,35 @@ import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigur
 import org.gradle.api.Action
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
-fun KmpConfigurationContainerDsl.nonNative(
-    actionTest: Action<KotlinSourceSet>? = null,
-    actionMain: Action<KotlinSourceSet>,
+fun KmpConfigurationContainerDsl.sourceSetConnect(
+    newName: String,
+    existingNames: List<String>,
+    sourceSetTest: Action<KotlinSourceSet>? = null,
+    sourceSetMain: Action<KotlinSourceSet>? = null,
 ) {
     kotlin {
         with(sourceSets) {
-            val jsMain = findByName("jsMain")
-            val jvmAndroidMain = findByName("jvmAndroidMain")
-
-            if (jsMain != null || jvmAndroidMain != null) {
-                val nonNativeMain = maybeCreate("nonNativeMain")
-                nonNativeMain.dependsOn(getByName("commonMain"))
-                jvmAndroidMain?.apply { dependsOn(nonNativeMain) }
-                jsMain?.apply { dependsOn(nonNativeMain) }
-
-                val nonNativeTest = maybeCreate("nonNativeTest")
-                nonNativeTest.dependsOn(getByName("commonTest"))
-                findByName("jvmAndroidTest")?.apply { dependsOn(nonNativeTest) }
-                findByName("jsTest")?.apply { dependsOn(nonNativeTest) }
-
-                actionMain.execute(nonNativeMain)
-                actionTest?.execute(nonNativeTest)
+            val sourceSets = existingNames.map { name ->
+                Pair(
+                    findByName(name + "Main"),
+                    findByName(name + "Test"),
+                )
             }
+
+            if (sourceSets.find { it.first != null } == null) return@kotlin
+
+            val newMain = maybeCreate(newName + "Main")
+            val newTest = maybeCreate(newName + "Test")
+            newMain.dependsOn(getByName("commonMain"))
+            newTest.dependsOn(getByName("commonTest"))
+
+            sourceSets.forEach { (main, test) ->
+                main?.dependsOn(newMain)
+                test?.dependsOn(newTest)
+            }
+
+            sourceSetTest?.execute(newTest)
+            sourceSetMain?.execute(newMain)
         }
     }
 }

@@ -54,8 +54,6 @@ fun KmpConfigurationExtension.configureStatikTor(
             sourceSetMain {
                 dependencies {
                     api(libs.kmp.tor.common.api)
-                    implementation(libs.kmp.tor.common.core)
-                    implementation(project(":library:resource-shared-geoip"))
                 }
             }
         }
@@ -67,39 +65,17 @@ fun KmpConfigurationExtension.configureStatikTor(
             }
         }
 
-        kotlin {
-            with(sourceSets) {
-                val sourceSets = listOf(
-                    true to "jvmAndroid",
-                    false to "js",
-                    true to "native",
-                ).map { (canRunStatic, name) ->
-                    Triple(
-                        canRunStatic,
-                        findByName(name + "Main"),
-                        findByName(name + "Test"),
-                    )
-                }
-
-                if (sourceSets.find { it.second != null } == null) return@kotlin
-
-                listOf(
-                    true to "statik",
-                    false to "nonStatik",
-                ).forEach { (isSourceSetStatik, name) ->
-                    val sourceMain = maybeCreate(name + "Main")
-                    val sourceTest = maybeCreate(name + "Test")
-                    sourceMain.dependsOn(getByName("commonMain"))
-                    sourceTest.dependsOn(getByName("commonTest"))
-
-                    sourceSets.forEach sets@ { (canRunStatically, main, test) ->
-                        if (isSourceSetStatik != canRunStatically) return@sets
-                        main?.dependsOn(sourceMain)
-                        test?.dependsOn(sourceTest)
-                    }
+        sourceSetConnect(
+            "statik",
+            listOf("jvmAndroid", "native"),
+            sourceSetMain = {
+                dependencies {
+                    implementation(libs.kmp.tor.common.core)
+                    implementation(project(":library:resource-shared-geoip"))
                 }
             }
-        }
+        )
+        sourceSetConnect("nonStatik", listOf("js"))
 
         action.execute(this)
     }

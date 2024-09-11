@@ -19,7 +19,14 @@ package io.matthewnelson.kmp.tor.resource.exec.tor
 
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
+import io.matthewnelson.kmp.tor.common.api.Paths
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
+import io.matthewnelson.kmp.tor.resource.exec.tor.internal.ALIAS_TOR
+import io.matthewnelson.kmp.tor.resource.exec.tor.internal.RESOURCE_CONFIG
+import io.matthewnelson.kmp.tor.resource.exec.tor.internal.findLibTor
+import io.matthewnelson.kmp.tor.resource.shared.geoip.ALIAS_GEOIP
+import io.matthewnelson.kmp.tor.resource.shared.geoip.ALIAS_GEOIP6
+import kotlin.concurrent.Volatile
 import kotlin.jvm.JvmStatic
 
 // execMain
@@ -29,9 +36,52 @@ public actual class ResourceLoaderTorExec: ResourceLoader.Tor.Exec {
 
         @JvmStatic
         public fun getOrCreate(
-            resourceDir: File
+            resourceDir: File,
         ): ResourceLoader.Tor {
-            TODO()
+            @OptIn(InternalKmpTorApi::class)
+            return Exec.getOrCreate(
+                resourceDir = resourceDir,
+                extractTo = ::extractTo,
+                toString = ::toString,
+            )
+        }
+
+        @Volatile
+        private var isFirstExtraction: Boolean = true
+
+        @OptIn(InternalKmpTorApi::class)
+        private fun extractTo(resourceDir: File): Paths.Tor {
+            val map = RESOURCE_CONFIG
+                .extractTo(resourceDir, onlyIfDoesNotExist = !isFirstExtraction)
+                .findLibTor()
+
+            isFirstExtraction = false
+
+            // If an exception has not been encountered at this point,
+            // the map will contain paths for all 3 aliased resources.
+            return Paths.Tor(
+                executable = map.getValue(ALIAS_TOR),
+                geoips = Paths.Geoips(
+                    geoip = map.getValue(ALIAS_GEOIP),
+                    geoip6 = map.getValue(ALIAS_GEOIP6),
+                )
+            )
+        }
+
+        @OptIn(InternalKmpTorApi::class)
+        private fun toString(resourceDir: File): String = buildString {
+            appendLine("ResourceLoader.Tor.Exec: [")
+            append("    resourceDir: ")
+            appendLine(resourceDir)
+
+            appendLine("    resourceConfig: [")
+            val lines = RESOURCE_CONFIG.toString().lines()
+            for (i in 1 until lines.size) {
+                append("    ")
+                appendLine(lines[i])
+            }
+
+            append(']')
         }
     }
 

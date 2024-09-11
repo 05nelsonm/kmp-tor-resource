@@ -15,5 +15,8 @@
  **/
 package io.matthewnelson.kmp.tor.resource.shared.tor
 
-// TODO: Remove
-internal fun stub() { }
+import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
+import io.matthewnelson.kmp.tor.common.core.Resource
+
+@InternalKmpTorApi
+public expect fun Resource.Config.Builder.configureJavaTorResource()

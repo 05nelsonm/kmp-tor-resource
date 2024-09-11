@@ -65,9 +65,43 @@ fun KmpConfigurationExtension.configureExecTor(
         }
 
         js {
-            // Only as test dependency. Consumers need to declare the npm dependency themselves
-            // when using `Node.js` because there is not currently a way to express exclusions
-            // for the individual platform publications (which `.all` provides).
+            sourceSetMain {
+                val srcDir = project.layout
+                    .buildDirectory
+                    .get()
+                    .asFile
+                    .resolve("generated")
+                    .resolve("sources")
+                    .resolve("buildConfig")
+                    .resolve("jsMain")
+                    .resolve("kotlin")
+
+                val configDir = srcDir
+                    .resolve("io")
+                    .resolve("matthewnelson")
+                    .resolve("kmp")
+                    .resolve("tor")
+                    .resolve("resource")
+                    .resolve("exec")
+                    .resolve("tor")
+                    .resolve("internal")
+
+                configDir.mkdirs()
+
+                configDir.resolve("BuildConfigJS.kt").writeText("""
+                    package io.matthewnelson.kmp.tor.resource.exec.tor.internal
+
+                    internal const val IS_GPL: Boolean = $isGpl
+
+                """.trimIndent())
+
+                kotlin.srcDir(srcDir)
+            }
+
+            // Only add as test dependency. Consumers need to declare the npm dependency
+            // themselves when using `Node.js` because there is not currently a way to
+            // exclude a npm dependency for kotlin when packaging things on a per-platform
+            // basis.
             sourceSetTest {
                 dependencies {
                     implementation(npm("kmp-tor.resource-exec-tor${suffix}.all", project.npmVersion))
@@ -81,58 +115,43 @@ fun KmpConfigurationExtension.configureExecTor(
             sourceSetMain {
                 dependencies {
                     api(libs.kmp.tor.common.api)
-                    implementation(libs.kmp.tor.common.core)
-                    implementation(project(":library:resource-shared-geoip"))
                 }
-            }
-        }
-
-        nonNative {
-            dependencies {
-                implementation(project(":library:resource-shared-tor$suffix"))
             }
         }
 
         kotlin { resourceValidation.configureNativeResources() }
 
-        kotlin {
-            with(sourceSets) {
-                val sourceSets = listOf(
-                    true to "nonNative", // jvmAndroid + js
-                    true to "androidNative",
-                    true to "linux",
-                    true to "macos",
-                    true to "mingw",
-                    false to "ios",
-                    false to "tvos",
-                    false to "watchos",
-                ).map { (canRunExecutables, name) ->
-                    Triple(
-                        canRunExecutables,
-                        findByName(name + "Main"),
-                        findByName(name + "Test"),
-                    )
+        sourceSetConnect(
+            "nonNative",
+            listOf("jvmAndroid", "js"),
+            sourceSetMain = {
+                dependencies {
+                    implementation(project(":library:resource-shared-tor$suffix"))
                 }
-
-                if (sourceSets.find { it.second != null } == null) return@kotlin
-
-                listOf(
-                    true to "exec",
-                    false to "nonExec",
-                ).forEach { (isSourceSetExec, name) ->
-                    val sourceMain = maybeCreate(name + "Main")
-                    val sourceTest = maybeCreate(name + "Test")
-                    sourceMain.dependsOn(getByName("commonMain"))
-                    sourceTest.dependsOn(getByName("commonTest"))
-
-                    sourceSets.forEach sets@ { (canRunExecutables, main, test) ->
-                        if (isSourceSetExec != canRunExecutables) return@sets
-                        main?.dependsOn(sourceMain)
-                        test?.dependsOn(sourceTest)
-                    }
+            },
+        )
+        sourceSetConnect(
+            "exec",
+            listOf(
+                "nonNative",
+                "androidNative",
+                "linux",
+                "macos",
+                "mingw",
+            ),
+            sourceSetMain = {
+                dependencies {
+                    implementation(libs.kmp.tor.common.core)
+                    implementation(project(":library:resource-shared-geoip"))
                 }
-            }
-        }
+            },
+            sourceSetTest = {
+                dependencies {
+                    implementation(libs.encoding.base16)
+                }
+            },
+        )
+        sourceSetConnect("nonExec", listOf("ios", "tvos", "watchos"))
 
         action.execute(this)
     }

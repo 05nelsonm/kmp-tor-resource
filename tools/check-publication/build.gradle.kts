@@ -84,7 +84,7 @@ kmpConfiguration {
             }
         }
 
-        nonNative {
+        sourceSetConnect("nonNative", listOf("jvmAndroid", "js")) {
             dependencies {
                 implementation("$group:resource-shared-tor:$version")
                 implementation("$group:resource-shared-tor-gpl:$version")
