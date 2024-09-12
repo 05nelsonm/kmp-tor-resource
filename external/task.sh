@@ -606,7 +606,7 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
   case "$os_name" in
     "mingw")
       # In order to utilize the -fstack-protector-strong flag,
-      # we also must comiple with -static to ensure libssp-0.dll
+      # we also must compile with -static to ensure libssp-0.dll
       # will not be included in the final product.
       #
       # $ objdump -p build/jvm-out/mingw/<arch>/tor.exe | grep "DLL Name"
