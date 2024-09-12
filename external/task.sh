@@ -206,8 +206,6 @@ function build:linux-libc:x86 { ## Builds Linux Libc x86
   local os_arch="x86"
   local openssl_target="linux-x86"
   __build:configure:target:init
-  __conf:CFLAGS '-m32'
-  __conf:LDFLAGS '-m32'
   __exec:docker:run
 }
 
@@ -622,8 +620,8 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
   esac
 
   # Debugging (uncomment for verbose compiler output)
-#  __conf:SCRIPT 'export CC="${CC} -v"'
-#  __conf:SCRIPT 'export LD="${LD} -v"'
+#   __conf:SCRIPT 'export CC="${CC} -v"'
+#   __conf:SCRIPT 'export LD="${LD} -v"'
 
   # LDFLAGS
   __conf:LDFLAGS '-L$DIR_SCRIPT/libevent/lib'
@@ -635,6 +633,17 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
     "mingw")
       __conf:LDFLAGS '-Wl,--no-insert-timestamp'
       __conf:LDFLAGS '-static-libgcc'
+      ;;
+  esac
+
+  case "$os_arch" in
+    "x86")
+      __conf:CFLAGS '-m32'
+      __conf:LDFLAGS '-m32'
+      ;;
+    "x86_64")
+      __conf:CFLAGS '-m64'
+      __conf:LDFLAGS '-m64'
       ;;
   esac
 
@@ -846,15 +855,17 @@ export LZMA_LIBS="$DIR_SCRIPT/xz/lib/liblzma.a"
 cp -R "$DIR_EXTERNAL/tor" "$DIR_TMP"
 cd "$DIR_TMP/tor"'
 
-  if [ "$os_arch" = "aarch64" ]; then
-    case "$os_name" in
-      "ios"|"tvosos"|"watchos")
-        __conf:SCRIPT '
+  if [ "$os_subtype" = "-simulator" ]; then
+      if [ "$os_arch" = "aarch64" ]; then
+        case "$os_name" in
+          "ios"|"tvosos"|"watchos")
+            __conf:SCRIPT '
 # https://gitlab.torproject.org/tpo/core/tor/-/issues/40903
 sed -i "s+__builtin___clear_cache((void\*)code, (void\*)pos);+return true;+" "src/ext/equix/hashx/src/compiler_a64.c"
 '
-        ;;
-    esac
+            ;;
+        esac
+      fi
   fi
 
   __conf:SCRIPT './autogen.sh > "$DIR_SCRIPT/tor/logs/autogen.log" 2> "$DIR_SCRIPT/tor/logs/autogen.err"'
