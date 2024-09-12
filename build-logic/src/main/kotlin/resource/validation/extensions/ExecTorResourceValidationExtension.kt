@@ -37,11 +37,11 @@ open class ExecTorResourceValidationExtension private constructor(
     @Inject
     internal constructor(project: Project): this(project, isGpl = false)
 
-    protected open val nativeLinuxArm64: String = "49ad1505c66ea17eccdc48761e406eef75a4cc5575cd19d48e7d183f1faf9d0d"
-    protected open val nativeLinuxX64: String = "89fbc41597ec2e4ee57bf7239fdb6ade034aa5188322d0e61bd3dc67bf3a5ecf"
-    protected open val nativeMacosArm64: String = "d0ccb9ce411d9a46d841f78da519580a676669743b7817f57255dea305eacc48"
-    protected open val nativeMacosX64: String = "cc6edc2cfac738b1480235fb882fec009555e5edae048f515924586ca4d93412"
-    protected open val nativeMingwX64: String = "6fb9d8e0637deb072c58b768a23720671bbff06aa3a6592206da80da401e3078"
+    protected open val nativeLinuxArm64: String = "3bdaa80e8f91bdbcd01fc12264c62a7609eb72fcf6e75aecadf77db9c102ba0b"
+    protected open val nativeLinuxX64: String = "a37fcf1105416f391d71fdbc919119967a6216002fc341415ccb895f72f13a75"
+    protected open val nativeMacosArm64: String = "c8fda1ab4f0152cb69dd99a556b1dc421c3d4e643264bebfc67c85c93dc8d701"
+    protected open val nativeMacosX64: String = "d82bf88e8b11852aede6e05a037e6eed9de7f4c2070fbd6f9d6ce033fb60b9f4"
+    protected open val nativeMingwX64: String = "caf6911f6375ba9aa54962282d0132d2cb405beaeb4d1486187e1d77835bf4d0"
 
     /**
      * Resoure validation and configuration for module `:library:resource-exec-tor-gpl`,
@@ -51,11 +51,11 @@ open class ExecTorResourceValidationExtension private constructor(
         project: Project,
     ): ExecTorResourceValidationExtension(project, isGpl = true) {
 
-        override val nativeLinuxArm64: String = "c8492f1e2bdbbe25d8b9787fd571d17d557ff5c157dca7db5dc3b2bb181185ec"
-        override val nativeLinuxX64: String = "fd3e615d9191df8fa453343752918e8c1243966bc2cff6f63f178dd76a0c5829"
-        override val nativeMacosArm64: String = "08545a904e10f64123280f808b5a75c1f31134aa73117c3e9aceb92a7bac697b"
-        override val nativeMacosX64: String = "afd8e39c12045c243352c49a39ee00b581a2b1626edcfdc5e2f9cd11cc50cadf"
-        override val nativeMingwX64: String = "82334cc857d82913d464487e5c4071e8f647535254746aab70a8e2257853e34c"
+        override val nativeLinuxArm64: String = "6534b86ca6c7d5bb229397e89893c2ac185bc363b1ff9326d2f6aa796199d6af"
+        override val nativeLinuxX64: String = "d25a91a081fbc87195c9d79a1221c3891fc489c40f617d0a5eb4b30f09c7463c"
+        override val nativeMacosArm64: String = "db064f76042f16dac7a422f2e5ebeb4b6c9a2fbc2b9b6f854a20cc66bbc7f781"
+        override val nativeMacosX64: String = "82cc56f489713b5fef35e4e67ff3657778f5b85b61791f37efc63297313c62ee"
+        override val nativeMingwX64: String = "3434411f3043326c9b5d69e389a900d0b17016f33436c8bfa4f823c24d5fa038"
 
         internal companion object {
             internal const val NAME = "execTorGPLResourceValidation"

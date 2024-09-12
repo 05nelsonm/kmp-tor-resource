@@ -39,27 +39,27 @@ open class SharedTorResourceValidationExtension private constructor(
     @Inject
     internal constructor(project: Project): this(project, isGpl = false)
 
-    protected open val androidAarch64: String = "13daaaf147a098bcb035009f61b2f222be1a7962aae50d3a1d7e2a7ea98efe5a"
-    protected open val androidArmv7: String = "b43c389df59039d5eeaf2d679f312144fa91a1651b755471751d9b6a81ad09d7"
-    protected open val androidX86: String = "28063bb378c48d8e6ba55679ba719586c79e8d1eed194b8c0fa20ec2fe720f4d"
-    protected open val androidX86_64: String = "89fe1efd3921ac90a83cece7f02f4db14b9c8d458257bba1d33a28ece3b0dc93"
+    protected open val androidAarch64: String = "fe536c871b6aad544998e76c9d5480534409f0cfbff45e09433e0e535371f0de"
+    protected open val androidArmv7: String = "d67a0b31c4bafc794a54e78875f0413f7eb536f8f93c0f706bd1ebf897c77626"
+    protected open val androidX86: String = "8f5363dd458fbdb76f75fa2f6962c1d2dd60ca1df7de94c4e94100fb1af09e5f"
+    protected open val androidX86_64: String = "9edacc0c341a30d1a80470521251e9eeacd4fe10d7e151b907650de2776d59f9"
 
-    protected open val jvmLinuxAndroidAarch64: String = "57ad474d15946d9ec2709b28c162ac9da24ff0c55a4b1643ce72881883e9d8e6"
-    protected open val jvmLinuxAndroidArmv7: String = "e545ec3553ba31fe04e9c620fc246024570d2c594026c12ee150c14b36b5976c"
-    protected open val jvmLinuxAndroidX86: String = "6f95d3b88b9ddfaa02e6ddddbabeb118675d56e44e957fa6dabf6a2d248e0185"
-    protected open val jvmLinuxAndroidX86_64: String = "ad7f06279cb15cb506986aea2f1c34ab7779cb69a535dec11d9d4a3d68dad9c3"
+    protected open val jvmLinuxAndroidAarch64: String = "aa652260b30c48f888c193dba89f3590e0d3ffc905f42245d43d2cd1680aac5e"
+    protected open val jvmLinuxAndroidArmv7: String = "19b9c651dd6460d295ec5f2b89fb94dd527a5b928a22d1426ae319f06de31c85"
+    protected open val jvmLinuxAndroidX86: String = "36a546dc35f84139d89b88fb5a23d5e7b4a3dbd6d184148cf57810627169f3ad"
+    protected open val jvmLinuxAndroidX86_64: String = "5de6d694428e93b5d5c81ee700eef4abba6de5a89cdf983620ac800ec5a96a8c"
 
-    protected open val jvmLinuxLibcAarch64: String = "49ad1505c66ea17eccdc48761e406eef75a4cc5575cd19d48e7d183f1faf9d0d"
-    protected open val jvmLinuxLibcArmv7: String = "a9afec260d5569278d38af8f689fd83140fc44789d2418418e8ee8e998606e96"
-    protected open val jvmLinuxLibcPpc64: String = "64bea20250126dfef49db744f3b5444024353c5959615358c450aad5c6e74a74"
-    protected open val jvmLinuxLibcX86: String = "d52463086a118cb9c72b0cf0dffa3c410f5cb321246480c4cc4e99a0f6e5b1b9"
-    protected open val jvmLinuxLibcX86_64: String = "89fbc41597ec2e4ee57bf7239fdb6ade034aa5188322d0e61bd3dc67bf3a5ecf"
+    protected open val jvmLinuxLibcAarch64: String = "3bdaa80e8f91bdbcd01fc12264c62a7609eb72fcf6e75aecadf77db9c102ba0b"
+    protected open val jvmLinuxLibcArmv7: String = "3684e175bf73c07c04decd2b6f1016e6e643f94bfe0b0cdd56cbc26539a97b15"
+    protected open val jvmLinuxLibcPpc64: String = "475841537362e00ac1293d6ffbc768abacc382fca6fa5d9c5eb4af53d0dd5bb6"
+    protected open val jvmLinuxLibcX86: String = "31c37da4cd2cb0cdbd757e2252afdfcf8edaa7d83da418288ced8f54d4445a0d"
+    protected open val jvmLinuxLibcX86_64: String = "a37fcf1105416f391d71fdbc919119967a6216002fc341415ccb895f72f13a75"
 
-    protected open val jvmMacosAarch64: String = "1a01ab2de1279f27e246cbbc3154e12d9dfe3f174351f685158b35ae0c3863bb"
-    protected open val jvmMacosX86_64: String = "626439753c3e4902420e18b95a3ac8cb570484f66446a5a248578009e5fc77f3"
+    protected open val jvmMacosAarch64: String = "bbd7ec542d8dea7830b6717ed55b1bf1dbe67e142e9ef74f40decdf8f5d02017"
+    protected open val jvmMacosX86_64: String = "8dcc06411566e637473f1735558ee54abe678f0a3ef3f57a80db96f08d70a9a6"
 
-    protected open val jvmMingwX86: String = "e58b793b169b5352b0f9e5f3e9186c589ced8b77a1a57d7a6836a3a8ae15da4c"
-    protected open val jvmMingwX86_64: String = "6fb9d8e0637deb072c58b768a23720671bbff06aa3a6592206da80da401e3078"
+    protected open val jvmMingwX86: String = "900a35e6f93dbe2c219a4dd40d42777458618c9efa422204cc947e32c04b1507"
+    protected open val jvmMingwX86_64: String = "caf6911f6375ba9aa54962282d0132d2cb405beaeb4d1486187e1d77835bf4d0"
 
     /**
      * Resoure validation and configuration for module `:library:resource-shared-tor-gpl`,
@@ -69,27 +69,27 @@ open class SharedTorResourceValidationExtension private constructor(
         project: Project,
     ): SharedTorResourceValidationExtension(project, isGpl = true) {
 
-        override val androidAarch64: String = "c8d6e2aa51b90a3406364254e2af2fa507fc23f96a9afb9bc230a1fecc9b968f"
-        override val androidArmv7: String = "c8c1e0b9a436fa293733a83e060015e6e5f16290d471fbe714b874e6e18e173a"
-        override val androidX86: String = "212d6bf9d0a371c759295a8de2e6904a15a3ec5255554bc6ffc6052022eaf779"
-        override val androidX86_64: String = "f683a442623ad8efed8008aa6661a70069ab4031c024a34637cde055631cee0a"
+        override val androidAarch64: String = "c26a4d972f3973e6a03105d62a7fd3f5029adf7e6493753d5ebb60092c66393b"
+        override val androidArmv7: String = "daa5877f0aec67565838ded30d66fe9733e1b3be1a0e21a6729114fce8ec8535"
+        override val androidX86: String = "2ba17d3b4b7279d188d338a16e63d2cbe03278537c2242784e687a30e61f4ded"
+        override val androidX86_64: String = "241f35f12848a1a7709b53fd436a3f68bf0d0e3e8dd2144ab74bc62ff229d827"
 
-        override val jvmLinuxAndroidAarch64: String = "b23c860fe832b6055eb24fb523e3568dee2305948034d0b957348882f8c47fb2"
-        override val jvmLinuxAndroidArmv7: String = "c12d75d5ccab45ef2e44dd73c5bcd835d97e5e965eea4cfa97359ab21cc52921"
-        override val jvmLinuxAndroidX86: String = "fdd07b932e44909d818b855ecf414c38e0541b8707ba9d0120f8aa2d1c84876d"
-        override val jvmLinuxAndroidX86_64: String = "57fe94f667e3c2c032513d05381bb0f087622f8ed2f9805529038c65ad41a872"
+        override val jvmLinuxAndroidAarch64: String = "a56d53899eedf7808ccd49bdd449585c19f648400cc05f366d797ec71a378206"
+        override val jvmLinuxAndroidArmv7: String = "0204d179b4dcdc038d14cbb3af25cb930940a39c473d67f4f1fee6968a84f2ff"
+        override val jvmLinuxAndroidX86: String = "6c12d0a3bae2d0358a1687b75cd6166513030bcc49da286dd2b985f0c9303208"
+        override val jvmLinuxAndroidX86_64: String = "48529da0a880830c79340daa14f6dacc0db9e827547e94e88140387947717782"
 
-        override val jvmLinuxLibcAarch64: String = "c8492f1e2bdbbe25d8b9787fd571d17d557ff5c157dca7db5dc3b2bb181185ec"
-        override val jvmLinuxLibcArmv7: String = "4c4d9fc5c55e5189773f690e5fa6bea23806370c9e90eadf5a7e2befb2f07908"
-        override val jvmLinuxLibcPpc64: String = "4af1becaf64483ca55ab8605fbee93a7c54869e4af5726cef0f238786fd969f1"
-        override val jvmLinuxLibcX86: String = "3caa33ac51195495163e0ffcc714185b638e4532ce4d807ff2525dcd6a5d4acb"
-        override val jvmLinuxLibcX86_64: String = "fd3e615d9191df8fa453343752918e8c1243966bc2cff6f63f178dd76a0c5829"
+        override val jvmLinuxLibcAarch64: String = "6534b86ca6c7d5bb229397e89893c2ac185bc363b1ff9326d2f6aa796199d6af"
+        override val jvmLinuxLibcArmv7: String = "aa5e3f2c97e1bd1d5ca62896d54b1affc606894ea1d420e5e5fb895abb06054e"
+        override val jvmLinuxLibcPpc64: String = "e9e3b7062b2d48ab638fab6419a885c2f432ec2fbc1c3554e7342561675d033e"
+        override val jvmLinuxLibcX86: String = "28ee4b671b2f8c56662622b4fe5708ddb43259c3b9f421c98a3e54e509e42219"
+        override val jvmLinuxLibcX86_64: String = "d25a91a081fbc87195c9d79a1221c3891fc489c40f617d0a5eb4b30f09c7463c"
 
-        override val jvmMacosAarch64: String = "a81d824e305a12fd4cf4af1281ede74ca8ee5888a76dd3335a297494a0bc1e07"
-        override val jvmMacosX86_64: String = "b06c54b8c3fbe5e48b9f9e54c338eed6dd80903061c80dca75b6b2d8a4e8d71a"
+        override val jvmMacosAarch64: String = "37bb644b957854adab14246821aa633f477c230a0d6e71c98cd84db5f7a5c7fa"
+        override val jvmMacosX86_64: String = "4eabf2f001798fb1f1b537e8d9f4f6ffecadc57c08be089dc88b5d7e81a9f5cd"
 
-        override val jvmMingwX86: String = "acfb1b93473fefa3b5651f3317504ff76ecfde80bcff16ed39f18abacaab047c"
-        override val jvmMingwX86_64: String = "82334cc857d82913d464487e5c4071e8f647535254746aab70a8e2257853e34c"
+        override val jvmMingwX86: String = "9f6b059da64e8e2c4aad7a445753ed4b8c02c7aaeefa0f1f08b5db35ee33ce00"
+        override val jvmMingwX86_64: String = "3434411f3043326c9b5d69e389a900d0b17016f33436c8bfa4f823c24d5fa038"
 
         internal companion object {
             internal const val NAME = "sharedTorGPLResourceValidation"

@@ -532,6 +532,10 @@ if [ -z "$CROSS_TRIPLE" ]; then
 fi
 '
 
+  # Debugging (uncomment for verbose compiler output)
+#   __conf:SCRIPT 'export CC="${CC} -v"'
+#   __conf:SCRIPT 'export LD="${LD} -v"'
+
   __conf:SCRIPT "readonly DIR_OUT_TOR=\"\$DIR_EXTERNAL/$DIR_OUT_TOR\""
   __conf:SCRIPT "readonly DIR_OUT_TOR_GPL=\"\$DIR_EXTERNAL/$DIR_OUT_TOR_GPL\""
   __conf:SCRIPT 'readonly DIR_TMP="$(mktemp -d)"'
@@ -603,6 +607,16 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
     # gcc only
     __conf:CFLAGS '-fno-guess-branch-probability'
   fi
+
+  case "$os_arch" in
+    "x86")
+      __conf:CFLAGS '-m32'
+      ;;
+    "x86_64")
+      __conf:CFLAGS '-m64'
+      ;;
+  esac
+
   case "$os_name" in
     "mingw")
       # In order to utilize the -fstack-protector-strong flag,
@@ -613,15 +627,7 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
       __conf:CFLAGS '-static'
       __conf:CFLAGS '-fno-strict-overflow'
       ;;
-    *)
-      __conf:CFLAGS '-fPIC'
-      __conf:CFLAGS '-fvisibility=hidden'
-      ;;
   esac
-
-  # Debugging (uncomment for verbose compiler output)
-#   __conf:SCRIPT 'export CC="${CC} -v"'
-#   __conf:SCRIPT 'export LD="${LD} -v"'
 
   # LDFLAGS
   __conf:LDFLAGS '-L$DIR_SCRIPT/libevent/lib'
@@ -636,24 +642,12 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
       ;;
   esac
 
-  case "$os_arch" in
-    "x86")
-      __conf:CFLAGS '-m32'
-      __conf:LDFLAGS '-m32'
-      ;;
-    "x86_64")
-      __conf:CFLAGS '-m64'
-      __conf:LDFLAGS '-m64'
-      ;;
-  esac
-
   # ZLIB
-  CONF_ZLIB='./configure --static \
+  CONF_ZLIB='CFLAGS="$CFLAGS -fPIC" ./configure --static \
   --prefix="$DIR_SCRIPT/zlib"'
 
   # LZMA
-  CONF_XZ='./configure --enable-static \
-  --disable-doc \
+  CONF_XZ='./configure --disable-doc \
   --disable-lzma-links \
   --disable-lzmadec \
   --disable-lzmainfo \
@@ -662,6 +656,8 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
   --disable-xz \
   --disable-xzdec \
   --enable-small \
+  --enable-static \
+  --with-pic \
   --host="$CROSS_TRIPLE" \
   --prefix="$DIR_SCRIPT/xz"'
 
@@ -683,15 +679,12 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
   no-rc5 \
   no-rmd160 \
   no-whirlpool \
-  no-ui-console \
-  --libdir=lib \
-  --with-zlib-lib="$DIR_SCRIPT/zlib/lib" \
-  --with-zlib-include="$DIR_SCRIPT/zlib/include" \
-  --prefix="$DIR_SCRIPT/openssl"'
+  no-ui-console'
 
   if [ "${os_arch: -2}" = "64" ]; then
     __conf:OPENSSL 'enable-ec_nistp_64_gcc_128'
   fi
+
   case "$os_name" in
     "android")
       __conf:OPENSSL '-D__ANDROID_API__=21'
@@ -702,16 +695,21 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
       __conf:OPENSSL '-static'
       ;;
   esac
+
+  __conf:OPENSSL '--libdir=lib'
+  __conf:OPENSSL '--with-zlib-lib="$DIR_SCRIPT/zlib/lib"'
+  __conf:OPENSSL '--with-zlib-include="$DIR_SCRIPT/zlib/include"'
+  __conf:OPENSSL '--prefix="$DIR_SCRIPT/openssl"'
   __conf:OPENSSL "$openssl_target"
 
   # LIBEVENT
-  CONF_LIBEVENT='./configure --enable-static \
-  --enable-gcc-hardening \
-  --disable-debug-mode \
+  CONF_LIBEVENT='CFLAGS="$CFLAGS -fPIC" ./configure --disable-debug-mode \
   --disable-doxygen-html \
   --disable-libevent-regress \
   --disable-samples \
   --disable-shared \
+  --enable-static \
+  --enable-gcc-hardening \
   --host="$CROSS_TRIPLE" \
   --prefix="$DIR_SCRIPT/libevent"'
 
@@ -722,6 +720,7 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
   --disable-system-torrc \
   --disable-systemd \
   --disable-tool-name-check \
+  --enable-pic \
   --enable-zstd=no \
   --enable-static-libevent \
   --with-libevent-dir="$DIR_SCRIPT/libevent" \
@@ -786,7 +785,8 @@ $CONF_ZLIB > \"\$DIR_SCRIPT/zlib/logs/configure.log\" 2> \"\$DIR_SCRIPT/zlib/log
 cat configure.log >> \"\$DIR_SCRIPT/zlib/logs/configure.log\"
 make clean > /dev/null
 make -j\"\$NUM_JOBS\" > \"\$DIR_SCRIPT/zlib/logs/make.log\" 2> \"\$DIR_SCRIPT/zlib/logs/make.err\"
-make install >> \"\$DIR_SCRIPT/zlib/logs/make.log\" 2>> \"\$DIR_SCRIPT/zlib/logs/make.err\""
+make install >> \"\$DIR_SCRIPT/zlib/logs/make.log\" 2>> \"\$DIR_SCRIPT/zlib/logs/make.err\"
+"
 
   # XZ
   __conf:SCRIPT "
@@ -855,17 +855,15 @@ export LZMA_LIBS="$DIR_SCRIPT/xz/lib/liblzma.a"
 cp -R "$DIR_EXTERNAL/tor" "$DIR_TMP"
 cd "$DIR_TMP/tor"'
 
-  if [ "$os_subtype" = "-simulator" ]; then
-      if [ "$os_arch" = "aarch64" ]; then
-        case "$os_name" in
-          "ios"|"tvosos"|"watchos")
-            __conf:SCRIPT '
+  if [ "$os_arch" = "aarch64" ]; then
+    case "$os_name" in
+      "ios"|"tvosos"|"watchos")
+        __conf:SCRIPT '
 # https://gitlab.torproject.org/tpo/core/tor/-/issues/40903
 sed -i "s+__builtin___clear_cache((void\*)code, (void\*)pos);+return true;+" "src/ext/equix/hashx/src/compiler_a64.c"
 '
-            ;;
-        esac
-      fi
+        ;;
+    esac
   fi
 
   __conf:SCRIPT './autogen.sh > "$DIR_SCRIPT/tor/logs/autogen.log" 2> "$DIR_SCRIPT/tor/logs/autogen.err"'
