@@ -50,14 +50,16 @@ sealed class ValidationHash private constructor() {
                     .resolve(arch)
                     .resolve(libname)
 
+                val rPath = lib.path.substringAfter("${File.separatorChar}kmp-tor-resource${File.separatorChar}")
+
                 if (!lib.exists()) {
-                    errors.add("Lib does not exist: $lib".toERROR())
+                    errors.add("Lib does not exist: $rPath".toERROR())
                     return@forEach
                 }
 
                 val actualHash = lib.sha256()
                 if (hash != actualHash) {
-                    errors.add("Lib hash[$actualHash] did not match expected[$hash]: $lib".toERROR())
+                    errors.add("Lib hash[$actualHash] did not match expected[$hash]: $rPath".toERROR())
                     return@forEach
                 }
             }
@@ -90,13 +92,15 @@ sealed class ValidationHash private constructor() {
                 .resolve(arch)
                 .resolve(libName)
 
+            val rPath = lib.path.substringAfter("${File.separatorChar}kmp-tor-resource${File.separatorChar}")
+
             if (!lib.exists()) {
-                return "Lib does not exist: $lib".toERROR()
+                return "Lib does not exist: $rPath".toERROR()
             }
 
             val actualHash = lib.sha256()
             if (hash != actualHash) {
-                return "Lib hash[$actualHash] did not match expected[$hash]: $lib".toERROR()
+                return "Lib hash[$actualHash] did not match expected[$hash]: $rPath".toERROR()
             }
 
             return null
@@ -118,13 +122,15 @@ sealed class ValidationHash private constructor() {
                 .resolve(packageName.replace('.', '/'))
                 .resolve(fileName)
 
+            val rPath = file.path.substringAfter("${File.separatorChar}kmp-tor-resource${File.separatorChar}")
+
             if (!file.exists()) {
-                return "Resource does not exist: $file".toERROR()
+                return "Resource does not exist: $rPath".toERROR()
             }
 
             val actualHash = file.sha256()
             if (hash != actualHash) {
-                return "Resource hash[$actualHash] did not match expected[$hash]: $file".toERROR()
+                return "Resource hash[$actualHash] did not match expected[$hash]: $rPath".toERROR()
             }
 
             return null
@@ -148,8 +154,10 @@ sealed class ValidationHash private constructor() {
                 .resolve("internal")
                 .resolve(ktFileName)
 
+            val rPath = file.path.substringAfter("${File.separatorChar}kmp-tor-resource${File.separatorChar}")
+
             if (!file.exists()) {
-                return "Resource does not exist: $file".toERROR()
+                return "Resource does not exist: $rPath".toERROR()
             }
 
             try {
@@ -166,13 +174,13 @@ sealed class ValidationHash private constructor() {
                             // No error
                             null
                         } else {
-                            "Resource hash[$actualHash] did not match expected[$hash]: $file".toERROR()
+                            "Resource hash[$actualHash] did not match expected[$hash]: $rPath".toERROR()
                         }
                     }
                 }
             } catch (_: Throwable) {}
 
-            return "Failed to find the sha256 value for NativeResource: $file".toERROR()
+            return "Failed to find the sha256 value for NativeResource: $rPath".toERROR()
         }
     }
 }
