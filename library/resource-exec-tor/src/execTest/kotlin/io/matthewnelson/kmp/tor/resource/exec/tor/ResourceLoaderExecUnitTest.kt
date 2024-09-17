@@ -58,10 +58,12 @@ open class ResourceLoaderExecUnitTest {
             assertFalse("${paths.geoips.geoip.path}.gz".toFile().exists())
             assertFalse("${paths.geoips.geoip6.path}.gz".toFile().exists())
 
+            val local = paths.executable.parentFile!!.resolve("tor.exe.local")
+
             if (IS_WINDOWS) {
-                // TODO: assert tor.exe.local exists
+                assertTrue(local.exists())
             } else {
-                // TODO: assert tor.exe.local does NOT exist
+                assertFalse(local.exists())
                 assertTrue(paths.executable.isExecutable())
                 assertFalse(paths.geoips.geoip.isExecutable())
                 assertFalse(paths.geoips.geoip.isExecutable())
