@@ -17,6 +17,7 @@ set -e
 
 # TODO: Move to arg parser
 readonly DRY_RUN=$(if [ "$2" = "--dry-run" ]; then echo "true"; else echo "false"; fi)
+readonly REBUILD=$(if [ "$2" = "--rebuild" ]; then echo "true"; else echo "false"; fi)
 
 readonly DIR_TASK=$( cd "$( dirname "$0" )" >/dev/null && pwd )
 readonly FILE_BUILD_LOCK="$DIR_TASK/build/.lock"
@@ -62,6 +63,8 @@ function build:all:desktop { ## Builds all Linux, macOS, Windows targets
 #}
 
 function build:all:ios { ## Builds all iOS targets
+  build:ios-simulator:aarch64
+  build:ios-simulator:x86_64
   build:ios:aarch64
 }
 
@@ -131,6 +134,26 @@ function build:android:x86_64 { ## Builds Android x86_64
   local os_arch="x86_64"
   local openssl_target="android-x86_64"
   local ndk_abi="x86_64"
+  local cc_clang="yes"
+  __build:configure:target:init
+  __exec:docker:run
+}
+
+function build:ios-simulator:aarch64 { ## Builds iOS Simulator arm64
+  local os_name="ios"
+  local os_subtype="-simulator"
+  local os_arch="aarch64"
+  local openssl_target="iossimulator-xcrun"
+  local cc_clang="yes"
+  __build:configure:target:init
+  __exec:docker:run
+}
+
+function build:ios-simulator:x86_64 { ## Builds iOS Simulator x86_64
+  local os_name="ios"
+  local os_subtype="-simulator"
+  local os_arch="x86_64"
+  local openssl_target="iossimulator-xcrun"
   local cc_clang="yes"
   __build:configure:target:init
   __exec:docker:run
@@ -319,6 +342,7 @@ $(
 
     Options:
         --dry-run                      Debugging output that does not execute.
+        --rebuild                      Will cause a complete rebuild of the target.
 
     Example: $0 build:all --dry-run
   "
@@ -464,16 +488,13 @@ function __build:configure:target:init {
     "android")
       __require:var_set "$ndk_abi" "ndk_abi"
 
-      DIR_BUILD="build/stage/$os_name/$ndk_abi"
-      DIR_OUT_TOR="build/out/tor/$os_name/$ndk_abi"
-      DIR_OUT_TOR_GPL="build/out/tor-gpl/$os_name/$ndk_abi"
+      DIR_OUT_SUFFIX="$os_name/$ndk_abi"
       ;;
     *)
-      DIR_BUILD="build/stage/$os_name$os_subtype/$os_arch"
-      DIR_OUT_TOR="build/out/tor/$os_name$os_subtype/$os_arch"
-      DIR_OUT_TOR_GPL="build/out/tor-gpl/$os_name$os_subtype/$os_arch"
+      DIR_OUT_SUFFIX="$os_name$os_subtype/$os_arch"
       ;;
   esac
+  DIR_BUILD="build/stage/$DIR_OUT_SUFFIX"
 
   unset CONF_CFLAGS
   unset CONF_LDFLAGS
@@ -500,25 +521,25 @@ function __build:configure:target:init {
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# DO NOT MODIFY. THIS IS AN AUTOMATICALLY GENERATED FILE.
-
 export LANG=C.UTF-8
 export LC_ALL=C
 export SOURCE_DATE_EPOCH="1234567890"
 export TZ=UTC
 set -e
+
+# DO NOT MODIFY. THIS IS AN AUTOMATICALLY GENERATED FILE.
 '
 
   __conf:SCRIPT "readonly TASK_TARGET=\"$os_name$os_subtype:$os_arch\""
   __conf:SCRIPT '
-readonly DIR_SCRIPT=$( cd "$( dirname "$0" )" >/dev/null && pwd )
+readonly DIR_SCRIPT="$( cd "$( dirname "$0" )" >/dev/null && pwd )"
 # Docker container WORKDIR
 readonly DIR_EXTERNAL="/work"
 
 if [ ! -f "$DIR_EXTERNAL/task.sh" ]; then
   echo 1>&2 "
-    DIR_EXTERNAL does not exist
-    Are you not using task.sh?
+    $DIR_EXTERNAL/task.sh not found.
+    Are you not using task.sh outside the Docker environment?
   "
   exit 3
 fi
@@ -536,63 +557,23 @@ fi
 #   __conf:SCRIPT 'export CC="${CC} -v"'
 #   __conf:SCRIPT 'export LD="${LD} -v"'
 
-  __conf:SCRIPT "readonly DIR_OUT_TOR=\"\$DIR_EXTERNAL/$DIR_OUT_TOR\""
-  __conf:SCRIPT "readonly DIR_OUT_TOR_GPL=\"\$DIR_EXTERNAL/$DIR_OUT_TOR_GPL\""
   __conf:SCRIPT 'readonly DIR_TMP="$(mktemp -d)"'
   __conf:SCRIPT "trap 'rm -rf \$DIR_TMP' EXIT"
-  __conf:SCRIPT '
-readonly NUM_JOBS="$(nproc)"
-'
+  __conf:SCRIPT ''
+  __conf:SCRIPT 'readonly NUM_JOBS="$(nproc)"'
+  __conf:SCRIPT ''
+  __conf:SCRIPT 'export LD_LIBRARY_PATH="$DIR_SCRIPT/libevent/lib:$DIR_SCRIPT/openssl/lib:$DIR_SCRIPT/xz/lib:$DIR_SCRIPT/zlib/lib:$LD_LIBRARY_PATH"'
+  __conf:SCRIPT 'export LIBS="-L$DIR_SCRIPT/libevent/lib -L$DIR_SCRIPT/openssl/lib -L$DIR_SCRIPT/xz/lib -L$DIR_SCRIPT/zlib/lib"'
+  __conf:SCRIPT 'export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/lib/pkgconfig:$DIR_SCRIPT/xz/lib/pkgconfig:$DIR_SCRIPT/zlib/lib/pkgconfig"'
 
-  if [ "$os_name" = "android" ]; then
-    __conf:SCRIPT "readonly DIR_OUT_TOR_ALT=\"\$DIR_EXTERNAL/build/out/tor/linux-$os_name/$os_arch\""
-    __conf:SCRIPT "readonly DIR_OUT_TOR_GPL_ALT=\"\$DIR_EXTERNAL/build/out/tor-gpl/linux-$os_name/$os_arch\""
-    __conf:SCRIPT '
-rm -rf "$DIR_OUT_TOR_ALT"
-rm -rf "$DIR_OUT_TOR_GPL_ALT"'
-  fi
-
-  __conf:SCRIPT 'rm -rf "$DIR_OUT_TOR"
-rm -rf "$DIR_OUT_TOR_GPL"
-rm -rf "$DIR_SCRIPT/libevent"
-rm -rf "$DIR_SCRIPT/openssl"
-rm -rf "$DIR_SCRIPT/tor"
-rm -rf "$DIR_SCRIPT/tor-gpl"
-rm -rf "$DIR_SCRIPT/xz"
-rm -rf "$DIR_SCRIPT/zlib"
-
-mkdir -p "$DIR_SCRIPT/zlib/include"
-mkdir -p "$DIR_SCRIPT/zlib/lib"
-mkdir -p "$DIR_SCRIPT/zlib/logs"
-
-mkdir -p "$DIR_SCRIPT/xz/include"
-mkdir -p "$DIR_SCRIPT/xz/lib"
-mkdir -p "$DIR_SCRIPT/xz/logs"
-
-mkdir -p "$DIR_SCRIPT/openssl/include"
-mkdir -p "$DIR_SCRIPT/openssl/lib"
-mkdir -p "$DIR_SCRIPT/openssl/logs"
-
-mkdir -p "$DIR_SCRIPT/libevent/include"
-mkdir -p "$DIR_SCRIPT/libevent/lib"
-mkdir -p "$DIR_SCRIPT/libevent/logs"
-
-mkdir -p "$DIR_SCRIPT/tor/include"
-mkdir -p "$DIR_SCRIPT/tor/lib"
-mkdir -p "$DIR_SCRIPT/tor/logs"
-
-mkdir -p "$DIR_SCRIPT/tor-gpl/include"
-mkdir -p "$DIR_SCRIPT/tor-gpl/lib"
-mkdir -p "$DIR_SCRIPT/tor-gpl/logs"
-
-export LD_LIBRARY_PATH="$DIR_SCRIPT/libevent/lib:$DIR_SCRIPT/openssl/lib:$DIR_SCRIPT/xz/lib:$DIR_SCRIPT/zlib/lib:$LD_LIBRARY_PATH"
-export LIBS="-L$DIR_SCRIPT/libevent/lib -L$DIR_SCRIPT/openssl/lib -L$DIR_SCRIPT/xz/lib -L$DIR_SCRIPT/zlib/lib"
-export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/lib/pkgconfig:$DIR_SCRIPT/xz/lib/pkgconfig:$DIR_SCRIPT/zlib/lib/pkgconfig"
-'
-
-  if [ "$os_name" = "macos" ]; then
-    __conf:SCRIPT 'export OSXCROSS_PKG_CONFIG_PATH=$PKG_CONFIG_PATH'
-  fi
+  case "$os_name" in
+    "macos")
+      __conf:SCRIPT 'export OSXCROSS_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"'
+      ;;
+    "mingw")
+      __conf:SCRIPT 'export CHOST="$CROSS_TRIPLE"'
+      ;;
+  esac
 
   # CFLAGS
   __conf:CFLAGS '-I$DIR_SCRIPT/libevent/include'
@@ -627,6 +608,9 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
       __conf:CFLAGS '-static'
       __conf:CFLAGS '-fno-strict-overflow'
       ;;
+    *)
+      __conf:CFLAGS '-fPIC'
+      ;;
   esac
 
   # LDFLAGS
@@ -643,43 +627,44 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
   esac
 
   # ZLIB
-  CONF_ZLIB='CFLAGS="$CFLAGS -fPIC" ./configure --static \
-  --prefix="$DIR_SCRIPT/zlib"'
+  CONF_ZLIB='./configure --static \
+    --prefix="$DIR_SCRIPT/zlib"'
 
   # LZMA
   CONF_XZ='./configure --disable-doc \
-  --disable-lzma-links \
-  --disable-lzmadec \
-  --disable-lzmainfo \
-  --disable-scripts \
-  --disable-shared \
-  --disable-xz \
-  --disable-xzdec \
-  --enable-small \
-  --enable-static \
-  --with-pic \
-  --host="$CROSS_TRIPLE" \
-  --prefix="$DIR_SCRIPT/xz"'
+    --disable-lzma-links \
+    --disable-lzmadec \
+    --disable-lzmainfo \
+    --disable-scripts \
+    --disable-shared \
+    --disable-xz \
+    --disable-xzdec \
+    --enable-small \
+    --enable-static \
+    --with-pic \
+    --host="$CROSS_TRIPLE" \
+    --prefix="$DIR_SCRIPT/xz"'
 
   # OPENSSL
   CONF_OPENSSL='./Configure no-shared \
-  no-asm \
-  no-comp \
-  no-dtls \
-  no-err \
-  no-psk \
-  no-srp \
-  no-weak-ssl-ciphers \
-  no-camellia \
-  no-idea \
-  no-md2 \
-  no-md4 \
-  no-rc2 \
-  no-rc4 \
-  no-rc5 \
-  no-rmd160 \
-  no-whirlpool \
-  no-ui-console'
+    no-asm \
+    no-comp \
+    no-dtls \
+    no-err \
+    no-psk \
+    no-srp \
+    no-weak-ssl-ciphers \
+    no-camellia \
+    no-idea \
+    no-md2 \
+    no-md4 \
+    no-rc2 \
+    no-rc4 \
+    no-rc5 \
+    no-rmd160 \
+    no-whirlpool \
+    no-ui-console \
+    enable-pic'
 
   if [ "${os_arch: -2}" = "64" ]; then
     __conf:OPENSSL 'enable-ec_nistp_64_gcc_128'
@@ -703,33 +688,46 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
   __conf:OPENSSL "$openssl_target"
 
   # LIBEVENT
-  CONF_LIBEVENT='CFLAGS="$CFLAGS -fPIC" ./configure --disable-debug-mode \
-  --disable-doxygen-html \
-  --disable-libevent-regress \
-  --disable-samples \
-  --disable-shared \
-  --enable-static \
-  --enable-gcc-hardening \
-  --host="$CROSS_TRIPLE" \
-  --prefix="$DIR_SCRIPT/libevent"'
+  CONF_LIBEVENT='./configure --disable-debug-mode \
+    --disable-doxygen-html \
+    --disable-libevent-regress \
+    --disable-openssl \
+    --disable-samples \
+    --disable-shared \
+    --enable-static'
+
+  case "$os_name" in
+    "ios"|"macos"|"tvos"|"watchos")
+      __conf:LIBEVENT '--disable-clock-gettime'
+      ;;
+  esac
+
+  # --enable-gcc-hardening adds -fPIE to CFLAGS which does not bode well when
+  # creating a PIC static library (to use in a shared lib). So, flags that it
+  # **would** add can be expressed here. Flag -fstack-protector-all (already
+  # passing -fstack-protector-strong) and -fPIE are not included.
+  __conf:LIBEVENT 'CFLAGS="$CFLAGS -D_FORTIFY_SOURCE=2 -fwrapv -Wstack-protector --param ssp-buffer-size=1"'
+
+  __conf:LIBEVENT '--host="$CROSS_TRIPLE"'
+  __conf:LIBEVENT '--prefix="$DIR_SCRIPT/libevent"'
 
   # TOR
   CONF_TOR='./configure --disable-asciidoc \
-  --disable-html-manual \
-  --disable-manpage \
-  --disable-system-torrc \
-  --disable-systemd \
-  --disable-tool-name-check \
-  --enable-pic \
-  --enable-zstd=no \
-  --enable-static-libevent \
-  --with-libevent-dir="$DIR_SCRIPT/libevent" \
-  --enable-lzma \
-  --enable-static-openssl \
-  --with-openssl-dir="$DIR_SCRIPT/openssl" \
-  --enable-static-zlib \
-  --with-zlib-dir="$DIR_SCRIPT/zlib" \
-  --host="$CROSS_TRIPLE"'
+    --disable-html-manual \
+    --disable-manpage \
+    --disable-system-torrc \
+    --disable-systemd \
+    --disable-tool-name-check \
+    --enable-pic \
+    --enable-zstd=no \
+    --enable-static-libevent \
+    --with-libevent-dir="$DIR_SCRIPT/libevent" \
+    --enable-lzma \
+    --enable-static-openssl \
+    --with-openssl-dir="$DIR_SCRIPT/openssl" \
+    --enable-static-zlib \
+    --with-zlib-dir="$DIR_SCRIPT/zlib" \
+    --host="$CROSS_TRIPLE"'
 
   case "$os_name" in
     "android")
@@ -744,10 +742,6 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
       ;;
     "mingw")
       __conf:TOR '--enable-static-tor'
-      # So if tor.exe is clicked on, it opens in console.
-      # This is the same behavior as the tor.exe output by
-      # tor-browser-build.
-      __conf:TOR 'LDFLAGS="$LDFLAGS -Wl,--subsystem,console"'
       ;;
   esac
 
@@ -763,198 +757,417 @@ export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/l
 function __build:configure:target:build_script {
   __require:var_set "$os_name" "os_name"
   __require:var_set "$DIR_BUILD" "DIR_BUILD"
-  __require:var_set "$DIR_OUT_TOR" "DIR_OUT_TOR"
-  __require:var_set "$DIR_OUT_TOR_GPL" "DIR_OUT_TOR_GPL"
+#  __require:var_set "$DIR_OUT_TOR" "DIR_OUT_TOR"
+#  __require:var_set "$DIR_OUT_TOR_GPL" "DIR_OUT_TOR_GPL"
 
   __conf:SCRIPT "export CFLAGS=\"$CONF_CFLAGS\""
   __conf:SCRIPT "export LDFLAGS=\"$CONF_LDFLAGS\""
+  __conf:SCRIPT ''
 
-  if [ "$os_name" = "mingw" ]; then
-    __conf:SCRIPT 'export CHOST="$CROSS_TRIPLE"'
-  fi
+  __conf:SCRIPT 'compile_prepare() {'
+  __conf:SCRIPT '  echo "    * Compiling $1$3'
+  __conf:SCRIPT "        LOGS >> $DIR_BUILD/\$2/logs\""
+  __conf:SCRIPT ''
+  __conf:SCRIPT '  rm -rf "$DIR_SCRIPT/$2"'
+  __conf:SCRIPT '  mkdir -p "$DIR_SCRIPT/$2/include"'
+  __conf:SCRIPT '  mkdir -p "$DIR_SCRIPT/$2/lib"'
+  __conf:SCRIPT '  mkdir -p "$DIR_SCRIPT/$2/logs"'
+  __conf:SCRIPT ''
+  __conf:SCRIPT '  cp -R "$DIR_EXTERNAL/$1" "$DIR_TMP/$2"'
+  __conf:SCRIPT '  cd "$DIR_TMP/$2"'
+  __conf:SCRIPT '}'
+  __conf:SCRIPT ''
 
   # ZLIB
-  __conf:SCRIPT "
-echo \"
-    Building zlib for \$TASK_TARGET
-    LOGS >> $DIR_BUILD/zlib/logs
-\""
-  __conf:SCRIPT 'cp -R "$DIR_EXTERNAL/zlib" "$DIR_TMP"'
-  __conf:SCRIPT "cd \"\$DIR_TMP/zlib\"
-$CONF_ZLIB > \"\$DIR_SCRIPT/zlib/logs/configure.log\" 2> \"\$DIR_SCRIPT/zlib/logs/configure.err\"
-cat configure.log >> \"\$DIR_SCRIPT/zlib/logs/configure.log\"
-make clean > /dev/null
-make -j\"\$NUM_JOBS\" > \"\$DIR_SCRIPT/zlib/logs/make.log\" 2> \"\$DIR_SCRIPT/zlib/logs/make.err\"
-make install >> \"\$DIR_SCRIPT/zlib/logs/make.log\" 2>> \"\$DIR_SCRIPT/zlib/logs/make.err\"
-"
+  __conf:SCRIPT 'compile_zlib() {'
+  __conf:SCRIPT '  compile_prepare "zlib" "zlib"'
+  __conf:SCRIPT ''
+  __conf:SCRIPT "  $CONF_ZLIB > \"\$DIR_SCRIPT/zlib/logs/configure.log\" 2> \"\$DIR_SCRIPT/zlib/logs/configure.err\""
+  __conf:SCRIPT ''
+  __conf:SCRIPT '  cat configure.log >> "$DIR_SCRIPT/zlib/logs/configure.log"'
+  __conf:SCRIPT '  make clean > /dev/null'
+  __conf:SCRIPT '  make -j"$NUM_JOBS" > "$DIR_SCRIPT/zlib/logs/make.log" 2> "$DIR_SCRIPT/zlib/logs/make.err"'
+  __conf:SCRIPT '  make install >> "$DIR_SCRIPT/zlib/logs/make.log" 2>> "$DIR_SCRIPT/zlib/logs/make.err"'
+  __conf:SCRIPT '}'
+  __conf:SCRIPT ''
 
   # XZ
-  __conf:SCRIPT "
-echo \"
-    Building xz for \$TASK_TARGET
-    LOGS >> $DIR_BUILD/xz/logs
-\""
-  __conf:SCRIPT 'cp -R "$DIR_EXTERNAL/xz" "$DIR_TMP"'
-  __conf:SCRIPT "cd \"\$DIR_TMP/xz\"
-./autogen.sh --no-po4a > \"\$DIR_SCRIPT/xz/logs/autogen.log\" 2> \"\$DIR_SCRIPT/xz/logs/autogen.err\"
-$CONF_XZ > \"\$DIR_SCRIPT/xz/logs/configure.log\" 2> \"\$DIR_SCRIPT/xz/logs/configure.err\"
-make clean > /dev/null
-make -j\"\$NUM_JOBS\" > \"\$DIR_SCRIPT/xz/logs/make.log\" 2> \"\$DIR_SCRIPT/xz/logs/make.err\"
-make install >> \"\$DIR_SCRIPT/xz/logs/make.log\" 2>> \"\$DIR_SCRIPT/xz/logs/make.err\""
+  __conf:SCRIPT 'compile_xz() {'
+  __conf:SCRIPT '  compile_prepare "xz" "xz"'
+  __conf:SCRIPT ''
+  __conf:SCRIPT '  ./autogen.sh --no-po4a > "$DIR_SCRIPT/xz/logs/autogen.log" 2> "$DIR_SCRIPT/xz/logs/autogen.err"'
+  __conf:SCRIPT "  $CONF_XZ > \"\$DIR_SCRIPT/xz/logs/configure.log\" 2> \"\$DIR_SCRIPT/xz/logs/configure.err\""
+  __conf:SCRIPT ''
+  __conf:SCRIPT '  make clean > /dev/null'
+  __conf:SCRIPT '  make -j"$NUM_JOBS" > "$DIR_SCRIPT/xz/logs/make.log" 2> "$DIR_SCRIPT/xz/logs/make.err"'
+  __conf:SCRIPT '  make install >> "$DIR_SCRIPT/xz/logs/make.log" 2>> "$DIR_SCRIPT/xz/logs/make.err"'
+  __conf:SCRIPT '}'
+  __conf:SCRIPT ''
 
   # OPENSSL
-  __conf:SCRIPT "
-echo \"
-    Building openssl for \$TASK_TARGET
-    LOGS >> $DIR_BUILD/openssl/logs
-\""
-  __conf:SCRIPT 'cp -R "$DIR_EXTERNAL/openssl" "$DIR_TMP"
-cd "$DIR_TMP/openssl"'
+  __conf:SCRIPT 'compile_openssl() {'
+  __conf:SCRIPT '  compile_prepare "openssl" "openssl"'
+  __conf:SCRIPT ''
 
   if [ "$os_name" = "mingw" ]; then
-    # TODO: Move to patch file
-    __conf:SCRIPT "
-# https://github.com/openssl/openssl/issues/14574
-# https://github.com/netdata/netdata/pull/15842
-sed -i \"s/disable('static', 'pic', 'threads');/disable('static', 'pic');/\" \"Configure\"
-"
+    # PATCH
+    __conf:SCRIPT '  # https://github.com/openssl/openssl/issues/14574'
+    __conf:SCRIPT '  # https://github.com/netdata/netdata/pull/15842'
+    __conf:SCRIPT "  sed -i \"s/disable('static', 'pic', 'threads');/disable('static', 'pic');/\" \"Configure\""
+    __conf:SCRIPT ''
   fi
-
-  __conf:SCRIPT "$CONF_OPENSSL > \"\$DIR_SCRIPT/openssl/logs/configure.log\" 2> \"\$DIR_SCRIPT/openssl/logs/configure.err\"
-perl configdata.pm --dump >> \"\$DIR_SCRIPT/openssl/logs/configure.log\"
-make clean > /dev/null
-make -j\"\$NUM_JOBS\" > \"\$DIR_SCRIPT/openssl/logs/make.log\" 2> \"\$DIR_SCRIPT/openssl/logs/make.err\"
-make install_sw >> \"\$DIR_SCRIPT/openssl/logs/make.log\" 2>> \"\$DIR_SCRIPT/openssl/logs/make.err\""
+  __conf:SCRIPT "  $CONF_OPENSSL > \"\$DIR_SCRIPT/openssl/logs/configure.log\" 2> \"\$DIR_SCRIPT/openssl/logs/configure.err\""
+  __conf:SCRIPT ''
+  __conf:SCRIPT '  perl configdata.pm --dump >> "$DIR_SCRIPT/openssl/logs/configure.log"'
+  __conf:SCRIPT '  make clean > /dev/null'
+  __conf:SCRIPT '  make -j"$NUM_JOBS" > "$DIR_SCRIPT/openssl/logs/make.log" 2> "$DIR_SCRIPT/openssl/logs/make.err"'
+  __conf:SCRIPT '  make install_sw >> "$DIR_SCRIPT/openssl/logs/make.log" 2>> "$DIR_SCRIPT/openssl/logs/make.err"'
+  __conf:SCRIPT '}'
+  __conf:SCRIPT ''
 
   # LIBEVENT
-  __conf:SCRIPT "
-echo \"
-    Building libevent for \$TASK_TARGET
-    LOGS >> $DIR_BUILD/libevent/logs
-\""
-  __conf:SCRIPT 'cp -R "$DIR_EXTERNAL/libevent" "$DIR_TMP"'
-  __conf:SCRIPT "cd \"\$DIR_TMP/libevent\"
-./autogen.sh > \"\$DIR_SCRIPT/libevent/logs/autogen.log\" 2> \"\$DIR_SCRIPT/libevent/logs/autogen.err\"
-$CONF_LIBEVENT > \"\$DIR_SCRIPT/libevent/logs/configure.log\" 2> \"\$DIR_SCRIPT/libevent/logs/configure.err\"
-make clean > /dev/null
-make -j\"\$NUM_JOBS\" > \"\$DIR_SCRIPT/libevent/logs/make.log\" 2> \"\$DIR_SCRIPT/libevent/logs/make.err\"
-make install >> \"\$DIR_SCRIPT/libevent/logs/make.log\" 2>> \"\$DIR_SCRIPT/libevent/logs/make.err\""
+  __conf:SCRIPT 'compile_libevent() {'
+  __conf:SCRIPT '  compile_prepare "libevent" "libevent"'
+  __conf:SCRIPT ''
+  __conf:SCRIPT '  ./autogen.sh > "$DIR_SCRIPT/libevent/logs/autogen.log" 2> "$DIR_SCRIPT/libevent/logs/autogen.err"'
+  __conf:SCRIPT "  $CONF_LIBEVENT > \"\$DIR_SCRIPT/libevent/logs/configure.log\" 2> \"\$DIR_SCRIPT/libevent/logs/configure.err\""
+  __conf:SCRIPT ''
+  __conf:SCRIPT '  make clean > /dev/null'
+  __conf:SCRIPT '  make -j"$NUM_JOBS" > "$DIR_SCRIPT/libevent/logs/make.log" 2> "$DIR_SCRIPT/libevent/logs/make.err"'
+  __conf:SCRIPT '  make install >> "$DIR_SCRIPT/libevent/logs/make.log" 2>> "$DIR_SCRIPT/libevent/logs/make.err"'
+  __conf:SCRIPT '}'
 
-  # TOR
-  __conf:SCRIPT "
-echo \"
-    Building tor for \$TASK_TARGET
-    LOGS >> $DIR_BUILD/tor/logs
-\""
+  # TOR & TOR GPL
   __conf:SCRIPT '
 # Includes are not enough when using --enable-lzma flag.
 # Must specify it here so configure picks it up.
 export LZMA_CFLAGS="-I$DIR_SCRIPT/xz/include"
-export LZMA_LIBS="$DIR_SCRIPT/xz/lib/liblzma.a"
+export LZMA_LIBS="$DIR_SCRIPT/xz/lib/liblzma.a"'
 
-cp -R "$DIR_EXTERNAL/tor" "$DIR_TMP"
-cd "$DIR_TMP/tor"'
+  local conf_out=
+  local tor_target=
+  for tor_target in $(echo "tor,tor-gpl" | tr "," " "); do
+    __conf:SCRIPT ''
 
-  if [ "$os_arch" = "aarch64" ]; then
+    if [ "$tor_target" = "tor" ]; then
+      __conf:SCRIPT 'compile_tor() {'
+      __conf:SCRIPT '  compile_prepare "tor" "tor"'
+    else
+      __conf:SCRIPT 'compile_tor_gpl() {'
+      __conf:SCRIPT '  compile_prepare "tor" "tor-gpl" " (with flag --enable-gpl)"'
+    fi
+    __conf:SCRIPT ''
+
     case "$os_name" in
-      "ios"|"tvosos"|"watchos")
-        __conf:SCRIPT '
-# https://gitlab.torproject.org/tpo/core/tor/-/issues/40903
-sed -i "s+__builtin___clear_cache((void\*)code, (void\*)pos);+return true;+" "src/ext/equix/hashx/src/compiler_a64.c"
-'
+      "macos"|"ios"|"tvos"|"watchos")
+        # PATCH
+        __conf:SCRIPT '  # https://trac.macports.org/ticket/65838#no1'
+        __conf:SCRIPT "  sed -i 's+\"\${AR:-ar}\" x \"\$abs\"+\"\${AR:-ar}\" x \"\$abs\"; rm -f \"__.SYMDEF SORTED\"+' \"scripts/build/combine_libs\""
+        __conf:SCRIPT ''
         ;;
     esac
-  fi
 
-  __conf:SCRIPT './autogen.sh > "$DIR_SCRIPT/tor/logs/autogen.log" 2> "$DIR_SCRIPT/tor/logs/autogen.err"'
-  __conf:SCRIPT "$CONF_TOR > \"\$DIR_SCRIPT/tor/logs/configure.log\" 2> \"\$DIR_SCRIPT/tor/logs/configure.err\"
-make clean > /dev/null 2>&1
-make -j\"\$NUM_JOBS\" > \"\$DIR_SCRIPT/tor/logs/make.log\" 2> \"\$DIR_SCRIPT/tor/logs/make.err\"
-make install >> \"\$DIR_SCRIPT/tor/logs/make.log\" 2>> \"\$DIR_SCRIPT/tor/logs/make.err\"
-cp -a \"src/feature/api/tor_api.h\" \"\$DIR_SCRIPT/tor/include\"
-cp -a \"libtor.a\" \"\$DIR_SCRIPT/tor/lib\"
-"
+    if [ "$os_arch" = "aarch64" ]; then
+      case "$os_name" in
+        "ios"|"tvosos"|"watchos")
+          # PATCH
+          __conf:SCRIPT '  # https://gitlab.torproject.org/tpo/core/tor/-/issues/40903'
+          __conf:SCRIPT '  sed -i "s+__builtin___clear_cache((void\*)code, (void\*)pos);+return true;+" "src/ext/equix/hashx/src/compiler_a64.c"'
+          __conf:SCRIPT ''
+          ;;
+      esac
+    fi
 
-  # TOR_GPL
-  __conf:SCRIPT "
-echo \"
-    Building tor (with --enable-gpl) for \$TASK_TARGET
-    LOGS >> $DIR_BUILD/tor-gpl/logs
-\""
+    __conf:SCRIPT "  ./autogen.sh > \"\$DIR_SCRIPT/$tor_target/logs/autogen.log\" 2> \"\$DIR_SCRIPT/$tor_target/logs/autogen.err\""
+
+    if [ "$tor_target" = "tor" ]; then
+      conf_out="$CONF_TOR"
+    else
+      conf_out="$CONF_TOR_GPL"
+    fi
+
+    __conf:SCRIPT "  $conf_out > \"\$DIR_SCRIPT/$tor_target/logs/configure.log\" 2> \"\$DIR_SCRIPT/$tor_target/logs/configure.err\""
+    __conf:SCRIPT ''
+    __conf:SCRIPT '  make clean > /dev/null 2>&1'
+    __conf:SCRIPT "  make -j\"\$NUM_JOBS\" > \"\$DIR_SCRIPT/$tor_target/logs/make.log\" 2> \"\$DIR_SCRIPT/$tor_target/logs/make.err\""
+    __conf:SCRIPT "  make install >> \"\$DIR_SCRIPT/$tor_target/logs/make.log\" 2>> \"\$DIR_SCRIPT/$tor_target/logs/make.err\""
+    __conf:SCRIPT ''
+    __conf:SCRIPT "  cp -a \"src/feature/api/tor_api.h\" \"\$DIR_SCRIPT/$tor_target/include\""
+    __conf:SCRIPT "  cp -a \"orconfig.h\" \"\$DIR_SCRIPT/$tor_target/include\""
+    __conf:SCRIPT "  cp -a \"libtor.a\" \"\$DIR_SCRIPT/$tor_target/lib\""
+    __conf:SCRIPT ''
+    __conf:SCRIPT "  sed -i \"s+BUILDDIR \\\"\$(pwd)\\\"+BUILDDIR \\\"\$DIR_EXTERNAL/tor\\\"+\" \"\$DIR_SCRIPT/$tor_target/include/orconfig.h\""
+    __conf:SCRIPT "  sed -i \"s+SRCDIR \\\"\$(pwd)\\\"+SRCDIR \\\"\$DIR_EXTERNAL/tor\\\"+\" \"\$DIR_SCRIPT/$tor_target/include/orconfig.h\""
+
+    __conf:SCRIPT '}'
+  done
+  unset conf_out
+  unset tor_target
+
   __conf:SCRIPT '
-cp -R "$DIR_EXTERNAL/tor" "$DIR_TMP/tor-gpl"
-cd "$DIR_TMP/tor-gpl"'
+readonly REBUILD="$(if [ "$1" = "--rebuild" ]; then echo "true"; else echo "false"; fi)"
 
-  if [ "$os_arch" = "aarch64" ]; then
-    case "$os_name" in
-      "ios"|"tvos"|"watchos")
-        __conf:SCRIPT '
-# https://gitlab.torproject.org/tpo/core/tor/-/issues/40903
-sed -i "s+__builtin___clear_cache((void\*)code, (void\*)pos);+return true;+" "src/ext/equix/hashx/src/compiler_a64.c"
+needs_execution() {
+  if $REBUILD; then return 0; fi
+
+  _root="$1"; shift
+  _path="$1"; shift
+  _name=
+
+  for _name in "$@"; do
+    if [ ! -f "$_root/$_path/$_name" ]; then
+      unset _root
+      unset _path
+      unset _name
+      return 0
+    fi
+  done
+
+  echo "    - Found $_path >> $*"
+
+  unset _root
+  unset _path
+  unset _name
+  return 1
+}
+
+# Ensure include/lib directories are present. Clang complains.
+_project=
+for _project in $(echo "zlib,xz,openssl,libevent" | tr "," " "); do
+  mkdir -p "$DIR_SCRIPT/$_project/include"
+  mkdir -p "$DIR_SCRIPT/$_project/lib"
+done
+unset _project
+
+echo "
+    ### TASK - $TASK_TARGET ###
+"
+
+if needs_execution "$DIR_SCRIPT" "zlib/lib" "libz.a"; then
+  compile_zlib
+fi
+if needs_execution "$DIR_SCRIPT" "xz/lib" "liblzma.a"; then
+  compile_xz
+fi
+if needs_execution "$DIR_SCRIPT" "openssl/lib" "libcrypto.a" "libssl.a"; then
+  compile_openssl
+fi
+if needs_execution "$DIR_SCRIPT" "libevent/lib" "libevent.a"; then
+  compile_libevent
+fi
+if needs_execution "$DIR_SCRIPT" "tor/lib" "libtor.a"; then
+  compile_tor
+fi
+if needs_execution "$DIR_SCRIPT" "tor-gpl/lib" "libtor.a"; then
+  compile_tor_gpl
+fi
 '
-        ;;
-    esac
-  fi
 
-  __conf:SCRIPT './autogen.sh > "$DIR_SCRIPT/tor-gpl/logs/autogen.log" 2> "$DIR_SCRIPT/tor-gpl/logs/autogen.err"'
-  __conf:SCRIPT "$CONF_TOR_GPL > \"\$DIR_SCRIPT/tor-gpl/logs/configure.log\" 2> \"\$DIR_SCRIPT/tor-gpl/logs/configure.err\"
-make clean > /dev/null 2>&1
-make -j\"\$NUM_JOBS\" > \"\$DIR_SCRIPT/tor-gpl/logs/make.log\" 2> \"\$DIR_SCRIPT/tor-gpl/logs/make.err\"
-make install >> \"\$DIR_SCRIPT/tor-gpl/logs/make.log\" 2>> \"\$DIR_SCRIPT/tor-gpl/logs/make.err\"
-cp -a \"src/feature/api/tor_api.h\" \"\$DIR_SCRIPT/tor-gpl/include\"
-cp -a \"libtor.a\" \"\$DIR_SCRIPT/tor-gpl/lib\"
-"
-
-  # out
-  __conf:SCRIPT 'mkdir -p "$DIR_OUT_TOR"'
-  __conf:SCRIPT 'mkdir -p "$DIR_OUT_TOR_GPL"'
-
-  local bin_name=
-  local bin_name_out=
-
-  case "$os_name" in
-    "android")
-      bin_name="tor"
-      bin_name_out="libtor.so"
-      ;;
-    "ios"|"linux"|"freebsd"|"macos"|"tvos"|"watchos")
-      bin_name="tor"
-      bin_name_out="tor"
-      ;;
-    "mingw")
-      bin_name="tor.exe"
-      # Do not modify the name for Windows. Otherwise it
-      # may be flaged by Windows Defender as a virus.
-      bin_name_out="tor.exe"
-      ;;
-    *)
-      __error "Unknown os_name >> $os_name"
-      ;;
-  esac
-
-  __conf:SCRIPT "cp \"\$DIR_SCRIPT/tor/bin/$bin_name\" \"\$DIR_OUT_TOR/$bin_name_out\""
-  __conf:SCRIPT "cp \"\$DIR_SCRIPT/tor-gpl/bin/$bin_name\" \"\$DIR_OUT_TOR_GPL/$bin_name_out\""
-  __conf:SCRIPT "\${STRIP} -D \"\$DIR_OUT_TOR/$bin_name_out\""
-  __conf:SCRIPT "\${STRIP} -D \"\$DIR_OUT_TOR_GPL/$bin_name_out\""
-
-  if [ "$os_name" = "android" ]; then
-    __conf:SCRIPT "
-mkdir -p \"\$DIR_OUT_TOR_ALT\"
-mkdir -p \"\$DIR_OUT_TOR_GPL_ALT\"
-cp -a \"\$DIR_OUT_TOR/$bin_name_out\" \"\$DIR_OUT_TOR_ALT/tor\"
-cp -a \"\$DIR_OUT_TOR_GPL/$bin_name_out\" \"\$DIR_OUT_TOR_GPL_ALT/tor\"
-"
-  fi
-
-  __conf:SCRIPT "echo \"Unstripped: \$(sha256sum \"\$DIR_SCRIPT/tor/bin/$bin_name\")\""
-  __conf:SCRIPT "echo \"Stripped:   \$(sha256sum \"\$DIR_OUT_TOR/$bin_name_out\")\""
-  __conf:SCRIPT 'echo ""'
-  __conf:SCRIPT "echo \"Unstripped: \$(sha256sum \"\$DIR_SCRIPT/tor-gpl/bin/$bin_name\")\""
-  __conf:SCRIPT "echo \"Stripped:   \$(sha256sum \"\$DIR_OUT_TOR_GPL/$bin_name_out\")\""
+  __build:configure:target:build_script:output
 
   mkdir -p "$DIR_BUILD"
   echo "$CONF_SCRIPT" > "$DIR_BUILD/build.sh"
   chmod +x "$DIR_BUILD/build.sh"
+}
+
+# shellcheck disable=SC2016
+# shellcheck disable=SC1004
+function __build:configure:target:build_script:output {
+  __require:var_set "$os_arch" "os_arch"
+  __require:var_set "$os_name" "os_name"
+  __require:var_set "$DIR_OUT_SUFFIX" "DIR_OUT_SUFFIX"
+
+  # TODO: JNI
+  local shared_name="libtor.so"
+  local shared_cflags="-shared"
+  local shared_ldadd="-ldl -lm -pthread"
+
+  local exec_name="tor"
+  local exec_ldflags='-Wl,-rpath,"\$ORIGIN"' # must use comma (Apple clang cries)
+
+  local strip_flags="-D"
+
+  local is_apple=false
+  local is_framework=false
+
+  case "$os_name" in
+    "android")
+      exec_name="libtorexec.so"
+      shared_cflags="$shared_cflags -I\$CROSS_ROOT/sysroot/usr/include -Wl,-soname,$shared_name"
+      ;;
+    "linux")
+      # Defaults
+      ;;
+    "macos"|"ios"|"tvos"|"watchos")
+
+      if [ "$os_subtype" != "-lts" ]; then
+        # Not macOS Jvm/Node.js
+        is_framework=true
+        exec_ldflags=""
+        shared_name="Tor"
+      else
+        # Jvm/Node.js
+        shared_name="libtor.dylib"
+      fi
+
+      is_apple=true
+      strip_flags="${strip_flags}u"
+
+      if $is_framework; then
+        shared_cflags="-dynamiclib -Wl,-install_name,\"@rpath/\$_libname.framework/\$_libname\""
+        shared_ldadd='-rpath "@executable_path/Frameworks" -rpath "@loader_path/Frameworks"'
+      else
+        shared_cflags="-dynamiclib"
+        shared_ldadd=""
+      fi
+      ;;
+    "mingw")
+      shared_name="tor.dll"
+      exec_name="tor.exe"
+      shared_ldadd="-lws2_32 -lcrypt32 -lshlwapi -liphlpapi"
+
+      # So if tor.exe is clicked on, it opens in console.
+      # This is the same behavior as the tor.exe output by
+      # tor-browser-build.
+      exec_ldflags="$exec_ldflags -Wl,--subsystem,console"
+      ;;
+    *)
+      __error "Unknown os_name[$os_name]"
+      ;;
+  esac
+
+  __require:var_set "$shared_name" "shared_name"
+  __require:var_set "$shared_cflags" "shared_cflags"
+  __require:var_set "$exec_name" "exec_name"
+  __require:var_set "$strip_flags" "strip_flags"
+
+  __conf:SCRIPT 'libname() {'
+  if $is_framework; then
+    __conf:SCRIPT '  if [ "$1" = "tor-gpl" ]; then'
+    __conf:SCRIPT "    echo \"${shared_name}GPL\""
+    __conf:SCRIPT '  else'
+    __conf:SCRIPT "    echo \"$shared_name\""
+    __conf:SCRIPT '  fi'
+  else
+    __conf:SCRIPT "  echo \"$shared_name\""
+  fi
+  __conf:SCRIPT '}'
+  __conf:SCRIPT ''
+  __conf:SCRIPT 'compile_shared() {'
+  __conf:SCRIPT '  echo "    * Compiling shared-$1 (shared library + linked executable)"'
+  __conf:SCRIPT ''
+  __conf:SCRIPT '  rm -rf "$DIR_SCRIPT/shared-$1"'
+  __conf:SCRIPT "  rm -rf \"\$DIR_EXTERNAL/build/out/\$1/$DIR_OUT_SUFFIX\""
+  __conf:SCRIPT '  mkdir "$DIR_TMP/shared-$1"'
+  __conf:SCRIPT '  mkdir -p "$DIR_SCRIPT/shared-$1/bin"'
+  __conf:SCRIPT ''
+  __conf:SCRIPT '  cp -a "$DIR_EXTERNAL/tor/src/app/main/tor_main.c" "$DIR_TMP/shared-$1"'
+  __conf:SCRIPT '  cp -a "$DIR_SCRIPT/$1/include/orconfig.h" "$DIR_TMP/shared-$1"'
+  __conf:SCRIPT '  cd "$DIR_TMP/shared-$1"'
+  __conf:SCRIPT ''
+  __conf:SCRIPT '  _libname="$(libname "$1")"'
+  __conf:SCRIPT ''
+  __conf:SCRIPT "  \$CC \$CFLAGS $shared_cflags \\"
+  __conf:SCRIPT '    -o "$_libname" \'
+
+  if $is_apple; then
+    __conf:SCRIPT '    $LDFLAGS -Wl,-force_load \'
+  else
+    __conf:SCRIPT '    $LDFLAGS -Wl,--whole-archive \'
+  fi
+
+  # Apple targets require absolute paths when using -force_load
+  __conf:SCRIPT '    "$DIR_SCRIPT/$1/lib/libtor.a" \'
+  __conf:SCRIPT '    "$DIR_SCRIPT/zlib/lib/libz.a" \'
+  __conf:SCRIPT '    "$DIR_SCRIPT/xz/lib/liblzma.a" \'
+  __conf:SCRIPT '    "$DIR_SCRIPT/openssl/lib/libssl.a" \'
+  __conf:SCRIPT '    "$DIR_SCRIPT/openssl/lib/libcrypto.a" \'
+  __conf:SCRIPT '    "$DIR_SCRIPT/libevent/lib/libevent.a" \'
+
+  if $is_apple; then
+    __conf:SCRIPT "    \$LDFLAGS $shared_ldadd"
+  else
+    __conf:SCRIPT "    -Wl,--no-whole-archive \$LDFLAGS $shared_ldadd"
+  fi
+
+  __conf:SCRIPT ''
+  __conf:SCRIPT '  $CC $CFLAGS tor_main.c \'
+  __conf:SCRIPT "    -o $exec_name $exec_ldflags \\"
+  __conf:SCRIPT '    "$_libname"'
+  __conf:SCRIPT ''
+  __conf:SCRIPT '  cp -a "$_libname" "$DIR_SCRIPT/shared-$1/bin"'
+  __conf:SCRIPT "  cp -a $exec_name \"\$DIR_SCRIPT/shared-\$1/bin\""
+  __conf:SCRIPT '  unset _libname'
+  __conf:SCRIPT '}'
+
+  __conf:SCRIPT "
+if needs_execution \"\$DIR_SCRIPT\" \"shared-tor/bin\" \"$exec_name\" \"\$(libname \"tor\")\"; then
+  compile_shared \"tor\"
+fi
+if needs_execution \"\$DIR_SCRIPT\" \"shared-tor-gpl/bin\" \"$exec_name\" \"\$(libname \"tor-gpl\")\"; then
+  compile_shared \"tor-gpl\"
+fi
+"
+
+  __conf:SCRIPT 'install_shared() {'
+  __conf:SCRIPT '  echo "    * Installing compilations from shared-$1/bin"'
+  __conf:SCRIPT ''
+  __conf:SCRIPT '  cd "$DIR_EXTERNAL/build"'
+  __conf:SCRIPT "  _bin=\"stage/$DIR_OUT_SUFFIX/shared-\$1/bin\""
+  __conf:SCRIPT "  _out=\"out/\$1/$DIR_OUT_SUFFIX\""
+  __conf:SCRIPT '  _libname="$(libname "$1")"'
+  __conf:SCRIPT ''
+  __conf:SCRIPT '  rm -rf "$_out"'
+  __conf:SCRIPT '  mkdir -p "$_out"'
+  __conf:SCRIPT ''
+  __conf:SCRIPT '  cp -a "$_bin/$_libname" "$_out"'
+  __conf:SCRIPT "  cp -a \"\$_bin/$exec_name\" \"\$_out\""
+  __conf:SCRIPT "  cp -aR \"stage/$DIR_OUT_SUFFIX/\$1/include\" \"\$_out\""
+  __conf:SCRIPT ''
+  __conf:SCRIPT "  \$STRIP $strip_flags \"\$_out/\$_libname\" 2>/dev/null"
+  __conf:SCRIPT "  \$STRIP $strip_flags \"\$_out/$exec_name\" 2>/dev/null"
+  __conf:SCRIPT ''
+
+  if [ "$os_name" = "android" ]; then
+    __conf:SCRIPT "  _out_linux=\"out/\$1/linux-android/$os_arch\""
+    __conf:SCRIPT '  rm -rf "$_out_linux"'
+    __conf:SCRIPT '  mkdir -p "$_out_linux"'
+    __conf:SCRIPT '  cp -a "$_out/$_libname" "$_out_linux"'
+    __conf:SCRIPT "  cp -a \"\$_out/$exec_name\" \"\$_out_linux/tor\""
+    __conf:SCRIPT '  cp -aR "$_out/include" "$_out_linux"'
+    __conf:SCRIPT '  unset _out_linux'
+    __conf:SCRIPT '  sleep 0.5'
+    __conf:SCRIPT ''
+  fi
+
+  __conf:SCRIPT "  echo \"        STRIP[\$STRIP $strip_flags]\""
+  __conf:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/\$_libname\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"\$_libname\")\""
+  __conf:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/\$_libname\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"\$_libname\")\""
+  __conf:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/$exec_name\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"$exec_name\")\""
+  __conf:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/$exec_name\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"$exec_name\")\""
+  __conf:SCRIPT ''
+  __conf:SCRIPT '  unset _bin'
+  __conf:SCRIPT '  unset _out'
+  __conf:SCRIPT '  unset _libname'
+  __conf:SCRIPT '}'
+
+  __conf:SCRIPT "
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/$DIR_OUT_SUFFIX\" \"$exec_name\" \"\$(libname \"tor\")\" \"include/orconfig.h\" \"include/tor_api.h\"; then
+  install_shared \"tor\"
+fi
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/$DIR_OUT_SUFFIX\" \"$exec_name\" \"\$(libname \"tor-gpl\")\" \"include/orconfig.h\" \"include/tor_api.h\"; then
+  install_shared \"tor-gpl\"
+fi"
+
+  if [ "$os_name" = "android" ]; then
+    __conf:SCRIPT "
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/linux-$os_name/$os_arch\" \"tor\" \"\$(libname \"tor\")\" \"include/orconfig.h\" \"include/tor_api.h\"; then
+  install_shared \"tor\"
+fi
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/linux-$os_name/$os_arch\" \"tor\" \"\$(libname \"tor-gpl\")\" \"include/orconfig.h\" \"include/tor_api.h\"; then
+  install_shared \"tor-gpl\"
+fi"
+  fi
 }
 
 function __build:git:apply_patches {
@@ -1006,7 +1219,6 @@ function __build:git:stash {
 }
 
 function __conf:SCRIPT {
-  if [ -z "$1" ]; then return 0; fi
   CONF_SCRIPT+="
 $1"
 }
@@ -1030,37 +1242,37 @@ function __conf:LDFLAGS {
 function __conf:LIBEVENT {
   if [ -z "$1" ]; then return 0; fi
   CONF_LIBEVENT+=" \\
-  $1"
+    $1"
 }
 
 function __conf:OPENSSL {
   if [ -z "$1" ]; then return 0; fi
   CONF_OPENSSL+=" \\
-  $1"
+    $1"
 }
 
 function __conf:TOR {
   if [ -z "$1" ]; then return 0; fi
   CONF_TOR+=" \\
-  $1"
+    $1"
 }
 
 function __conf:TOR:GPL {
   if [ -z "$1" ]; then return 0; fi
   CONF_TOR_GPL+=" \\
-  $1"
+    $1"
 }
 
 function __conf:XZ {
   if [ -z "$1" ]; then return 0; fi
   CONF_XZ+=" \\
-  $1"
+    $1"
 }
 
 function __conf:ZLIB   {
   if [ -z "$1" ]; then return 0; fi
   CONF_ZLIB+=" \\
-  $1"
+    $1"
 }
 
 function __exec:docker:run {
@@ -1089,23 +1301,28 @@ function __exec:docker:run {
       # Currently have to build containers locally until they
       # are moved to the build-env project
       ${DOCKER} build \
-        -f $DIR_TASK/docker/Dockerfile.$os_name.base \
-        -t 05nelsonm/build-env.$os_name.base:$TAG_DOCKER_BUILD_ENV \
-        $DIR_TASK/docker
+        -f "$DIR_TASK/docker/Dockerfile.$os_name.base" \
+        -t "05nelsonm/build-env.$os_name.base:$TAG_DOCKER_BUILD_ENV" \
+        "$DIR_TASK/docker"
 
       ${DOCKER} build \
-        -f $DIR_TASK/docker/Dockerfile.$os_name$os_subtype.$docker_arch \
-        -t 05nelsonm/build-env.$os_name$os_subtype.$docker_arch:$TAG_DOCKER_BUILD_ENV \
-        $DIR_TASK/docker
+        -f "$DIR_TASK/docker/Dockerfile.$os_name$os_subtype.$docker_arch" \
+        -t "05nelsonm/build-env.$os_name$os_subtype.$docker_arch:$TAG_DOCKER_BUILD_ENV" \
+        "$DIR_TASK/docker"
       ;;
   esac
+
+  local rebuild=""
+  if $REBUILD; then
+    rebuild="--rebuild"
+  fi
 
   ${DOCKER} run \
     --rm \
     -u "$U_ID:$G_ID" \
     -v "$DIR_TASK:/work" \
     "05nelsonm/build-env.$os_name$os_subtype.$docker_arch:$TAG_DOCKER_BUILD_ENV" \
-    "./$DIR_BUILD/build.sh"
+    "./$DIR_BUILD/build.sh" "$rebuild"
 
   trap - SIGINT
 }
