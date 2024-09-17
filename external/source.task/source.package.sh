@@ -66,6 +66,21 @@ function __package:jvm:codesign {
   __package:jvm "$@"
 }
 
+function __package:jvm:move:macos-lts {
+  if [ "$target" != "macos-lts" ]; then
+    __util:error "target must be set to macos-lts"
+  fi
+
+  __util:require:var_set "$dirname_final" "dirname_final"
+  __util:require:var_set "$rpath_native" "rpath_native"
+
+  local dir_native="$DIR_TASK/build/package/$dirname_final/src/jvmMain/resources/io/matthewnelson/kmp/tor/$rpath_native/native"
+  if [ -d "$dir_native/$target" ]; then
+    rm -rf "$dir_native/macos"
+    mv -v "$dir_native/$target" "$dir_native/macos"
+  fi
+}
+
 function __package:native {
   __util:require:var_set "$dirname_out" "dirname_out"
   __util:require:var_set "$target" "target (e.g. linux-libc)"

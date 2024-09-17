@@ -470,7 +470,57 @@ function package:linux-libc { ## Packages all Linux Libc build/out contents
 }
 
 function package:macos { ## Packages all macOS & macOS LTS build/out contents
-  echo ""
+  local dirname_out="tor"
+  local dirname_final="resource-lib-tor"
+  local rpath_native="resource/lib/tor"
+  local target="macos-lts"
+  __package:jvm:codesign "aarch64" "libtor.dylib"
+  __package:jvm:codesign "x86_64" "libtor.dylib"
+  __package:jvm:move:macos-lts
+
+  dirname_final="resource-exec-tor"
+  rpath_native="resource/exec/tor"
+  __package:jvm:codesign "aarch64" "tor"
+  __package:jvm:codesign "x86_64" "tor"
+  __package:jvm:move:macos-lts
+
+  dirname_out="tor-gpl"
+  dirname_final="resource-lib-tor-gpl"
+  rpath_native="resource/lib/tor"
+  __package:jvm:codesign "aarch64" "libtor.dylib"
+  __package:jvm:codesign "x86_64" "libtor.dylib"
+  __package:jvm:move:macos-lts
+
+  dirname_final="resource-exec-tor-gpl"
+  rpath_native="resource/exec/tor"
+  __package:jvm:codesign "aarch64" "tor"
+  __package:jvm:codesign "x86_64" "tor"
+  __package:jvm:move:macos-lts
+
+  unset rpath_native
+
+  target="macos"
+  dirname_out="tor"
+  dirname_final="resource-lib-tor"
+  local native_resource="io.matthewnelson.kmp.tor.resource.lib.tor.internal"
+  __package:native:codesign "aarch64" "libtor.dylib" "macosArm64Main"
+  __package:native:codesign "x86_64" "libtor.dylib" "macosX64Main"
+
+  dirname_out="tor-gpl"
+  dirname_final="resource-lib-tor-gpl"
+  __package:native:codesign "aarch64" "libtor.dylib" "macosArm64Main"
+  __package:native:codesign "x86_64" "libtor.dylib" "macosX64Main"
+
+  dirname_out="tor"
+  dirname_final="resource-exec-tor"
+  native_resource="io.matthewnelson.kmp.tor.resource.exec.tor.internal"
+  __package:native:codesign "aarch64" "tor" "macosArm64Main"
+  __package:native:codesign "x86_64" "tor" "macosX64Main"
+
+  dirname_out="tor-gpl"
+  dirname_final="resource-exec-tor-gpl"
+  __package:native:codesign "aarch64" "tor" "macosArm64Main"
+  __package:native:codesign "x86_64" "tor" "macosX64Main"
 }
 
 function package:mingw { ## Packages all Windows build/out contents
