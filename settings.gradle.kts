@@ -25,11 +25,11 @@ if (CHECK_PUBLICATION != null) {
             "resource-android-unit-test-tor-gpl",
             "resource-exec-tor",
             "resource-exec-tor-gpl",
+            "resource-noexec-tor",
+            "resource-noexec-tor-gpl",
             "resource-shared-geoip",
             "resource-shared-tor",
             "resource-shared-tor-gpl",
-            "resource-statik-tor",
-            "resource-statik-tor-gpl",
         ).forEach { module ->
             include(":library:$module")
         }

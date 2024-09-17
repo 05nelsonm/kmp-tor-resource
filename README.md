@@ -43,19 +43,19 @@ dependencies {
 // BAD
 dependencies {
     implementation("io.matthewnelson.kmp-tor:resource-exec-tor:$vKmpTorResource")
-    implementation("io.matthewnelson.kmp-tor:resource-statik-tor-gpl:$vKmpTorResource")
+    implementation("io.matthewnelson.kmp-tor:resource-noexec-tor-gpl:$vKmpTorResource")
 }
 
 // GOOD! (non-gpl)
 dependencies {
     implementation("io.matthewnelson.kmp-tor:resource-exec-tor:$vKmpTorResource")
-    implementation("io.matthewnelson.kmp-tor:resource-statik-tor:$vKmpTorResource")
+    implementation("io.matthewnelson.kmp-tor:resource-noexec-tor:$vKmpTorResource")
 }
 
-// GOOD! (with --enable-gpl)
+// GOOD! (with flag --enable-gpl)
 dependencies {
     implementation("io.matthewnelson.kmp-tor:resource-exec-tor-gpl:$vKmpTorResource")
-    implementation("io.matthewnelson.kmp-tor:resource-statik-tor-gpl:$vKmpTorResource")
+    implementation("io.matthewnelson.kmp-tor:resource-noexec-tor-gpl:$vKmpTorResource")
 }
 ```
 
@@ -122,7 +122,7 @@ $ ./external/task.sh
 
 The compiled output from `task.sh`'s `build` tasks are "packaged" for the given platforms and 
 moved to their designated package module's resource directories 
-(e.g. `external/build/package/resource-tor/src/jvmMain/resources`).
+(e.g. `external/build/package/resource-shared-tor/src/jvmMain/resources`).
 
 Running `./external/task.sh package` after a `build` task will do the following.
 

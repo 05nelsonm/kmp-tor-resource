@@ -1,0 +1,9 @@
+public final class io/matthewnelson/kmp/tor/resource/noexec/tor/ResourceLoaderTorNoExec : io/matthewnelson/kmp/tor/common/api/ResourceLoader$Tor$Static {
+	public static final field Companion Lio/matthewnelson/kmp/tor/resource/noexec/tor/ResourceLoaderTorNoExec$Companion;
+	public static final fun getOrCreate (Ljava/io/File;)Lio/matthewnelson/kmp/tor/common/api/ResourceLoader$Tor;
+}
+
+public final class io/matthewnelson/kmp/tor/resource/noexec/tor/ResourceLoaderTorNoExec$Companion {
+	public final fun getOrCreate (Ljava/io/File;)Lio/matthewnelson/kmp/tor/common/api/ResourceLoader$Tor;
+}
+

@@ -78,8 +78,8 @@ kmpConfiguration {
                     implementation("$group:resource-shared-geoip:$version")
                     implementation("$group:resource-exec-tor:$version")
                     implementation("$group:resource-exec-tor-gpl:$version")
-                    implementation("$group:resource-static-tor:$version")
-                    implementation("$group:resource-static-tor-gpl:$version")
+                    implementation("$group:resource-noexec-tor:$version")
+                    implementation("$group:resource-noexec-tor-gpl:$version")
                 }
             }
         }
