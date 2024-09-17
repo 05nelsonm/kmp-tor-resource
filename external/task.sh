@@ -410,7 +410,13 @@ function sign:apple:macos { ## 2 ARGS - [1]: smartcard-slot (e.g. 9c)  [2]: /pat
 function sign:mingw { ## Codesign mingw binaries (see codesign/windows.pkcs11.sample)
   . "$DIR_TASK/codesign/windows.pkcs11"
 
-  local file_name="tor.exe"
+  local hsm_pin=
+  echo -n "Enter HSM PIN: "
+  # shellcheck disable=SC2162
+  read -s hsm_pin
+  echo ""
+
+  local file_names="tor.dll,tor.exe"
   local dirname_out="tor"
 
   __signature:generate:mingw "x86"
@@ -539,7 +545,7 @@ readonly DIR_EXTERNAL="/work"
 if [ ! -f "$DIR_EXTERNAL/task.sh" ]; then
   echo 1>&2 "
     $DIR_EXTERNAL/task.sh not found.
-    Are you not using task.sh outside the Docker environment?
+    Are you using build.sh outside the Docker environment?
   "
   exit 3
 fi
@@ -911,23 +917,23 @@ needs_execution() {
   if $REBUILD; then return 0; fi
 
   _root="$1"; shift
-  _path="$1"; shift
-  _name=
+  _project="$1"; shift
+  _filepath=
 
-  for _name in "$@"; do
-    if [ ! -f "$_root/$_path/$_name" ]; then
+  for _filepath in "$@"; do
+    if [ ! -f "$_root/$_project/$_filepath" ]; then
       unset _root
-      unset _path
-      unset _name
+      unset _project
+      unset _filepath
       return 0
     fi
   done
 
-  echo "    - Found $_path >> $*"
+  echo "    - Found $_project >> $*"
 
   unset _root
-  unset _path
-  unset _name
+  unset _project
+  unset _filepath
   return 1
 }
 
@@ -943,22 +949,22 @@ echo "
     ### TASK - $TASK_TARGET ###
 "
 
-if needs_execution "$DIR_SCRIPT" "zlib/lib" "libz.a"; then
+if needs_execution "$DIR_SCRIPT" "zlib" "lib/libz.a"; then
   compile_zlib
 fi
-if needs_execution "$DIR_SCRIPT" "xz/lib" "liblzma.a"; then
+if needs_execution "$DIR_SCRIPT" "xz" "lib/liblzma.a"; then
   compile_xz
 fi
-if needs_execution "$DIR_SCRIPT" "openssl/lib" "libcrypto.a" "libssl.a"; then
+if needs_execution "$DIR_SCRIPT" "openssl" "lib/libcrypto.a" "lib/libssl.a"; then
   compile_openssl
 fi
-if needs_execution "$DIR_SCRIPT" "libevent/lib" "libevent.a"; then
+if needs_execution "$DIR_SCRIPT" "libevent" "lib/libevent.a"; then
   compile_libevent
 fi
-if needs_execution "$DIR_SCRIPT" "tor/lib" "libtor.a"; then
+if needs_execution "$DIR_SCRIPT" "tor" "lib/libtor.a" "include/orconfig.h" "include/tor_api.h"; then
   compile_tor
 fi
-if needs_execution "$DIR_SCRIPT" "tor-gpl/lib" "libtor.a"; then
+if needs_execution "$DIR_SCRIPT" "tor-gpl" "lib/libtor.a" "include/orconfig.h" "include/tor_api.h"; then
   compile_tor_gpl
 fi
 '
@@ -1101,10 +1107,10 @@ function __build:configure:target:build_script:output {
   __conf:SCRIPT '}'
 
   __conf:SCRIPT "
-if needs_execution \"\$DIR_SCRIPT\" \"shared-tor/bin\" \"$exec_name\" \"\$(libname \"tor\")\"; then
+if needs_execution \"\$DIR_SCRIPT\" \"shared-tor\" \"bin/$exec_name\" \"bin/\$(libname \"tor\")\"; then
   compile_shared \"tor\"
 fi
-if needs_execution \"\$DIR_SCRIPT\" \"shared-tor-gpl/bin\" \"$exec_name\" \"\$(libname \"tor-gpl\")\"; then
+if needs_execution \"\$DIR_SCRIPT\" \"shared-tor-gpl\" \"bin/$exec_name\" \"bin/\$(libname \"tor-gpl\")\"; then
   compile_shared \"tor-gpl\"
 fi
 "
@@ -1572,9 +1578,10 @@ function __signature:generate:apple {
 # shellcheck disable=SC2154
 function __signature:generate:mingw {
   __require:var_set "$dirname_out" "dirname_out"
-  __require:var_set "$file_name" "file_name"
+  __require:var_set "$file_names" "file_names"
   __require:cmd "$OSSLSIGNCODE" "osslsigncode"
   __require:var_set "$1" "arch"
+  __require:var_set "$hsm_pin" "hsm_pin"
 
   __require:file_exists "$gen_pkcs11engine_path" "windows.pkcs11[gen_pkcs11engine_path] file does not exist"
   __require:file_exists "$gen_pkcs11module_path" "windows.pkcs11[gen_pkcs11module_path] file does not exist"
@@ -1587,42 +1594,40 @@ function __signature:generate:mingw {
 
   local pkcs11_url="pkcs11:model=$gen_model;manufacturer=$gen_manufacturer;serial=$gen_serial;id=$gen_id;type=private"
 
-  if [ ! -f "$DIR_TASK/build/out/$dirname_out/mingw/$1/$file_name" ]; then
-    echo "
-    $file_name not found for mingw/$1. Skipping...
-    "
-    return 0
-  fi
-
-  echo "
-    Creating detached signature for build/out/$dirname_out/mingw/$1/$file_name
-  "
-
   DIR_TMP="$(mktemp -d)"
   trap 'rm -rf "$DIR_TMP"' SIGINT ERR
 
-  ${OSSLSIGNCODE} sign \
-    -pkcs11engine "$gen_pkcs11engine_path" \
-    -pkcs11module "$gen_pkcs11module_path" \
-    -key "$pkcs11_url" \
-    -certs "$gen_cert_path" \
-    -ts "$gen_ts" \
-    -h "sha256" \
-    -in "$DIR_TASK/build/out/$dirname_out/mingw/$1/$file_name" \
-    -out "$DIR_TMP/$file_name"
+  local file_name=
+  for file_name in $(echo "$file_names" | tr "," " "); do
+    if [ ! -f "$DIR_TASK/build/out/$dirname_out/mingw/$1/$file_name" ]; then
+      echo "$file_name not found for mingw/$1. Skipping..."
+      continue
+    fi
 
-  mkdir -p "$DIR_TASK/codesign/$dirname_out/mingw/$1"
-  rm -rf "$DIR_TASK/codesign/$dirname_out/mingw/$1/$file_name.signature"
+    echo "Creating detached signature for build/out/$dirname_out/mingw/$1/$file_name"
 
-  echo ""
+    ${OSSLSIGNCODE} sign \
+      -pkcs11engine "$gen_pkcs11engine_path" \
+      -pkcs11module "$gen_pkcs11module_path" \
+      -key "$pkcs11_url" \
+      -certs "$gen_cert_path" \
+      -ts "$gen_ts" \
+      -h "sha256" \
+      -pass "$hsm_pin" \
+      -in "$DIR_TASK/build/out/$dirname_out/mingw/$1/$file_name" \
+      -out "$DIR_TMP/$file_name"
 
-  ../tooling diff-cli create \
-    --diff-ext-name ".signature" \
-    "$DIR_TASK/build/out/$dirname_out/mingw/$1/$file_name" \
-    "$DIR_TMP/$file_name" \
-    "$DIR_TASK/codesign/$dirname_out/mingw/$1"
+    mkdir -p "$DIR_TASK/codesign/$dirname_out/mingw/$1"
+    rm -rf "$DIR_TASK/codesign/$dirname_out/mingw/$1/$file_name.signature"
 
-  echo ""
+    ../tooling diff-cli create \
+      --diff-ext-name ".signature" \
+      "$DIR_TASK/build/out/$dirname_out/mingw/$1/$file_name" \
+      "$DIR_TMP/$file_name" \
+      "$DIR_TASK/codesign/$dirname_out/mingw/$1"
+
+    echo ""
+  done
 
   rm -rf "$DIR_TMP"
   unset DIR_TMP
