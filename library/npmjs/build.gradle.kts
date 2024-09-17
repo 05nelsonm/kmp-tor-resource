@@ -38,23 +38,23 @@ npmPublish {
     val srcResDirExecTor = execTorResourceValidation.jvmNativeLibResourcesSrcDir()
     val srcResDirExecTorGPL = execTorGPLResourceValidation.jvmNativeLibResourcesSrcDir()
 
-    project.rootProject.rootDir.resolve("mock-resources").let { mockResources ->
-        check(mockResources.exists()) { "mock-resources does not exist... dir name change?" }
-
-        listOf(
-            srcResDirGeoip,
-            srcResDirLibTor,
-            srcResDirLibTorGPL,
-            srcResDirExecTor,
-            srcResDirExecTorGPL,
-        ).forEach { srcDir ->
-            // Configure NOTHING if mock resources are being utilized.
-            if (srcDir.path.startsWith(mockResources.path)) {
-                println("Skipping NPM publication configuration (mock resources are being used).")
-                return@npmPublish
-            }
-        }
-    }
+//    project.rootProject.rootDir.resolve("mock-resources").let { mockResources ->
+//        check(mockResources.exists()) { "mock-resources does not exist... dir name change?" }
+//
+//        listOf(
+//            srcResDirGeoip,
+//            srcResDirLibTor,
+//            srcResDirLibTorGPL,
+//            srcResDirExecTor,
+//            srcResDirExecTorGPL,
+//        ).forEach { srcDir ->
+//            // Configure NOTHING if mock resources are being utilized.
+//            if (srcDir.path.startsWith(mockResources.path)) {
+//                println("Skipping NPM publication configuration (mock resources are being used).")
+//                return@npmPublish
+//            }
+//        }
+//    }
 
     val vPublications = createPublicationVersions()
 

@@ -16,6 +16,8 @@
 package io.matthewnelson.kmp.tor.resource.lib.tor
 
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
+import io.matthewnelson.kmp.tor.common.core.OSHost
+import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.lib.tor.internal.IS_GPL
 import io.matthewnelson.kmp.tor.resource.lib.tor.internal.configureExecutableResource
@@ -32,6 +34,18 @@ public fun Resource.Config.Builder.configureTorResources(
         moduleName = "$moduleNamePrefix.$host"
         resourcePath = "/$arch/${host.resourceNameTor}"
     }
+
+    // TODO: Uncomment once snapshot published
+//    if (OSInfo.INSTANCE.osHost is OSHost.Windows) {
+//        resource("DLL redirect") {
+//            isExecutable = false
+//            platform {
+//                moduleName = "$moduleNamePrefix.${OSHost.Windows}"
+//                resourcePath = "tor.exe.local"
+//            }
+//        }
+//    }
+
     configureExecutableResource(aliasLibTor) { host, arch ->
         moduleName = "$moduleNamePrefix.$host"
         resourcePath = "/$arch/${host.resourceNameLibTor}"

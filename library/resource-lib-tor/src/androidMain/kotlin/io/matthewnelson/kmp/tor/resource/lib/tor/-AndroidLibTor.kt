@@ -19,6 +19,7 @@ import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.lib.tor.internal.configureExecutableResource
+import io.matthewnelson.kmp.tor.resource.lib.tor.internal.configureWindowsDLLRedirect
 import io.matthewnelson.kmp.tor.resource.lib.tor.internal.toTorResourcePath
 
 @InternalKmpTorApi
@@ -55,6 +56,7 @@ public fun Resource.Config.Builder.tryConfigureTestTorResources(
             resourcePath = host.toTorResourcePath(arch, isLib = false)
             resourceClass = loader
         }
+        configureWindowsDLLRedirect(loader)
     }
 
     configureExecutableResource(aliasLibTor) { host, arch ->

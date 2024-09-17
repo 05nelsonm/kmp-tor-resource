@@ -33,7 +33,7 @@ you can do so by following along below.
 
 5) Package everything:
    ```shell
-   ./external/task.sh package
+   ./external/task.sh package:all
    ```
 
 6) Validate hashes of packaged resources with their expected hashes:

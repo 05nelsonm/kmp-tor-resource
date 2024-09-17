@@ -19,6 +19,7 @@ import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.lib.tor.internal.configureExecutableResource
+import io.matthewnelson.kmp.tor.resource.lib.tor.internal.configureWindowsDLLRedirect
 import io.matthewnelson.kmp.tor.resource.lib.tor.internal.toTorResourcePath
 
 private class Loader private constructor() {
@@ -42,4 +43,5 @@ public fun <LoaderImpl: ResourceLoader.Tor.Exec> Resource.Config.Builder.configu
         resourcePath = host.toTorResourcePath(arch, isLib = false)
         resourceClass = execLoaderClass
     }
+    configureWindowsDLLRedirect(execLoaderClass)
 }

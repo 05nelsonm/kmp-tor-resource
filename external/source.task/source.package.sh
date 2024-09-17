@@ -58,6 +58,14 @@ function __package:jvm {
   __package:file "build/out/$dirname_out/$target/$1" "jvmMain/resources/io/matthewnelson/kmp/tor/$rpath_native/native/$target/$1" "$2"
 }
 
+function __package:jvm:codesign {
+  __util:require:var_set "$target" "target (e.g. linux-android)"
+  __util:require:var_set "$1" "[1] arch"
+
+  local detached_sig="$target/$1"
+  __package:jvm "$@"
+}
+
 function __package:native {
   __util:require:var_set "$dirname_out" "dirname_out"
   __util:require:var_set "$target" "target (e.g. linux-libc)"
@@ -74,6 +82,14 @@ function __package:native {
   fi
 
   __package:file "build/out/$dirname_out/$target/$1" "$3" "$2"
+}
+
+function __package:native:codesign {
+  __util:require:var_set "$target" "target (e.g. linux-libc)"
+  __util:require:var_set "$1" "[1] arch"
+
+  local detached_sig="$target/$1"
+  __package:native "$@"
 }
 
 function __package:file {
@@ -110,7 +126,7 @@ function __package:file {
   fi
 
   local file_ext=""
-  if [ -n "$gzip" ]; then
+  if [ "$gzip" = "yes" ]; then
     # Must utilize docker gzip for reproducible results
     __docker:run "--silent" \
       "$DIR_STAGING" \
@@ -186,11 +202,6 @@ function __package:libs:native:exec {
   __package:native:exec:codesigned "macos/aarch64" "$libname" "macosArm64Main"
   __package:native:exec:codesigned "macos/x86_64" "$libname" "macosX64Main"
   __package:native:exec:codesigned "mingw/x86_64" "$libname.exe" "mingwX64Main"
-}
-
-function __package:jvm:codesigned {
-  local detached_sig="$1"
-  __package:jvm "$@"
 }
 
 function __package:native:exec {

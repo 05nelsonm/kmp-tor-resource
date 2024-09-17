@@ -58,7 +58,10 @@ open class ResourceLoaderExecUnitTest {
             assertFalse("${paths.geoips.geoip.path}.gz".toFile().exists())
             assertFalse("${paths.geoips.geoip6.path}.gz".toFile().exists())
 
-            if (!IS_WINDOWS) {
+            if (IS_WINDOWS) {
+                // TODO: assert tor.exe.local exists
+            } else {
+                // TODO: assert tor.exe.local does NOT exist
                 assertTrue(paths.executable.isExecutable())
                 assertFalse(paths.geoips.geoip.isExecutable())
                 assertFalse(paths.geoips.geoip.isExecutable())
@@ -73,6 +76,8 @@ open class ResourceLoaderExecUnitTest {
                 ).forEach { libname ->
                     parent?.resolve(libname)?.delete()
                 }
+
+                parent?.resolve("tor.exe.local")?.delete()
             }
             paths.geoips.geoip.delete()
             paths.geoips.geoip6.delete()

@@ -30,5 +30,11 @@ internal actual inline fun Resource.Config.Builder.configureTorResource() {
             nativeResource = resource_tor_exe_gz
         }
     }
+    resource("redirect") {
+        isExecutable = false
+        platform {
+            nativeResource = resource_tor_exe_local
+        }
+    }
     configureLibTorResource(ALIAS_LIB_TOR)
 }

@@ -18,6 +18,8 @@ package io.matthewnelson.kmp.tor.resource.lib.tor.internal
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSArch
 import io.matthewnelson.kmp.tor.common.core.OSHost
+import io.matthewnelson.kmp.tor.common.core.OSInfo
+import io.matthewnelson.kmp.tor.common.core.Resource
 
 @OptIn(InternalKmpTorApi::class)
 @Suppress("NOTHING_TO_INLINE")
@@ -28,4 +30,18 @@ internal inline fun OSHost.toTorResourcePath(
     val path = if (isLib) "lib" else "exec"
     val name = if (isLib) resourceNameLibTor else resourceNameTor
     return "io/matthewnelson/kmp/tor/resource/$path/tor/native/$this/$arch/$name"
+}
+
+@OptIn(InternalKmpTorApi::class)
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun Resource.Config.Builder.configureWindowsDLLRedirect(loader: Class<*>) {
+    if (OSInfo.INSTANCE.osHost !is OSHost.Windows) return
+
+    resource("DLL redirect") {
+        isExecutable = false
+        platform {
+            resourcePath = "io/matthewnelson/kmp/tor/resource/exec/tor/native/${OSHost.Windows}/tor.exe.local"
+            resourceClass = loader
+        }
+    }
 }

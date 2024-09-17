@@ -59,8 +59,8 @@ open class ExecTorResourceValidationExtension private constructor(
     protected open val jvmMacosAarch64: String = ""
     protected open val jvmMacosX86_64: String = ""
 
-    protected open val jvmMingwX86: String = ""
-    protected open val jvmMingwX86_64: String = ""
+    protected open val jvmMingwX86: String = "3087e5f3585117c60489ad0687c857a4df1006732f5f8ee3ba4022a60f09d37a"
+    protected open val jvmMingwX86_64: String = "377bd07d1ba0a693a5c661eb47f0b50198f0d7b6d7d6db631d47591a7ddc0380"
 
     protected open val nativeLinuxArm64: String = "f6c74665fddd77fd0fad795e382820928d70bfa0c6701e1cf1c4441b4c3af8aa"
     protected open val nativeLinuxX64: String = "77ce55660baf7eb2157ce820fbb061692343075bab1141a9413f6551b03cf7b6"
@@ -68,7 +68,7 @@ open class ExecTorResourceValidationExtension private constructor(
     protected open val nativeMacosArm64: String = ""
     protected open val nativeMacosX64: String = ""
 
-    protected open val nativeMingwX64: String = ""
+    protected open val nativeMingwX64: String = "377bd07d1ba0a693a5c661eb47f0b50198f0d7b6d7d6db631d47591a7ddc0380"
 
     /**
      * Resource validation and configuration for module `:library:resource-exec-tor-gpl`,
@@ -97,8 +97,8 @@ open class ExecTorResourceValidationExtension private constructor(
         override val jvmMacosAarch64: String = ""
         override val jvmMacosX86_64: String = ""
 
-        override val jvmMingwX86: String = ""
-        override val jvmMingwX86_64: String = ""
+        override val jvmMingwX86: String = "5b753a63431a3d47b9c251f4f52c9fe28cc5134e4401ffc3083218dda77c955d"
+        override val jvmMingwX86_64: String = "4849aed4333ffcdc8e28b624848ce46c10a45f6b8bee62a2b73e6fb27c59d534"
 
         override val nativeLinuxArm64: String = "f6c74665fddd77fd0fad795e382820928d70bfa0c6701e1cf1c4441b4c3af8aa"
         override val nativeLinuxX64: String = "77ce55660baf7eb2157ce820fbb061692343075bab1141a9413f6551b03cf7b6"
@@ -106,7 +106,7 @@ open class ExecTorResourceValidationExtension private constructor(
         override val nativeMacosArm64: String = ""
         override val nativeMacosX64: String = ""
 
-        override val nativeMingwX64: String = ""
+        override val nativeMingwX64: String = "4849aed4333ffcdc8e28b624848ce46c10a45f6b8bee62a2b73e6fb27c59d534"
 
         internal companion object {
             internal const val NAME = "execTorGPLResourceValidation"

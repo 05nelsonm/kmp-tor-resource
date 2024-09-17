@@ -59,8 +59,8 @@ open class LibTorResourceValidationExtension private constructor(
     protected open val jvmMacosAarch64: String = ""
     protected open val jvmMacosX86_64: String = ""
 
-    protected open val jvmMingwX86: String = ""
-    protected open val jvmMingwX86_64: String = ""
+    protected open val jvmMingwX86: String = "cc6d8038c3f451aeee070d4ea0331a9fd5b02660f1c1118696c761265be100b1"
+    protected open val jvmMingwX86_64: String = "a8e2e378554f6c3b9f842b1bb76c5ddeb063e581c2da13e4de7f9c1cb550ffe0"
 
     protected open val nativeLinuxArm64: String = "1639575ad7a9b360fcf581b0449c80e3a4df578aabf55f57f2fedd5884055a3b"
     protected open val nativeLinuxX64: String = "400c7eb4075c75c5cfce924c578673213a1d169667413eccd88299873853859e"
@@ -68,7 +68,7 @@ open class LibTorResourceValidationExtension private constructor(
     protected open val nativeMacosArm64: String = ""
     protected open val nativeMacosX64: String = ""
 
-    protected open val nativeMingwX64: String = ""
+    protected open val nativeMingwX64: String = "a8e2e378554f6c3b9f842b1bb76c5ddeb063e581c2da13e4de7f9c1cb550ffe0"
 
     /**
      * Resource validation and configuration for module `:library:resource-lib-tor-gpl`,
@@ -97,8 +97,8 @@ open class LibTorResourceValidationExtension private constructor(
         override val jvmMacosAarch64: String = ""
         override val jvmMacosX86_64: String = ""
 
-        override val jvmMingwX86: String = ""
-        override val jvmMingwX86_64: String = ""
+        override val jvmMingwX86: String = "4a0cbba6670bd8db5bfb83d781cacb5db16bd910abc2644bcaa61d5f56fe0773"
+        override val jvmMingwX86_64: String = "b19fc7ac3701253367ab26e7c7c8d861917047206061c11429709553a7289067"
 
         override val nativeLinuxArm64: String = "5f8ffb0a195b46288f6d161298c9a71772b6427db7c7c86eaec0010a4e1ddd8d"
         override val nativeLinuxX64: String = "be92cbd0be140b3311418fb06db9aa9bf21ecc4b6c4a216441b27489ca667bde"
@@ -106,7 +106,7 @@ open class LibTorResourceValidationExtension private constructor(
         override val nativeMacosArm64: String = ""
         override val nativeMacosX64: String = ""
 
-        override val nativeMingwX64: String = ""
+        override val nativeMingwX64: String = "b19fc7ac3701253367ab26e7c7c8d861917047206061c11429709553a7289067"
 
         internal companion object {
             internal const val NAME = "libTorGPLResourceValidation"
