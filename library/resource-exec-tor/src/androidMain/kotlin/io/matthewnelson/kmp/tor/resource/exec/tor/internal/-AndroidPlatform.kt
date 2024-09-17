@@ -22,7 +22,7 @@ import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.common.lib.locator.KmpTorLibLocator
-import io.matthewnelson.kmp.tor.resource.shared.tor.configureJavaTorResource
+import io.matthewnelson.kmp.tor.resource.lib.tor.configureJavaTorResource
 
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)

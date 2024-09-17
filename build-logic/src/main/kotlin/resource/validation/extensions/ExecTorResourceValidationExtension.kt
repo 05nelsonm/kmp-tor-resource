@@ -21,7 +21,7 @@ import resource.validation.extensions.internal.ValidationHash
 import javax.inject.Inject
 
 /**
- * Resoure validation and configuration for module `:library:resource-exec-tor`
+ * Resource validation and configuration for module `:library:resource-exec-tor`
  *
  * @see [GPL]
  * */
@@ -44,7 +44,7 @@ open class ExecTorResourceValidationExtension private constructor(
     protected open val nativeMingwX64: String = "caf6911f6375ba9aa54962282d0132d2cb405beaeb4d1486187e1d77835bf4d0"
 
     /**
-     * Resoure validation and configuration for module `:library:resource-exec-tor-gpl`,
+     * Resource validation and configuration for module `:library:resource-exec-tor-gpl`,
      * `tor` compiled with `--enable-gpl`.
      * */
     abstract class GPL @Inject internal constructor(

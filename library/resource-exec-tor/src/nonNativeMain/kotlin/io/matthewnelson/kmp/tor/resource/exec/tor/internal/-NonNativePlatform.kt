@@ -16,7 +16,7 @@
 package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
-import io.matthewnelson.kmp.tor.resource.shared.tor.ALIAS_TOR as SHARED_ALIAS_TOR
+import io.matthewnelson.kmp.tor.resource.lib.tor.ALIAS_TOR as SHARED_ALIAS_TOR
 
 @OptIn(InternalKmpTorApi::class)
 internal actual val ALIAS_TOR: String = SHARED_ALIAS_TOR

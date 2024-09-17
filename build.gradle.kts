@@ -77,8 +77,8 @@ extensions.configure(ApiValidationExtension::class.java) {
             ignoredProjects.add("resource-exec-tor-gpl")
             ignoredProjects.add("resource-noexec-tor")
             ignoredProjects.add("resource-noexec-tor-gpl")
-            ignoredProjects.add("resource-shared-tor")
-            ignoredProjects.add("resource-shared-tor-gpl")
+            ignoredProjects.add("resource-lib-tor")
+            ignoredProjects.add("resource-lib-tor-gpl")
         }
     }
 }

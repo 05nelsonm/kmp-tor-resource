@@ -1,8 +1,8 @@
 module io.matthewnelson.kmp.tor.resource.noexec.tor {
     requires transitive io.matthewnelson.kmp.tor.common.api;
     requires io.matthewnelson.kmp.tor.common.core;
-    requires io.matthewnelson.kmp.tor.resource.shared.geoip;
-    requires io.matthewnelson.kmp.tor.resource.shared.tor;
+    requires io.matthewnelson.kmp.tor.resource.geoip;
+    requires io.matthewnelson.kmp.tor.resource.lib.tor;
 
     exports io.matthewnelson.kmp.tor.resource.noexec.tor;
 }

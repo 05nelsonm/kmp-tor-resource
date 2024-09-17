@@ -22,14 +22,14 @@ import java.io.File
 import javax.inject.Inject
 
 /**
- * Resoure validation and configuration for module `:library:resource-shared-geoip`
+ * Resource validation and configuration for module `:library:resource-geoip`
  * */
 abstract class GeoipResourceValidationExtension @Inject internal constructor(
     project: Project,
 ): AbstractResourceValidationExtension(
     project = project,
-    moduleName = "resource-shared-geoip",
-    packageName = "io.matthewnelson.kmp.tor.resource.shared.geoip",
+    moduleName = "resource-geoip",
+    packageName = "io.matthewnelson.kmp.tor.resource.geoip",
 ) {
 
     private val geoip: String = "e3873cefd2810175e9cffbf5b3b236a809c198c564cde81110bfb940b6accc37"

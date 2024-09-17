@@ -51,9 +51,9 @@ NPMJS_PUBLISH_TASKS=$(./gradlew tasks | grep "ToNpmjsRegistry" | cut -d ' ' -f 1
 
 - Check for resource validation errors (tasks would not have been present otherwise)
 ```bash
-cat library/npmjs/build/reports/resource-validation/resource-shared-geoip/jvm-geoip.err
-cat library/npmjs/build/reports/resource-validation/resource-shared-tor/jvm.err
-cat library/npmjs/build/reports/resource-validation/resource-shared-tor-gpl/jvm.err
+cat library/npmjs/build/reports/resource-validation/resource-geoip/jvm-geoip.err
+cat library/npmjs/build/reports/resource-validation/resource-lib-tor/jvm.err
+cat library/npmjs/build/reports/resource-validation/resource-lib-tor-gpl/jvm.err
 ```
 
 - Publish to `Npmjs`
@@ -112,14 +112,14 @@ ykman openpgp keys set-touch sig off
 
 - Check `resource-validation` error reports for any errors
 ```bash
-cat library/resource-android-unit-test-tor/build/reports/resource-validation/resource-shared-tor/jvm.err
-cat library/resource-android-unit-test-tor-gpl/build/reports/resource-validation/resource-shared-tor/jvm.err
-cat library/resource-shared-geoip/build/reports/resource-validation/resource-shared-geoip/jvm-geoip.err
-cat library/resource-shared-geoip/build/reports/resource-validation/resource-shared-geoip/native.err
-cat library/resource-shared-tor/build/reports/resource-validation/resource-shared-tor/android.err
-cat library/resource-shared-tor/build/reports/resource-validation/resource-shared-tor/jvm.err
-cat library/resource-shared-tor-gpl/build/reports/resource-validation/resource-shared-tor-gpl/android.err
-cat library/resource-shared-tor-gpl/build/reports/resource-validation/resource-shared-tor-gpl/jvm.err
+cat library/resource-android-unit-test-tor/build/reports/resource-validation/resource-lib-tor/jvm.err
+cat library/resource-android-unit-test-tor-gpl/build/reports/resource-validation/resource-lib-tor/jvm.err
+cat library/resource-geoip/build/reports/resource-validation/resource-geoip/jvm-geoip.err
+cat library/resource-geoip/build/reports/resource-validation/resource-geoip/native.err
+cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/android.err
+cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/jvm.err
+cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/android.err
+cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/jvm.err
 cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/linuxArm64.err
 cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/linuxX64.err
 cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/mingwX64.err
@@ -211,7 +211,7 @@ MACOS_TARGETS="JVM,JS,IOS_ARM64,IOS_X64,IOS_SIMULATOR_ARM64,MACOS_ARM64,MACOS_X6
 
 - Check `resource-validation` error reports for any errors
 ```bash
-cat library/resource-shared-geoip/build/reports/resource-validation/resource-shared-geoip/native.err
+cat library/resource-geoip/build/reports/resource-validation/resource-geoip/native.err
 cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/macosArm64.err
 cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/macosX64.err
 cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/macosArm64.err

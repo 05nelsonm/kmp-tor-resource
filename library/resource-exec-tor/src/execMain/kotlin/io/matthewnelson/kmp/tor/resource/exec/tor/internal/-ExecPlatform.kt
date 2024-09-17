@@ -19,7 +19,7 @@ package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
-import io.matthewnelson.kmp.tor.resource.shared.geoip.configureGeoipResources
+import io.matthewnelson.kmp.tor.resource.geoip.configureGeoipResources
 
 @OptIn(InternalKmpTorApi::class)
 internal val RESOURCE_CONFIG: Resource.Config by lazy {

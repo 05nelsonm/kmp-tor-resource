@@ -27,9 +27,9 @@ if (CHECK_PUBLICATION != null) {
             "resource-exec-tor-gpl",
             "resource-noexec-tor",
             "resource-noexec-tor-gpl",
-            "resource-shared-geoip",
-            "resource-shared-tor",
-            "resource-shared-tor-gpl",
+            "resource-geoip",
+            "resource-lib-tor",
+            "resource-lib-tor-gpl",
         ).forEach { module ->
             include(":library:$module")
         }

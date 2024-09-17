@@ -40,8 +40,8 @@ kmpConfiguration {
             sourceSetMain {
                 dependencies {
                     // Should be a SEPARATE publication from -jvm
-                    implementation("$group:resource-shared-tor-android:$version")
-                    implementation("$group:resource-shared-tor-gpl-android:$version")
+                    implementation("$group:resource-lib-tor-android:$version")
+                    implementation("$group:resource-lib-tor-gpl-android:$version")
                 }
             }
             sourceSetTest {
@@ -55,8 +55,8 @@ kmpConfiguration {
         jvm {
             sourceSetMain {
                 dependencies {
-                    implementation("$group:resource-shared-tor-jvm:$version")
-                    implementation("$group:resource-shared-tor-gpl-jvm:$version")
+                    implementation("$group:resource-lib-tor-jvm:$version")
+                    implementation("$group:resource-lib-tor-gpl-jvm:$version")
                 }
             }
         }
@@ -64,8 +64,8 @@ kmpConfiguration {
         js {
             sourceSetMain {
                 dependencies {
-                    implementation("$group:resource-shared-tor-js:$version")
-                    implementation("$group:resource-shared-tor-gpl-js:$version")
+                    implementation("$group:resource-lib-tor-js:$version")
+                    implementation("$group:resource-lib-tor-gpl-js:$version")
                     implementation(npm("kmp-tor.resource-exec-tor.all", project.npmVersion))
                     implementation(npm("kmp-tor.resource-exec-tor-gpl.all", project.npmVersion))
                 }
@@ -75,7 +75,7 @@ kmpConfiguration {
         common {
             sourceSetMain {
                 dependencies {
-                    implementation("$group:resource-shared-geoip:$version")
+                    implementation("$group:resource-geoip:$version")
                     implementation("$group:resource-exec-tor:$version")
                     implementation("$group:resource-exec-tor-gpl:$version")
                     implementation("$group:resource-noexec-tor:$version")
@@ -86,8 +86,8 @@ kmpConfiguration {
 
         sourceSetConnect("nonNative", listOf("jvmAndroid", "js")) {
             dependencies {
-                implementation("$group:resource-shared-tor:$version")
-                implementation("$group:resource-shared-tor-gpl:$version")
+                implementation("$group:resource-lib-tor:$version")
+                implementation("$group:resource-lib-tor-gpl:$version")
             }
         }
     }

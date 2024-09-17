@@ -126,7 +126,7 @@ fun KmpConfigurationExtension.configureExecTor(
             listOf("jvmAndroid", "js"),
             sourceSetMain = {
                 dependencies {
-                    implementation(project(":library:resource-shared-tor$suffix"))
+                    implementation(project(":library:resource-lib-tor$suffix"))
                 }
             },
         )
@@ -142,7 +142,7 @@ fun KmpConfigurationExtension.configureExecTor(
             sourceSetMain = {
                 dependencies {
                     implementation(libs.kmp.tor.common.core)
-                    implementation(project(":library:resource-shared-geoip"))
+                    implementation(project(":library:resource-geoip"))
                 }
             },
             sourceSetTest = {

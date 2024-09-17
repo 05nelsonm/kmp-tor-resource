@@ -17,7 +17,7 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
-import io.matthewnelson.kmp.tor.resource.shared.geoip.configureGeoipResources
+import io.matthewnelson.kmp.tor.resource.geoip.configureGeoipResources
 import kotlin.jvm.JvmSynthetic
 
 @get:JvmSynthetic

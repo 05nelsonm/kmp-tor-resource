@@ -24,8 +24,8 @@ import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.ALIAS_TOR
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.RESOURCE_CONFIG
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.findLibTor
-import io.matthewnelson.kmp.tor.resource.shared.geoip.ALIAS_GEOIP
-import io.matthewnelson.kmp.tor.resource.shared.geoip.ALIAS_GEOIP6
+import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP
+import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP6
 import kotlin.concurrent.Volatile
 import kotlin.jvm.JvmStatic
 

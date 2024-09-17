@@ -19,7 +19,7 @@ import io.matthewnelson.kmp.configuration.extension.container.target.TargetAndro
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import resource.validation.extensions.SharedTorResourceValidationExtension
+import resource.validation.extensions.LibTorResourceValidationExtension
 
 fun KmpConfigurationContainerDsl.androidLibrary(
     namespace: String,
@@ -60,9 +60,9 @@ fun KmpConfigurationExtension.configureAndroidUnitTestTor(
     val isGpl = project.name.endsWith("gpl")
     val resourceValidation by lazy {
         if (isGpl) {
-            SharedTorResourceValidationExtension.GPL::class.java
+            LibTorResourceValidationExtension.GPL::class.java
         } else {
-            SharedTorResourceValidationExtension::class.java
+            LibTorResourceValidationExtension::class.java
         }.let { project.extensions.getByType(it) }
     }
 

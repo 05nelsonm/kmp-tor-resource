@@ -70,9 +70,9 @@ function __package:geoip {
   local permissions="664"
   local gzip="yes"
 
-  __package "tor/src/config" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/shared/geoip" "$1"
+  __package "tor/src/config" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/geoip" "$1"
 
-  local native_resource="io.matthewnelson.kmp.tor.resource.shared.geoip.internal"
+  local native_resource="io.matthewnelson.kmp.tor.resource.geoip.internal"
   __package "tor/src/config" "nativeMain" "$1"
 }
 

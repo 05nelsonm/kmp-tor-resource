@@ -22,8 +22,8 @@ import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSHost
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.common.core.Resource
-import io.matthewnelson.kmp.tor.resource.shared.tor.isSupportedBy
-import io.matthewnelson.kmp.tor.resource.shared.tor.torFileName
+import io.matthewnelson.kmp.tor.resource.lib.tor.isSupportedBy
+import io.matthewnelson.kmp.tor.resource.lib.tor.torFileName
 
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)

@@ -594,7 +594,7 @@ function __build:configure:target:finalize:output {
         # Not macOS Jvm/Node.js
         is_framework=true
         exec_ldflags=""
-        shared_name="Tor"
+        shared_name="LibTor"
       else
         # Jvm/Node.js
         shared_name="libtor.dylib"

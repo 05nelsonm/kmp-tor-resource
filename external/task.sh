@@ -335,27 +335,27 @@ function package { ## Packages build dir output
   trap 'rm -rf "$DIR_STAGING"' SIGINT ERR
 
   local dirname_out=
-  local dirname_final="resource-shared-geoip"
+  local dirname_final="resource-geoip"
   local libname=
   __package:geoip "geoip"
   __package:geoip "geoip6"
 
-  dirname_out="tor"
-  dirname_final="resource-shared-$dirname_out"
-  libname="tor"
-  __package:libs:shared
-
-  dirname_out="tor-gpl"
-  dirname_final="resource-shared-$dirname_out"
-  __package:libs:shared
-
-  dirname_out="tor"
-  dirname_final="resource-exec-$dirname_out"
-  __package:libs:native:exec
-
-  dirname_out="tor-gpl"
-  dirname_final="resource-exec-$dirname_out"
-  __package:libs:native:exec
+#  dirname_out="tor"
+#  dirname_final="resource-shared-$dirname_out"
+#  libname="tor"
+#  __package:libs:shared
+#
+#  dirname_out="tor-gpl"
+#  dirname_final="resource-shared-$dirname_out"
+#  __package:libs:shared
+#
+#  dirname_out="tor"
+#  dirname_final="resource-exec-$dirname_out"
+#  __package:libs:native:exec
+#
+#  dirname_out="tor-gpl"
+#  dirname_final="resource-exec-$dirname_out"
+#  __package:libs:native:exec
 
   rm -rf "$DIR_STAGING"
   trap - SIGINT ERR
@@ -411,9 +411,9 @@ function validate { ## Checks the build/package directory output against expecte
   ./gradlew clean -PKMP_TARGETS="$targets"
   ./gradlew prepareKotlinBuildScriptModel -PKMP_TARGETS="$targets"
 
-  __validate:report "resource-shared-geoip"
-  __validate:report "resource-shared-tor"
-  __validate:report "resource-shared-tor-gpl"
+  __validate:report "resource-geoip"
+  __validate:report "resource-lib-tor"
+  __validate:report "resource-lib-tor-gpl"
   __validate:report "resource-exec-tor"
   __validate:report "resource-exec-tor-gpl"
 }

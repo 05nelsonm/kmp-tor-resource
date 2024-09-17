@@ -33,13 +33,13 @@ npmPublish {
     if (npmjsAuthToken.isNullOrBlank()) return@npmPublish
 
     val srcResDirGeoip = geoipResourceValidation.jvmResourcesSrcDir()
-    val srcResDirTor = sharedTorResourceValidation.jvmNativeLibResourcesSrcDir()
-    val srcResDirTorGPL = sharedTorGPLResourceValidation.jvmNativeLibResourcesSrcDir()
+    val srcResDirLibTor = libTorResourceValidation.jvmNativeLibResourcesSrcDir()
+    val srcResDirLibTorGPL = libTorGPLResourceValidation.jvmNativeLibResourcesSrcDir()
 
     project.rootProject.rootDir.resolve("mock-resources").let { mockResources ->
         check(mockResources.exists()) { "mock-resources does not exist... dir name change?" }
 
-        listOf(srcResDirGeoip, srcResDirTor, srcResDirTorGPL).forEach { srcDir ->
+        listOf(srcResDirGeoip, srcResDirLibTor, srcResDirLibTorGPL).forEach { srcDir ->
             // Configure NOTHING if mock resources are being utilized.
             if (srcDir.path.startsWith(mockResources.path)) {
                 println("Skipping NPM publication configuration (mock resources are being used).")
@@ -69,17 +69,17 @@ npmPublish {
         vPublications.forEach { version ->
             register(
                 version = version,
-                dirName = NpmjsDirName("resource-shared-geoip"),
+                dirName = NpmjsDirName("resource-geoip"),
                 configureFiles = {
-                    from(srcResDirGeoip.resolve("io/matthewnelson/kmp/tor/resource/shared/geoip"))
+                    from(srcResDirGeoip.resolve("io/matthewnelson/kmp/tor/resource/geoip"))
                  },
             )
 
             registerAll(
                 targets = targets,
                 version = version,
-                srcResDirTor = srcResDirTor,
-                srcResDirTorGPL = srcResDirTorGPL,
+                srcResDirLibTor = srcResDirLibTor,
+                srcResDirLibTorGPL = srcResDirLibTorGPL,
             )
         }
     }
@@ -135,7 +135,7 @@ private value class PublicationVersion(private val value: String) {
         val stripped = dirName.toString()
             .substringAfter("resource-")
             .substringAfter("exec-")
-            .substringAfter("shared-")
+            .substringAfter("lib-")
 
         return stripped + "." + if (isSnapshot) "snapshot" else "release"
     }
@@ -158,12 +158,13 @@ private value class NativeTargets private constructor(
 private fun NpmPackages.registerAll(
     targets: NativeTargets,
     version: PublicationVersion,
-    srcResDirTor: File,
-    srcResDirTorGPL: File,
+    srcResDirLibTor: File,
+    srcResDirLibTorGPL: File,
 ) {
-    val pathNative = "io/matthewnelson/kmp/tor/resource/shared/tor/native"
-
-    listOf(srcResDirTor, srcResDirTorGPL).forEach { srcRes ->
+    listOf(
+        srcResDirLibTor to "io/matthewnelson/kmp/tor/resource/lib/tor/native",
+        srcResDirLibTorGPL to "io/matthewnelson/kmp/tor/resource/lib/tor/native",
+    ).forEach { (srcRes, pathNative) ->
         val isGpl = srcRes.parentFile.parentFile.parent.endsWith("-gpl")
         val npmjsDirBaseName = buildString {
             append("resource-exec-tor")
