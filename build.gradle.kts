@@ -67,6 +67,8 @@ extensions.configure(ApiValidationExtension::class.java) {
         ignoredProjects.add("check-publication")
     } else {
         nonPublicMarkers.add("io.matthewnelson.diff.core.internal.InternalDiffApi")
+
+        findProperty("TOOLING")?.let { return@configure }
         nonPublicMarkers.add("io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi")
 
         // Don't check these projects when building JVM only or Android only

@@ -31,7 +31,7 @@ args="${args%"${args##*[![:space:]]}"}"
 cd "$DIR_SCRIPT" || exit 3
 
 if [ -z "$args" ]; then
-  ./gradlew --quiet ":tools:${TOOL}:jvmRun" -PKMP_TARGETS="JVM"
+  ./gradlew --quiet ":tools:${TOOL}:jvmRun" -PKMP_TARGETS="JVM" -PTOOLING=""
 else
-  ./gradlew --quiet ":tools:${TOOL}:jvmRun" --args="$args" -PKMP_TARGETS="JVM"
+  ./gradlew --quiet ":tools:${TOOL}:jvmRun" --args="$args" -PKMP_TARGETS="JVM" -PTOOLING=""
 fi
