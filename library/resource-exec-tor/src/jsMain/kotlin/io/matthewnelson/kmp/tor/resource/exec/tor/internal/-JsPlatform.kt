@@ -19,37 +19,13 @@ package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
-import io.matthewnelson.kmp.tor.common.core.OSHost
-import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.common.core.Resource
-import io.matthewnelson.kmp.tor.resource.lib.tor.isSupportedBy
-import io.matthewnelson.kmp.tor.resource.lib.tor.torFileName
+import io.matthewnelson.kmp.tor.resource.lib.tor.configureTorResources
 
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
 internal actual inline fun Resource.Config.Builder.configureTorResource() {
-    val host = OSInfo.INSTANCE.osHost
-    if (host is OSHost.Unknown) {
-        error("Unknown host[$host]")
-        return
-    }
-
-    val arch = OSInfo.INSTANCE.osArch
-
-    if (!arch.isSupportedBy(host)) {
-        error("Unsupported architecture[$arch] for host[$host]")
-        return
-    }
-
-    val suffix = if (IS_GPL) "-gpl" else ""
-
-    resource(ALIAS_TOR) {
-        isExecutable = true
-        platform {
-            moduleName = "kmp-tor.resource-exec-tor${suffix}.${host}"
-            resourcePath = "/${arch}/${host.torFileName}"
-        }
-    }
+    configureTorResources(aliasLibTor = ALIAS_LIB_TOR, aliasTor = ALIAS_TOR)
 }
 
 //@Throws(IllegalStateException::class)

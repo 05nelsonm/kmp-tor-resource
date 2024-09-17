@@ -29,7 +29,7 @@ fun KmpConfigurationExtension.configureLibTor(
 
     val libs = project.the<LibrariesForLibs>()
     val isGpl = project.name.endsWith("gpl")
-    val resourceValidation by lazy {
+    val libResourceValidation by lazy {
         if (isGpl) {
             LibTorResourceValidationExtension.GPL::class.java
         } else {
@@ -44,16 +44,52 @@ fun KmpConfigurationExtension.configureLibTor(
         publish = true,
     ) {
         androidLibrary {
-            android {
-                resourceValidation.configureAndroidJniResources()
-            }
+            android { libResourceValidation.configureAndroidJniResources() }
         }
 
         jvm {
             sourceSetMain {
-                resources.srcDir(resourceValidation.jvmNativeLibResourcesSrcDir())
+                resources.srcDir(libResourceValidation.jvmNativeLibResourcesSrcDir())
             }
         }
+
+        js {
+            sourceSetMain {
+                val srcDir = project.layout
+                    .buildDirectory
+                    .get()
+                    .asFile
+                    .resolve("generated")
+                    .resolve("sources")
+                    .resolve("buildConfig")
+                    .resolve("jsMain")
+                    .resolve("kotlin")
+
+                val configDir = srcDir
+                    .resolve("io")
+                    .resolve("matthewnelson")
+                    .resolve("kmp")
+                    .resolve("tor")
+                    .resolve("resource")
+                    .resolve("lib")
+                    .resolve("tor")
+                    .resolve("internal")
+
+                configDir.mkdirs()
+
+                configDir.resolve("BuildConfigJS.kt").writeText("""
+                    package io.matthewnelson.kmp.tor.resource.lib.tor.internal
+
+                    internal const val IS_GPL: Boolean = $isGpl
+
+                """.trimIndent())
+
+                kotlin.srcDir(srcDir)
+            }
+        }
+
+        linuxAll()
+        mingwAll()
 
         common {
             pluginIds("resource-validation")
@@ -64,6 +100,10 @@ fun KmpConfigurationExtension.configureLibTor(
                 }
             }
         }
+
+        kotlin { libResourceValidation.configureNativeResources() }
+
+        sourceSetConnect("nonNative", listOf("jvmAndroid", "js"))
 
         action.execute(this)
     }

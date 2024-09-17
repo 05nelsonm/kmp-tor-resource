@@ -16,12 +16,30 @@
 package io.matthewnelson.kmp.tor.resource.lib.tor
 
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
+import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 import io.matthewnelson.kmp.tor.common.core.Resource
-import io.matthewnelson.kmp.tor.resource.lib.tor.internal.configureTorResource
+import io.matthewnelson.kmp.tor.resource.lib.tor.internal.configureExecutableResource
+import io.matthewnelson.kmp.tor.resource.lib.tor.internal.toTorResourcePath
 
 private class Loader private constructor() {
     init { throw IllegalStateException() }
 }
 
 @InternalKmpTorApi
-public actual fun Resource.Config.Builder.configureJavaTorResource() { configureTorResource(Loader::class.java) }
+public fun Resource.Config.Builder.configureLibTorResource(alias: String) {
+    configureExecutableResource(alias) { host, arch ->
+        resourcePath = host.toTorResourcePath(arch, isLib = true)
+        resourceClass = Loader::class.java
+    }
+}
+
+@InternalKmpTorApi
+public fun <LoaderImpl: ResourceLoader.Tor.Exec> Resource.Config.Builder.configureExecTorResource(
+    alias: String,
+    execLoaderClass: Class<LoaderImpl>,
+) {
+    configureExecutableResource(alias) { host, arch ->
+        resourcePath = host.toTorResourcePath(arch, isLib = false)
+        resourceClass = execLoaderClass
+    }
+}

@@ -35,11 +35,19 @@ npmPublish {
     val srcResDirGeoip = geoipResourceValidation.jvmResourcesSrcDir()
     val srcResDirLibTor = libTorResourceValidation.jvmNativeLibResourcesSrcDir()
     val srcResDirLibTorGPL = libTorGPLResourceValidation.jvmNativeLibResourcesSrcDir()
+    val srcResDirExecTor = execTorResourceValidation.jvmNativeLibResourcesSrcDir()
+    val srcResDirExecTorGPL = execTorGPLResourceValidation.jvmNativeLibResourcesSrcDir()
 
     project.rootProject.rootDir.resolve("mock-resources").let { mockResources ->
         check(mockResources.exists()) { "mock-resources does not exist... dir name change?" }
 
-        listOf(srcResDirGeoip, srcResDirLibTor, srcResDirLibTorGPL).forEach { srcDir ->
+        listOf(
+            srcResDirGeoip,
+            srcResDirLibTor,
+            srcResDirLibTorGPL,
+            srcResDirExecTor,
+            srcResDirExecTorGPL,
+        ).forEach { srcDir ->
             // Configure NOTHING if mock resources are being utilized.
             if (srcDir.path.startsWith(mockResources.path)) {
                 println("Skipping NPM publication configuration (mock resources are being used).")
@@ -80,6 +88,8 @@ npmPublish {
                 version = version,
                 srcResDirLibTor = srcResDirLibTor,
                 srcResDirLibTorGPL = srcResDirLibTorGPL,
+                srcResDirExecTor = srcResDirExecTor,
+                srcResDirExecTorGPL = srcResDirExecTorGPL,
             )
         }
     }
@@ -160,27 +170,40 @@ private fun NpmPackages.registerAll(
     version: PublicationVersion,
     srcResDirLibTor: File,
     srcResDirLibTorGPL: File,
+    srcResDirExecTor: File,
+    srcResDirExecTorGPL: File,
 ) {
     listOf(
-        srcResDirLibTor to "io/matthewnelson/kmp/tor/resource/lib/tor/native",
-        srcResDirLibTorGPL to "io/matthewnelson/kmp/tor/resource/lib/tor/native",
-    ).forEach { (srcRes, pathNative) ->
-        val isGpl = srcRes.parentFile.parentFile.parent.endsWith("-gpl")
+        Pair(
+            srcResDirLibTor to "io/matthewnelson/kmp/tor/resource/lib/tor/native",
+            srcResDirExecTor to "io/matthewnelson/kmp/tor/resource/exec/tor/native",
+        ),
+        Pair(
+            srcResDirLibTorGPL to "io/matthewnelson/kmp/tor/resource/lib/tor/native",
+            srcResDirExecTorGPL to "io/matthewnelson/kmp/tor/resource/exec/tor/native",
+        ),
+    ).forEach { (lib, exec) ->
+        val (libSrcRes, libPathNative) = lib
+        val (execSrcRes, execPathNative) = exec
+
+        val isGpl = libSrcRes.parentFile.parentFile.parent.endsWith("-gpl")
         val npmjsDirBaseName = buildString {
             append("resource-exec-tor")
             if (isGpl) append("-gpl")
         }
 
         val dependenciesAll = targets.map { target ->
-            val targetDir = srcRes.resolve(pathNative).resolve(target)
-            check(targetDir.exists()) { "Directory missing: $targetDir" }
+            val targetDirLib = libSrcRes.resolve(libPathNative).resolve(target)
+            val targetDirExec = execSrcRes.resolve(execPathNative).resolve(target)
+            check(targetDirLib.exists()) { "Directory missing: $targetDirLib" }
+            check(targetDirExec.exists()) { "Directory missing: $targetDirExec" }
 
             val npmjsDirName = NpmjsDirName("$npmjsDirBaseName.$target")
 
             register(
                 version = version,
                 dirName = npmjsDirName,
-                configureFiles = { from(targetDir) },
+                configureFiles = { from(targetDirLib, targetDirExec) },
             )
 
             npmjsDirName

@@ -18,13 +18,16 @@ package io.matthewnelson.kmp.tor.resource.lib.tor
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.common.core.Resource
-import io.matthewnelson.kmp.tor.resource.lib.tor.internal.configureTorResource
-
+import io.matthewnelson.kmp.tor.resource.lib.tor.internal.configureExecutableResource
+import io.matthewnelson.kmp.tor.resource.lib.tor.internal.toTorResourcePath
 
 @InternalKmpTorApi
-public actual fun Resource.Config.Builder.configureJavaTorResource() {
+public fun Resource.Config.Builder.tryConfigureTestTorResources(
+    aliasLibTor: String,
+    aliasTor: String?,
+) {
     if (OSInfo.INSTANCE.isAndroidRuntime()) {
-        error("Android runtime detected. Use lib locator to find 'libtor.so' path.")
+        error("Android runtime detected. Use lib locator to find 'libtor.so' & 'libtorexec.so' paths.")
         return
     }
 
@@ -40,12 +43,22 @@ public actual fun Resource.Config.Builder.configureJavaTorResource() {
         error("""
             Failed to find class '${classpathLoader}'
             Missing dependency for Android Unit Tests?
-            
+
             Try adding the 'resource-android-unit-test-tor' or 'resource-android-unit-test-tor-gpl'
             dependency as 'testImplementation'.
         """.trimIndent())
         return
     }
 
-    configureTorResource(loader)
+    if (aliasTor != null) {
+        configureExecutableResource(aliasTor) { host, arch ->
+            resourcePath = host.toTorResourcePath(arch, isLib = false)
+            resourceClass = loader
+        }
+    }
+
+    configureExecutableResource(aliasLibTor) { host, arch ->
+        resourcePath = host.toTorResourcePath(arch, isLib = true)
+        resourceClass = loader
+    }
 }

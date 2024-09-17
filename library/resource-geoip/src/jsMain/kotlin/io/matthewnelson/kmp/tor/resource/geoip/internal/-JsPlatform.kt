@@ -22,8 +22,7 @@ import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP6
 
-// TODO: Rename once npmjs publication fixed
-private const val MODULE_NAME = "kmp-tor.resource-shared-geoip"
+private const val MODULE_NAME = "kmp-tor.resource-geoip"
 
 @OptIn(InternalKmpTorApi::class)
 @Suppress("NOTHING_TO_INLINE")

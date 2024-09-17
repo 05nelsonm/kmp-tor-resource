@@ -32,8 +32,7 @@ kmpConfiguration {
         js {
             sourceSetMain {
                 dependencies {
-                    // TODO: Fix npmjs publication
-                    implementation(npm("kmp-tor.resource-shared-geoip", npmVersion))
+                    implementation(npm("kmp-tor.resource-geoip", npmVersion))
                 }
             }
         }

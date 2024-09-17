@@ -19,6 +19,7 @@ import io.matthewnelson.kmp.configuration.extension.container.target.TargetAndro
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import resource.validation.extensions.ExecTorResourceValidationExtension
 import resource.validation.extensions.LibTorResourceValidationExtension
 
 fun KmpConfigurationContainerDsl.androidLibrary(
@@ -58,11 +59,18 @@ fun KmpConfigurationExtension.configureAndroidUnitTestTor(
     require(project.name.startsWith("resource-android-unit-test-tor")) { "Invalid project" }
 
     val isGpl = project.name.endsWith("gpl")
-    val resourceValidation by lazy {
+    val libResourceValidation by lazy {
         if (isGpl) {
             LibTorResourceValidationExtension.GPL::class.java
         } else {
             LibTorResourceValidationExtension::class.java
+        }.let { project.extensions.getByType(it) }
+    }
+    val execResourceValidation by lazy {
+        if (isGpl) {
+            ExecTorResourceValidationExtension.GPL::class.java
+        } else {
+            ExecTorResourceValidationExtension::class.java
         }.let { project.extensions.getByType(it) }
     }
 
@@ -76,7 +84,8 @@ fun KmpConfigurationExtension.configureAndroidUnitTestTor(
 
             android {
                 sourceSets.getByName("main").resources {
-                    srcDir(resourceValidation.jvmNativeLibResourcesSrcDir())
+                    srcDir(libResourceValidation.jvmNativeLibResourcesSrcDir())
+                    srcDir(execResourceValidation.jvmNativeLibResourcesSrcDir())
                 }
             }
         }

@@ -30,7 +30,7 @@ fun KmpConfigurationExtension.configureExecTor(
     val libs = project.the<LibrariesForLibs>()
     val isGpl = project.name.endsWith("gpl")
     val suffix = if (isGpl) "-gpl" else ""
-    val resourceValidation by lazy {
+    val execResourceValidation by lazy {
         if (isGpl) {
             ExecTorResourceValidationExtension.GPL::class.java
         } else {
@@ -44,6 +44,8 @@ fun KmpConfigurationExtension.configureExecTor(
         publish = true,
     ) {
         androidLibrary {
+            android { execResourceValidation.configureAndroidJniResources() }
+
             sourceSetMain {
                 dependencies {
                     implementation(libs.kmp.tor.common.lib.locator)
@@ -64,40 +66,13 @@ fun KmpConfigurationExtension.configureExecTor(
             }
         }
 
-        js {
+        jvm {
             sourceSetMain {
-                val srcDir = project.layout
-                    .buildDirectory
-                    .get()
-                    .asFile
-                    .resolve("generated")
-                    .resolve("sources")
-                    .resolve("buildConfig")
-                    .resolve("jsMain")
-                    .resolve("kotlin")
-
-                val configDir = srcDir
-                    .resolve("io")
-                    .resolve("matthewnelson")
-                    .resolve("kmp")
-                    .resolve("tor")
-                    .resolve("resource")
-                    .resolve("exec")
-                    .resolve("tor")
-                    .resolve("internal")
-
-                configDir.mkdirs()
-
-                configDir.resolve("BuildConfigJS.kt").writeText("""
-                    package io.matthewnelson.kmp.tor.resource.exec.tor.internal
-
-                    internal const val IS_GPL: Boolean = $isGpl
-
-                """.trimIndent())
-
-                kotlin.srcDir(srcDir)
+                resources.srcDir(execResourceValidation.jvmNativeLibResourcesSrcDir())
             }
+        }
 
+        js {
             // Only add as test dependency. Consumers need to declare the npm dependency
             // themselves when using `Node.js` because there is not currently a way to
             // exclude a npm dependency for kotlin when packaging things on a per-platform
@@ -119,11 +94,11 @@ fun KmpConfigurationExtension.configureExecTor(
             }
         }
 
-        kotlin { resourceValidation.configureNativeResources() }
+        kotlin { execResourceValidation.configureNativeResources() }
 
         sourceSetConnect(
-            "nonNative",
-            listOf("jvmAndroid", "js"),
+            "nonDarwin",
+            listOf("jvmAndroid", "js", "linux", "mingw"),
             sourceSetMain = {
                 dependencies {
                     implementation(project(":library:resource-lib-tor$suffix"))
@@ -133,7 +108,8 @@ fun KmpConfigurationExtension.configureExecTor(
         sourceSetConnect(
             "exec",
             listOf(
-                "nonNative",
+                "jvmAndroid",
+                "js",
                 "androidNative",
                 "linux",
                 "macos",

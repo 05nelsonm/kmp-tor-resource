@@ -20,11 +20,16 @@ package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
-import io.matthewnelson.kmp.tor.resource.lib.tor.configureJavaTorResource
+import io.matthewnelson.kmp.tor.resource.exec.tor.ResourceLoaderTorExec
+import io.matthewnelson.kmp.tor.resource.lib.tor.configureExecTorResource
+import io.matthewnelson.kmp.tor.resource.lib.tor.configureLibTorResource
 
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
-internal actual inline fun Resource.Config.Builder.configureTorResource() { configureJavaTorResource() }
+internal actual inline fun Resource.Config.Builder.configureTorResource() {
+    configureExecTorResource(ALIAS_TOR, ResourceLoaderTorExec::class.java)
+    configureLibTorResource(ALIAS_LIB_TOR)
+}
 
 @Suppress("NOTHING_TO_INLINE")
 @Throws(IllegalStateException::class)

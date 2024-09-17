@@ -16,5 +16,11 @@
 package io.matthewnelson.kmp.tor.resource.exec.tor
 
 import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
+import io.matthewnelson.kmp.tor.common.core.OSHost
+import io.matthewnelson.kmp.tor.common.core.OSInfo
 
 actual fun File.isExecutable(): Boolean = canExecute()
+
+@OptIn(InternalKmpTorApi::class)
+actual val IS_WINDOWS: Boolean by lazy { OSInfo.INSTANCE.osHost is OSHost.Windows }

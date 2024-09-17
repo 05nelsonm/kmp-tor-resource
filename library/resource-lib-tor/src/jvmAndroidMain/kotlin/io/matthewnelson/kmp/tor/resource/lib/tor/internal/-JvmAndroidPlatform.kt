@@ -16,34 +16,16 @@
 package io.matthewnelson.kmp.tor.resource.lib.tor.internal
 
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
+import io.matthewnelson.kmp.tor.common.core.OSArch
 import io.matthewnelson.kmp.tor.common.core.OSHost
-import io.matthewnelson.kmp.tor.common.core.OSInfo
-import io.matthewnelson.kmp.tor.common.core.Resource
-import io.matthewnelson.kmp.tor.resource.lib.tor.ALIAS_TOR
-import io.matthewnelson.kmp.tor.resource.lib.tor.isSupportedBy
-import io.matthewnelson.kmp.tor.resource.lib.tor.torFileName
 
-@Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
-internal inline fun Resource.Config.Builder.configureTorResource(loader: Class<*>) {
-    val host = OSInfo.INSTANCE.osHost
-    if (host is OSHost.Unknown) {
-        error("Unknown host[$host]")
-        return
-    }
-
-    val arch = OSInfo.INSTANCE.osArch
-
-    if (!arch.isSupportedBy(host)) {
-        error("Unsupported architecture[$arch] for host[$host]")
-        return
-    }
-
-    resource(ALIAS_TOR) {
-        isExecutable = true
-        platform {
-            resourceClass = loader
-            resourcePath = "io/matthewnelson/kmp/tor/resource/lib/tor/native/$host/$arch/${host.torFileName}"
-        }
-    }
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun OSHost.toTorResourcePath(
+    arch: OSArch,
+    isLib: Boolean,
+): String {
+    val path = if (isLib) "lib" else "exec"
+    val name = if (isLib) resourceNameLibTor else resourceNameTor
+    return "io/matthewnelson/kmp/tor/resource/$path/tor/native/$this/$arch/$name"
 }

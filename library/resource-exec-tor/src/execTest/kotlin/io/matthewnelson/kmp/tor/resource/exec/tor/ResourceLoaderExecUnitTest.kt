@@ -65,6 +65,15 @@ open class ResourceLoaderExecUnitTest {
             }
         } finally {
             paths.executable.delete()
+            paths.executable.parentFile.let { parent ->
+                listOf(
+                    "libtor.so",
+                    "libtor.dylib",
+                    "tor.dll"
+                ).forEach { libname ->
+                    parent?.resolve(libname)?.delete()
+                }
+            }
             paths.geoips.geoip.delete()
             paths.geoips.geoip6.delete()
             workDir.delete()

@@ -19,8 +19,6 @@ package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
 import io.matthewnelson.kmp.file.File
 
-internal actual val ALIAS_TOR: String = "tor"
-
 @Suppress("NOTHING_TO_INLINE")
 @Throws(IllegalStateException::class)
 internal actual inline fun Map<String, File>.findLibTor(): Map<String, File> = this

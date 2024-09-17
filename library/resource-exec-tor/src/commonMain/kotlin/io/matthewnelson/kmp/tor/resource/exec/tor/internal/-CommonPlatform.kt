@@ -19,7 +19,8 @@ package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
 import io.matthewnelson.kmp.file.File
 
-internal expect val ALIAS_TOR: String
+internal const val ALIAS_TOR: String = "tor"
+internal const val ALIAS_LIB_TOR: String = "libtor"
 
 @Suppress("NOTHING_TO_INLINE")
 @Throws(IllegalStateException::class)

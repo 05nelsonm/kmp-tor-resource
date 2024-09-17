@@ -22,26 +22,32 @@ import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.common.lib.locator.KmpTorLibLocator
-import io.matthewnelson.kmp.tor.resource.lib.tor.configureJavaTorResource
+import io.matthewnelson.kmp.tor.resource.lib.tor.tryConfigureTestTorResources
 
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
 internal actual inline fun Resource.Config.Builder.configureTorResource() {
     if (OSInfo.INSTANCE.isAndroidRuntime()) {
+        val missing = ArrayList<String>(2)
+
         // Is Android Runtime.
         //
         // Binaries are extracted on application install to the
         // nativeLibraryDir. This is required as Android does not
         // allow execution from data directory on API 28+ (cannot
         // download executables and run them).
-        if (KmpTorLibLocator.find("libtor.so") != null) {
-            // Available. Will be configured when extractTo is called.
-            return
+        if (KmpTorLibLocator.find("libtor.so") == null) {
+            missing.add("libtor.so")
         }
+        if (KmpTorLibLocator.find("libtorexec.so") == null) {
+            missing.add("libtorexec.so")
+        }
+
+        if (missing.isEmpty()) return
 
         if (KmpTorLibLocator.isInitialized()) {
             error("""
-                Failed to find 'libtor.so' within nativeLibraryDir.
+                Failed to find $missing within nativeLibraryDir.
     
                 Ensure the following are set correctly:
                 build.gradle(.kts):  'android.packaging.jniLibs.useLegacyPackaging' is set to 'true'
@@ -56,8 +62,8 @@ internal actual inline fun Resource.Config.Builder.configureTorResource() {
         return
     }
 
-    // Not Android runtime. Try using unit test dependency.
-    configureJavaTorResource()
+    // Not Android runtime. Try using unit test dependencies.
+    tryConfigureTestTorResources(aliasLibTor = ALIAS_LIB_TOR, aliasTor = ALIAS_TOR)
 }
 
 @Suppress("NOTHING_TO_INLINE")
@@ -65,6 +71,6 @@ internal actual inline fun Resource.Config.Builder.configureTorResource() {
 internal actual inline fun Map<String, File>.findLibTor(): Map<String, File> {
     if (contains(ALIAS_TOR)) return this
 
-    val lib = KmpTorLibLocator.require("libtor.so")
+    val lib = KmpTorLibLocator.require("libtorexec.so")
     return toMutableMap().apply { put(ALIAS_TOR, lib) }
 }

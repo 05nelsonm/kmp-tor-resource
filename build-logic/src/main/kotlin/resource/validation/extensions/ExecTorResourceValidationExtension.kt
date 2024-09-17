@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+@file:Suppress("PropertyName")
+
 package resource.validation.extensions
 
 import org.gradle.api.Project
 import resource.validation.extensions.internal.SourceSetName.Companion.toSourceSetName
 import resource.validation.extensions.internal.ValidationHash
+import java.io.File
 import javax.inject.Inject
 
 /**
@@ -37,11 +40,33 @@ open class ExecTorResourceValidationExtension private constructor(
     @Inject
     internal constructor(project: Project): this(project, isGpl = false)
 
-    protected open val nativeLinuxArm64: String = "3bdaa80e8f91bdbcd01fc12264c62a7609eb72fcf6e75aecadf77db9c102ba0b"
-    protected open val nativeLinuxX64: String = "a37fcf1105416f391d71fdbc919119967a6216002fc341415ccb895f72f13a75"
-    protected open val nativeMacosArm64: String = "c8fda1ab4f0152cb69dd99a556b1dc421c3d4e643264bebfc67c85c93dc8d701"
-    protected open val nativeMacosX64: String = "d82bf88e8b11852aede6e05a037e6eed9de7f4c2070fbd6f9d6ce033fb60b9f4"
-    protected open val nativeMingwX64: String = "caf6911f6375ba9aa54962282d0132d2cb405beaeb4d1486187e1d77835bf4d0"
+    protected open val androidAarch64: String = ""
+    protected open val androidArmv7: String = ""
+    protected open val androidX86: String = ""
+    protected open val androidX86_64: String = ""
+
+    protected open val jvmLinuxAndroidAarch64: String = ""
+    protected open val jvmLinuxAndroidArmv7: String = ""
+    protected open val jvmLinuxAndroidX86: String = ""
+    protected open val jvmLinuxAndroidX86_64: String = ""
+
+    protected open val jvmLinuxLibcAarch64: String = ""
+    protected open val jvmLinuxLibcArmv7: String = ""
+    protected open val jvmLinuxLibcPpc64: String = ""
+    protected open val jvmLinuxLibcX86: String = ""
+    protected open val jvmLinuxLibcX86_64: String = ""
+
+    protected open val jvmMacosAarch64: String = ""
+    protected open val jvmMacosX86_64: String = ""
+
+    protected open val jvmMingwX86: String = ""
+    protected open val jvmMingwX86_64: String = ""
+
+    protected open val nativeLinuxArm64: String = ""
+    protected open val nativeLinuxX64: String = ""
+    protected open val nativeMacosArm64: String = ""
+    protected open val nativeMacosX64: String = ""
+    protected open val nativeMingwX64: String = ""
 
     /**
      * Resource validation and configuration for module `:library:resource-exec-tor-gpl`,
@@ -51,21 +76,149 @@ open class ExecTorResourceValidationExtension private constructor(
         project: Project,
     ): ExecTorResourceValidationExtension(project, isGpl = true) {
 
-        override val nativeLinuxArm64: String = "6534b86ca6c7d5bb229397e89893c2ac185bc363b1ff9326d2f6aa796199d6af"
-        override val nativeLinuxX64: String = "d25a91a081fbc87195c9d79a1221c3891fc489c40f617d0a5eb4b30f09c7463c"
-        override val nativeMacosArm64: String = "db064f76042f16dac7a422f2e5ebeb4b6c9a2fbc2b9b6f854a20cc66bbc7f781"
-        override val nativeMacosX64: String = "82cc56f489713b5fef35e4e67ff3657778f5b85b61791f37efc63297313c62ee"
-        override val nativeMingwX64: String = "3434411f3043326c9b5d69e389a900d0b17016f33436c8bfa4f823c24d5fa038"
+        override val androidAarch64: String = ""
+        override val androidArmv7: String = ""
+        override val androidX86: String = ""
+        override val androidX86_64: String = ""
+
+        override val jvmLinuxAndroidAarch64: String = ""
+        override val jvmLinuxAndroidArmv7: String = ""
+        override val jvmLinuxAndroidX86: String = ""
+        override val jvmLinuxAndroidX86_64: String = ""
+
+        override val jvmLinuxLibcAarch64: String = ""
+        override val jvmLinuxLibcArmv7: String = ""
+        override val jvmLinuxLibcPpc64: String = ""
+        override val jvmLinuxLibcX86: String = ""
+        override val jvmLinuxLibcX86_64: String = ""
+
+        override val jvmMacosAarch64: String = ""
+        override val jvmMacosX86_64: String = ""
+
+        override val jvmMingwX86: String = ""
+        override val jvmMingwX86_64: String = ""
+
+        override val nativeLinuxArm64: String = ""
+        override val nativeLinuxX64: String = ""
+        override val nativeMacosArm64: String = ""
+        override val nativeMacosX64: String = ""
+        override val nativeMingwX64: String = ""
 
         internal companion object {
             internal const val NAME = "execTorGPLResourceValidation"
         }
     }
 
+    fun configureAndroidJniResources() { configureLibAndroidProtected() }
+    fun jvmNativeLibResourcesSrcDir(): File = jvmNativeLibsResourcesSrcDirProtected()
     fun configureNativeResources() { configureNativeResourcesProtected() }
 
     final override val hashes: Set<ValidationHash> by lazy { setOf(
-        // linux
+        // android
+        ValidationHash.LibAndroid(
+            libname = "libtorexec.so",
+            hashArm64 = androidAarch64,
+            hashArmv7 = androidArmv7,
+            hashX86 = androidX86,
+            hashX86_64 = androidX86_64,
+        ),
+
+        // jvm linux-android
+        ValidationHash.LibNative.JVM(
+            osName = "linux",
+            osSubtype = "android",
+            arch = "aarch64",
+            libName = "tor.gz",
+            hash = jvmLinuxAndroidAarch64,
+        ),
+        ValidationHash.LibNative.JVM(
+            osName = "linux",
+            osSubtype = "android",
+            arch = "armv7",
+            libName = "tor.gz",
+            hash = jvmLinuxAndroidArmv7,
+        ),
+        ValidationHash.LibNative.JVM(
+            osName = "linux",
+            osSubtype = "android",
+            arch = "x86",
+            libName = "tor.gz",
+            hash = jvmLinuxAndroidX86,
+        ),
+        ValidationHash.LibNative.JVM(
+            osName = "linux",
+            osSubtype = "android",
+            arch = "x86_64",
+            libName = "tor.gz",
+            hash = jvmLinuxAndroidX86_64,
+        ),
+
+        // jvm linux-libc
+        ValidationHash.LibNative.JVM(
+            osName = "linux",
+            osSubtype = "libc",
+            arch = "aarch64",
+            libName = "tor.gz",
+            hash = jvmLinuxLibcAarch64,
+        ),
+        ValidationHash.LibNative.JVM(
+            osName = "linux",
+            osSubtype = "libc",
+            arch = "armv7",
+            libName = "tor.gz",
+            hash = jvmLinuxLibcArmv7,
+        ),
+        ValidationHash.LibNative.JVM(
+            osName = "linux",
+            osSubtype = "libc",
+            arch = "ppc64",
+            libName = "tor.gz",
+            hash = jvmLinuxLibcPpc64,
+        ),
+        ValidationHash.LibNative.JVM(
+            osName = "linux",
+            osSubtype = "libc",
+            arch = "x86",
+            libName = "tor.gz",
+            hash = jvmLinuxLibcX86,
+        ),
+        ValidationHash.LibNative.JVM(
+            osName = "linux",
+            osSubtype = "libc",
+            arch = "x86_64",
+            libName = "tor.gz",
+            hash = jvmLinuxLibcX86_64,
+        ),
+
+        // jvm macos
+        ValidationHash.LibNative.JVM(
+            osName = "macos",
+            arch = "aarch64",
+            libName = "tor.gz",
+            hash = jvmMacosAarch64,
+        ),
+        ValidationHash.LibNative.JVM(
+            osName = "macos",
+            arch = "x86_64",
+            libName = "tor.gz",
+            hash = jvmMacosX86_64,
+        ),
+
+        // jvm mingw
+        ValidationHash.LibNative.JVM(
+            osName = "mingw",
+            arch = "x86",
+            libName = "tor.exe.gz",
+            hash = jvmMingwX86,
+        ),
+        ValidationHash.LibNative.JVM(
+            osName = "mingw",
+            arch = "x86_64",
+            libName = "tor.exe.gz",
+            hash = jvmMingwX86_64,
+        ),
+
+        // native linux
         ValidationHash.ResourceNative(
             sourceSetName = "linuxArm64".toSourceSetName(),
             ktFileName = "resource_tor_gz.kt",
@@ -77,7 +230,7 @@ open class ExecTorResourceValidationExtension private constructor(
             hash = nativeLinuxX64,
         ),
 
-        // macos
+        // native macos
         ValidationHash.ResourceNative(
             sourceSetName = "macosArm64".toSourceSetName(),
             ktFileName = "resource_tor_gz.kt",
@@ -89,7 +242,7 @@ open class ExecTorResourceValidationExtension private constructor(
             hash = nativeMacosX64,
         ),
 
-        // mingw
+        // native mingw
         ValidationHash.ResourceNative(
             sourceSetName = "mingwX64".toSourceSetName(),
             ktFileName = "resource_tor_exe_gz.kt",
