@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 fun KmpConfigurationContainerDsl.sourceSetConnect(
     newName: String,
     existingNames: List<String>,
+    dependencyName: String = "common",
     sourceSetTest: Action<KotlinSourceSet>? = null,
     sourceSetMain: Action<KotlinSourceSet>? = null,
 ) {
@@ -36,8 +37,8 @@ fun KmpConfigurationContainerDsl.sourceSetConnect(
 
             val newMain = maybeCreate(newName + "Main")
             val newTest = maybeCreate(newName + "Test")
-            newMain.dependsOn(getByName("commonMain"))
-            newTest.dependsOn(getByName("commonTest"))
+            newMain.dependsOn(getByName(dependencyName + "Main"))
+            newTest.dependsOn(getByName(dependencyName + "Test"))
 
             sourceSets.forEach { (main, test) ->
                 main?.dependsOn(newMain)
