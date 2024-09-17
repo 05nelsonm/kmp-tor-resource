@@ -335,6 +335,7 @@ function package:all { ## Packages all build/out contents & geoip files
   package:android
   package:ios
   package:linux-libc
+  package:macos
   package:mingw
 }
 
@@ -466,6 +467,10 @@ function package:linux-libc { ## Packages all Linux Libc build/out contents
   dirname_final="resource-exec-tor-gpl"
   __package:native "aarch64" "tor" "linuxArm64Main"
   __package:native "x86_64" "tor" "linuxX64Main"
+}
+
+function package:macos { ## Packages all macOS & macOS LTS build/out contents
+  echo ""
 }
 
 function package:mingw { ## Packages all Windows build/out contents
