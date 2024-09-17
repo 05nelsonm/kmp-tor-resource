@@ -24,7 +24,7 @@ function __package:geoip {
   local permissions="664"
   local gzip="yes"
 
-  __package:file:execute "tor/src/config" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/geoip" "$1"
+  __package:file "tor/src/config" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/geoip" "$1"
 
   local native_resource="io.matthewnelson.kmp.tor.resource.geoip.internal"
   __package:file "tor/src/config" "nativeMain" "$1"
@@ -58,6 +58,24 @@ function __package:jvm {
   __package:file "build/out/$dirname_out/$target/$1" "jvmMain/resources/io/matthewnelson/kmp/tor/$rpath_native/native/$target/$1" "$2"
 }
 
+function __package:native {
+  __util:require:var_set "$dirname_out" "dirname_out"
+  __util:require:var_set "$target" "target (e.g. linux-libc)"
+  __util:require:var_set "$native_resource" "native_resource (package name)"
+  __util:require:var_set "$1" "[1] arch"
+  __util:require:var_set "$2" "[2] File name"
+  __util:require:var_set "$3" "[3] Source set name (e.g. linuxArm64Main)"
+
+  if [ -z "$permissions" ]; then
+    local permissions="775"
+  fi
+  if [ -z "$gzip" ]; then
+    local gzip="yes"
+  fi
+
+  __package:file "build/out/$dirname_out/$target/$1" "$3" "$2"
+}
+
 function __package:file {
   __util:require:var_set "$1" "Packaging target dir (relative to dir external/build/)"
   __util:require:var_set "$2" "Module src path (e.g. external/package/resource-lib-tor/src)"
@@ -79,7 +97,7 @@ function __package:file {
   fi
 
   if [ ! -f "$DIR_TASK/$1/$3" ]; then
-    echo "FileNotFound. SKIPPING >> ARGS - 1[$1] - 2[$2] - 3[$3]"
+    echo "FileNotFound. SKIPPING >> ARGS - Target[$1] - Path[$2] - Name[$3]"
     return 0
   fi
 

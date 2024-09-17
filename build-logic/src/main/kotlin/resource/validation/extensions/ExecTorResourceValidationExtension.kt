@@ -50,11 +50,11 @@ open class ExecTorResourceValidationExtension private constructor(
     protected open val jvmLinuxAndroidX86: String = "40adcab2e30e184111d2692965dfbebf750f28e81d2588c89b8c5acae2320ea9"
     protected open val jvmLinuxAndroidX86_64: String = "b3c5a61e6b92c7b50afc8fc3c7ad4cf1dd0104f65c2b48cd2ecef7de2cc6dacf"
 
-    protected open val jvmLinuxLibcAarch64: String = ""
-    protected open val jvmLinuxLibcArmv7: String = ""
-    protected open val jvmLinuxLibcPpc64: String = ""
-    protected open val jvmLinuxLibcX86: String = ""
-    protected open val jvmLinuxLibcX86_64: String = ""
+    protected open val jvmLinuxLibcAarch64: String = "f6c74665fddd77fd0fad795e382820928d70bfa0c6701e1cf1c4441b4c3af8aa"
+    protected open val jvmLinuxLibcArmv7: String = "2f1acc434c1a6ef35dde4983399ec204f54278ce897f3b078c47095ec5df1be9"
+    protected open val jvmLinuxLibcPpc64: String = "6f01fc657be84e680009e87d15c7c2a8b8cc5436631128a6245ae0e19cd41e7b"
+    protected open val jvmLinuxLibcX86: String = "954b20e4e255ff8a8f1a3095fbf5d1cfaf9fd9e1efe880fc82820562b4347b39"
+    protected open val jvmLinuxLibcX86_64: String = "77ce55660baf7eb2157ce820fbb061692343075bab1141a9413f6551b03cf7b6"
 
     protected open val jvmMacosAarch64: String = ""
     protected open val jvmMacosX86_64: String = ""
@@ -62,10 +62,12 @@ open class ExecTorResourceValidationExtension private constructor(
     protected open val jvmMingwX86: String = ""
     protected open val jvmMingwX86_64: String = ""
 
-    protected open val nativeLinuxArm64: String = ""
-    protected open val nativeLinuxX64: String = ""
+    protected open val nativeLinuxArm64: String = "f6c74665fddd77fd0fad795e382820928d70bfa0c6701e1cf1c4441b4c3af8aa"
+    protected open val nativeLinuxX64: String = "77ce55660baf7eb2157ce820fbb061692343075bab1141a9413f6551b03cf7b6"
+
     protected open val nativeMacosArm64: String = ""
     protected open val nativeMacosX64: String = ""
+
     protected open val nativeMingwX64: String = ""
 
     /**
@@ -86,11 +88,11 @@ open class ExecTorResourceValidationExtension private constructor(
         override val jvmLinuxAndroidX86: String = "40adcab2e30e184111d2692965dfbebf750f28e81d2588c89b8c5acae2320ea9"
         override val jvmLinuxAndroidX86_64: String = "b3c5a61e6b92c7b50afc8fc3c7ad4cf1dd0104f65c2b48cd2ecef7de2cc6dacf"
 
-        override val jvmLinuxLibcAarch64: String = ""
-        override val jvmLinuxLibcArmv7: String = ""
-        override val jvmLinuxLibcPpc64: String = ""
-        override val jvmLinuxLibcX86: String = ""
-        override val jvmLinuxLibcX86_64: String = ""
+        override val jvmLinuxLibcAarch64: String = "f6c74665fddd77fd0fad795e382820928d70bfa0c6701e1cf1c4441b4c3af8aa"
+        override val jvmLinuxLibcArmv7: String = "2f1acc434c1a6ef35dde4983399ec204f54278ce897f3b078c47095ec5df1be9"
+        override val jvmLinuxLibcPpc64: String = "6f01fc657be84e680009e87d15c7c2a8b8cc5436631128a6245ae0e19cd41e7b"
+        override val jvmLinuxLibcX86: String = "954b20e4e255ff8a8f1a3095fbf5d1cfaf9fd9e1efe880fc82820562b4347b39"
+        override val jvmLinuxLibcX86_64: String = "77ce55660baf7eb2157ce820fbb061692343075bab1141a9413f6551b03cf7b6"
 
         override val jvmMacosAarch64: String = ""
         override val jvmMacosX86_64: String = ""
@@ -98,10 +100,12 @@ open class ExecTorResourceValidationExtension private constructor(
         override val jvmMingwX86: String = ""
         override val jvmMingwX86_64: String = ""
 
-        override val nativeLinuxArm64: String = ""
-        override val nativeLinuxX64: String = ""
+        override val nativeLinuxArm64: String = "f6c74665fddd77fd0fad795e382820928d70bfa0c6701e1cf1c4441b4c3af8aa"
+        override val nativeLinuxX64: String = "77ce55660baf7eb2157ce820fbb061692343075bab1141a9413f6551b03cf7b6"
+
         override val nativeMacosArm64: String = ""
         override val nativeMacosX64: String = ""
+
         override val nativeMingwX64: String = ""
 
         internal companion object {

@@ -333,6 +333,8 @@ $(
 function package:all { ## Packages geoip files & all build/out contents
   package:geoip
   package:android
+  package:ios
+  package:linux-libc
 }
 
 function package:geoip { ## Packages geoip and geoip6 files
@@ -402,6 +404,79 @@ function package:android { ## Packages all android build/out contents
   __package:jvm "armv7" "tor"
   __package:jvm "x86" "tor"
   __package:jvm "x86_64" "tor"
+}
+
+function package:ios {
+  echo "TODO"
+}
+
+function package:linux-libc {
+  local dirname_out="tor"
+  local dirname_final="resource-lib-tor"
+  local rpath_native="resource/lib/tor"
+  local target="linux-libc"
+
+  __package:jvm "aarch64" "libtor.so"
+  __package:jvm "armv7" "libtor.so"
+  __package:jvm "ppc64" "libtor.so"
+  __package:jvm "x86" "libtor.so"
+  __package:jvm "x86_64" "libtor.so"
+
+  dirname_final="resource-exec-tor"
+  rpath_native="resource/exec/tor"
+
+  __package:jvm "aarch64" "tor"
+  __package:jvm "armv7" "tor"
+  __package:jvm "ppc64" "tor"
+  __package:jvm "x86" "tor"
+  __package:jvm "x86_64" "tor"
+
+  dirname_out="tor-gpl"
+  dirname_final="resource-lib-tor-gpl"
+  rpath_native="resource/lib/tor"
+
+  __package:jvm "aarch64" "libtor.so"
+  __package:jvm "armv7" "libtor.so"
+  __package:jvm "ppc64" "libtor.so"
+  __package:jvm "x86" "libtor.so"
+  __package:jvm "x86_64" "libtor.so"
+
+  dirname_final="resource-exec-tor-gpl"
+  rpath_native="resource/exec/tor"
+
+  __package:jvm "aarch64" "tor"
+  __package:jvm "armv7" "tor"
+  __package:jvm "ppc64" "tor"
+  __package:jvm "x86" "tor"
+  __package:jvm "x86_64" "tor"
+
+  unset rpath_native
+
+  dirname_out="tor"
+  dirname_final="resource-lib-tor"
+  local native_resource="io.matthewnelson.kmp.tor.resource.lib.tor.internal"
+
+  __package:native "aarch64" "libtor.so" "linuxArm64Main"
+  __package:native "x86_64" "libtor.so" "linuxX64Main"
+
+  dirname_out="tor-gpl"
+  dirname_final="resource-lib-tor-gpl"
+
+  __package:native "aarch64" "libtor.so" "linuxArm64Main"
+  __package:native "x86_64" "libtor.so" "linuxX64Main"
+
+  dirname_out="tor"
+  dirname_final="resource-exec-tor"
+  native_resource="io.matthewnelson.kmp.tor.resource.exec.tor.internal"
+
+  __package:native "aarch64" "tor" "linuxArm64Main"
+  __package:native "x86_64" "tor" "linuxX64Main"
+
+  dirname_out="tor-gpl"
+  dirname_final="resource-exec-tor-gpl"
+
+  __package:native "aarch64" "tor" "linuxArm64Main"
+  __package:native "x86_64" "tor" "linuxX64Main"
 }
 
 function sign:macos { ## 2 ARGS - [1]: smartcard-slot (e.g. 9c)  [2]: /path/to/app/store/connect/api_key.json
