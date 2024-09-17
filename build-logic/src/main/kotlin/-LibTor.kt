@@ -89,6 +89,7 @@ fun KmpConfigurationExtension.configureLibTor(
         }
 
         linuxAll()
+        macosAll()
         mingwAll()
 
         common {

@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-@file:Suppress("KotlinRedundantDiagnosticSuppress")
-
-package io.matthewnelson.kmp.tor.resource.exec.tor.internal
+package io.matthewnelson.kmp.tor.resource.lib.tor
 
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
-import io.matthewnelson.kmp.tor.resource.lib.tor.configureLibTorResource
+import io.matthewnelson.kmp.tor.resource.lib.tor.internal.resource_libtor_dylib_gz
 
-@Suppress("NOTHING_TO_INLINE")
-@OptIn(InternalKmpTorApi::class)
-internal actual inline fun Resource.Config.Builder.configureTorResource() {
-    resource(ALIAS_TOR) {
+@InternalKmpTorApi
+public fun Resource.Config.Builder.configureLibTorResource(alias: String) {
+    resource(alias) {
         isExecutable = true
         platform {
-            nativeResource = resource_tor_gz
+            nativeResource = resource_libtor_dylib_gz
         }
     }
-    configureLibTorResource(ALIAS_LIB_TOR)
 }

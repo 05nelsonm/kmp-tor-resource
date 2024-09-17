@@ -555,14 +555,15 @@ if needs_execution "$DIR_SCRIPT" "tor-gpl" "lib/libtor.a" "include/orconfig.h" "
 fi
 '
 
-  __build:configure:target:finalize:output
+  __build:configure:target:finalize:output:shared
+  __build:configure:target:finalize:output:static
 
   mkdir -p "$DIR_BUILD"
   echo "$CONF_SCRIPT" > "$DIR_BUILD/build.sh"
   chmod +x "$DIR_BUILD/build.sh"
 }
 
-function __build:configure:target:finalize:output {
+function __build:configure:target:finalize:output:shared {
   __util:require:var_set "$os_arch" "os_arch"
   __util:require:var_set "$os_name" "os_name"
   __util:require:var_set "$DIR_OUT_SUFFIX" "DIR_OUT_SUFFIX"
@@ -588,28 +589,12 @@ function __build:configure:target:finalize:output {
     "linux")
       # Defaults
       ;;
-    "macos"|"ios"|"tvos"|"watchos")
-
-      if [ "$os_subtype" != "-lts" ]; then
-        # Not macOS Jvm/Node.js
-        is_framework=true
-        exec_ldflags=""
-        shared_name="LibTor"
-      else
-        # Jvm/Node.js
-        shared_name="libtor.dylib"
-      fi
-
+    "macos")
       is_apple=true
+      shared_name="libtor.dylib"
       strip_flags="${strip_flags}u"
-
-      if $is_framework; then
-        shared_cflags="-dynamiclib -Wl,-install_name,\"@rpath/\$_libname.framework/\$_libname\""
-        shared_ldadd='-rpath "@executable_path/Frameworks" -rpath "@loader_path/Frameworks"'
-      else
-        shared_cflags="-dynamiclib"
-        shared_ldadd=""
-      fi
+      shared_cflags="-dynamiclib"
+      shared_ldadd=""
       ;;
     "mingw")
       shared_name="tor.dll"
@@ -621,6 +606,9 @@ function __build:configure:target:finalize:output {
       # tor-browser-build.
       exec_ldflags="$exec_ldflags -Wl,--subsystem,console"
       ;;
+    "ios"|"tvos"|"watchos")
+      return 0
+      ;;
     *)
       __util:error "Unknown os_name[$os_name]"
       ;;
@@ -631,18 +619,6 @@ function __build:configure:target:finalize:output {
   __util:require:var_set "$exec_name" "exec_name"
   __util:require:var_set "$strip_flags" "strip_flags"
 
-  __build:SCRIPT 'libname() {'
-  if $is_framework; then
-    __build:SCRIPT '  if [ "$1" = "tor-gpl" ]; then'
-    __build:SCRIPT "    echo \"${shared_name}GPL\""
-    __build:SCRIPT '  else'
-    __build:SCRIPT "    echo \"$shared_name\""
-    __build:SCRIPT '  fi'
-  else
-    __build:SCRIPT "  echo \"$shared_name\""
-  fi
-  __build:SCRIPT '}'
-  __build:SCRIPT ''
   __build:SCRIPT 'compile_shared() {'
   __build:SCRIPT '  echo "    * Compiling shared-$1 (shared library + linked executable)"'
   __build:SCRIPT ''
@@ -655,10 +631,8 @@ function __build:configure:target:finalize:output {
   __build:SCRIPT '  cp -a "$DIR_SCRIPT/$1/include/orconfig.h" "$DIR_TMP/shared-$1"'
   __build:SCRIPT '  cd "$DIR_TMP/shared-$1"'
   __build:SCRIPT ''
-  __build:SCRIPT '  _libname="$(libname "$1")"'
-  __build:SCRIPT ''
   __build:SCRIPT "  \$CC \$CFLAGS $shared_cflags \\"
-  __build:SCRIPT '    -o "$_libname" \'
+  __build:SCRIPT "    -o $shared_name \\"
 
   if $is_apple; then
     __build:SCRIPT '    $LDFLAGS -Wl,-force_load \'
@@ -683,18 +657,17 @@ function __build:configure:target:finalize:output {
   __build:SCRIPT ''
   __build:SCRIPT '  $CC $CFLAGS tor_main.c \'
   __build:SCRIPT "    -o $exec_name $exec_ldflags \\"
-  __build:SCRIPT '    "$_libname"'
+  __build:SCRIPT "    $shared_name"
   __build:SCRIPT ''
-  __build:SCRIPT '  cp -a "$_libname" "$DIR_SCRIPT/shared-$1/bin"'
+  __build:SCRIPT "  cp -a $shared_name \"\$DIR_SCRIPT/shared-\$1/bin\""
   __build:SCRIPT "  cp -a $exec_name \"\$DIR_SCRIPT/shared-\$1/bin\""
-  __build:SCRIPT '  unset _libname'
   __build:SCRIPT '}'
 
   __build:SCRIPT "
-if needs_execution \"\$DIR_SCRIPT\" \"shared-tor\" \"bin/$exec_name\" \"bin/\$(libname \"tor\")\"; then
+if needs_execution \"\$DIR_SCRIPT\" \"shared-tor\" \"bin/$exec_name\" \"bin/$shared_name\"; then
   compile_shared \"tor\"
 fi
-if needs_execution \"\$DIR_SCRIPT\" \"shared-tor-gpl\" \"bin/$exec_name\" \"bin/\$(libname \"tor-gpl\")\"; then
+if needs_execution \"\$DIR_SCRIPT\" \"shared-tor-gpl\" \"bin/$exec_name\" \"bin/$shared_name\"; then
   compile_shared \"tor-gpl\"
 fi
 "
@@ -705,16 +678,15 @@ fi
   __build:SCRIPT '  cd "$DIR_EXTERNAL/build"'
   __build:SCRIPT "  _bin=\"stage/$DIR_OUT_SUFFIX/shared-\$1/bin\""
   __build:SCRIPT "  _out=\"out/\$1/$DIR_OUT_SUFFIX\""
-  __build:SCRIPT '  _libname="$(libname "$1")"'
   __build:SCRIPT ''
   __build:SCRIPT '  rm -rf "$_out"'
   __build:SCRIPT '  mkdir -p "$_out"'
   __build:SCRIPT ''
-  __build:SCRIPT '  cp -a "$_bin/$_libname" "$_out"'
+  __build:SCRIPT "  cp -a \"\$_bin/$shared_name\" \"\$_out\""
   __build:SCRIPT "  cp -a \"\$_bin/$exec_name\" \"\$_out\""
   __build:SCRIPT "  cp -aR \"stage/$DIR_OUT_SUFFIX/\$1/include\" \"\$_out\""
   __build:SCRIPT ''
-  __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/\$_libname\" 2>/dev/null"
+  __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$shared_name\" 2>/dev/null"
   __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$exec_name\" 2>/dev/null"
   __build:SCRIPT ''
 
@@ -722,7 +694,7 @@ fi
     __build:SCRIPT "  _out_linux=\"out/\$1/linux-android/$os_arch\""
     __build:SCRIPT '  rm -rf "$_out_linux"'
     __build:SCRIPT '  mkdir -p "$_out_linux"'
-    __build:SCRIPT '  cp -a "$_out/$_libname" "$_out_linux"'
+    __build:SCRIPT "  cp -a \"\$_out/$shared_name\" \"\$_out_linux\""
     __build:SCRIPT "  cp -a \"\$_out/$exec_name\" \"\$_out_linux/tor\""
     __build:SCRIPT '  cp -aR "$_out/include" "$_out_linux"'
     __build:SCRIPT '  unset _out_linux'
@@ -731,33 +703,84 @@ fi
   fi
 
   __build:SCRIPT "  echo \"        STRIP[\$STRIP $strip_flags]\""
-  __build:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/\$_libname\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"\$_libname\")\""
-  __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/\$_libname\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"\$_libname\")\""
+  __build:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/$shared_name\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"$shared_name\")\""
+  __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/$shared_name\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"$shared_name\")\""
   __build:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/$exec_name\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"$exec_name\")\""
   __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/$exec_name\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"$exec_name\")\""
   __build:SCRIPT ''
   __build:SCRIPT '  unset _bin'
   __build:SCRIPT '  unset _out'
-  __build:SCRIPT '  unset _libname'
   __build:SCRIPT '}'
 
   __build:SCRIPT "
-if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/$DIR_OUT_SUFFIX\" \"$exec_name\" \"\$(libname \"tor\")\" \"include/orconfig.h\" \"include/tor_api.h\"; then
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/$DIR_OUT_SUFFIX\" \"$exec_name\" \"$shared_name\" \"include/orconfig.h\" \"include/tor_api.h\"; then
   install_shared \"tor\"
 fi
-if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/$DIR_OUT_SUFFIX\" \"$exec_name\" \"\$(libname \"tor-gpl\")\" \"include/orconfig.h\" \"include/tor_api.h\"; then
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/$DIR_OUT_SUFFIX\" \"$exec_name\" \"$shared_name\" \"include/orconfig.h\" \"include/tor_api.h\"; then
   install_shared \"tor-gpl\"
 fi"
 
   if [ "$os_name" = "android" ]; then
     __build:SCRIPT "
-if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/linux-$os_name/$os_arch\" \"tor\" \"\$(libname \"tor\")\" \"include/orconfig.h\" \"include/tor_api.h\"; then
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/linux-$os_name/$os_arch\" \"tor\" \"$shared_name\" \"include/orconfig.h\" \"include/tor_api.h\"; then
   install_shared \"tor\"
 fi
-if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/linux-$os_name/$os_arch\" \"tor\" \"\$(libname \"tor-gpl\")\" \"include/orconfig.h\" \"include/tor_api.h\"; then
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/linux-$os_name/$os_arch\" \"tor\" \"$shared_name\" \"include/orconfig.h\" \"include/tor_api.h\"; then
   install_shared \"tor-gpl\"
 fi"
   fi
+}
+
+function __build:configure:target:finalize:output:static {
+  __util:require:var_set "$os_arch" "os_arch"
+  __util:require:var_set "$os_name" "os_name"
+  __util:require:var_set "$DIR_OUT_SUFFIX" "DIR_OUT_SUFFIX"
+
+  case "$os_name" in
+    "ios"|"tvos"|"watchos")
+      ;;
+    "android"|"linux"|"macos"|"mingw")
+      return 0
+      ;;
+    *)
+      __util:error "Unknown os_name[$os_name]"
+      ;;
+  esac
+
+  __build:SCRIPT 'install_static() {'
+  __build:SCRIPT '  echo "    * Installing static compilations for $1"'
+  __build:SCRIPT ''
+  __build:SCRIPT '  cd "$DIR_EXTERNAL/build"'
+  __build:SCRIPT "  _out=\"out/\$1/$DIR_OUT_SUFFIX\""
+  __build:SCRIPT ''
+  __build:SCRIPT '  rm -rf "$_out"'
+  __build:SCRIPT '  mkdir -p "$_out"'
+  __build:SCRIPT ''
+  __build:SCRIPT "  cp -a \"stage/$DIR_OUT_SUFFIX/zlib/lib/libz.a\" \"\$_out\""
+  __build:SCRIPT "  cp -a \"stage/$DIR_OUT_SUFFIX/xz/lib/liblzma.a\" \"\$_out\""
+  __build:SCRIPT "  cp -a \"stage/$DIR_OUT_SUFFIX/openssl/lib/libcrypto.a\" \"\$_out\""
+  __build:SCRIPT "  cp -a \"stage/$DIR_OUT_SUFFIX/openssl/lib/libssl.a\" \"\$_out\""
+  __build:SCRIPT "  cp -a \"stage/$DIR_OUT_SUFFIX/libevent/lib/libevent.a\" \"\$_out\""
+  __build:SCRIPT "  cp -a \"stage/$DIR_OUT_SUFFIX/\$1/lib/libtor.a\" \"\$_out\""
+  __build:SCRIPT "  cp -aR \"stage/$DIR_OUT_SUFFIX/\$1/include\" \"\$_out\""
+  __build:SCRIPT ''
+  __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/libz.a\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"libz.a\")\""
+  __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/liblzma.a\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"liblzma.a\")\""
+  __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/libcrypto.a\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"libcrypto.a\")\""
+  __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/libssl.a\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"libssl.a\")\""
+  __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/libevent.a\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"libevent.a\")\""
+  __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/libtor.a\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"libtor.a\")\""
+  __build:SCRIPT ''
+  __build:SCRIPT '  unset _out'
+  __build:SCRIPT '}'
+
+  __build:SCRIPT "
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/$DIR_OUT_SUFFIX\" \"libz.a\" \"liblzma.a\" \"libcrypto.a\" \"libssl.a\" \"libevent.a\" \"libtor.a\" \"include/orconfig.h\" \"include/tor_api.h\"; then
+  install_static \"tor\"
+fi
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/$DIR_OUT_SUFFIX\" \"libz.a\" \"liblzma.a\" \"libcrypto.a\" \"libssl.a\" \"libevent.a\" \"libtor.a\" \"include/orconfig.h\" \"include/tor_api.h\"; then
+  install_static \"tor-gpl\"
+fi"
 }
 
 function __build:docker:execute {

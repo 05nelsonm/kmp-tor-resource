@@ -19,6 +19,7 @@ package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
+import io.matthewnelson.kmp.tor.resource.lib.tor.configureLibTorResource
 
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
@@ -29,4 +30,5 @@ internal actual inline fun Resource.Config.Builder.configureTorResource() {
             nativeResource = resource_tor_gz
         }
     }
+    configureLibTorResource(ALIAS_LIB_TOR)
 }

@@ -97,15 +97,6 @@ fun KmpConfigurationExtension.configureExecTor(
         kotlin { execResourceValidation.configureNativeResources() }
 
         sourceSetConnect(
-            "nonDarwin",
-            listOf("jvmAndroid", "js", "linux", "mingw"),
-            sourceSetMain = {
-                dependencies {
-                    implementation(project(":library:resource-lib-tor$suffix"))
-                }
-            },
-        )
-        sourceSetConnect(
             "exec",
             listOf(
                 "jvmAndroid",
@@ -119,6 +110,7 @@ fun KmpConfigurationExtension.configureExecTor(
                 dependencies {
                     implementation(libs.kmp.tor.common.core)
                     implementation(project(":library:resource-geoip"))
+                    implementation(project(":library:resource-lib-tor$suffix"))
                 }
             },
             sourceSetTest = {

@@ -64,6 +64,8 @@ open class LibTorResourceValidationExtension private constructor(
 
     protected open val nativeLinuxArm64: String = ""
     protected open val nativeLinuxX64: String = ""
+    protected open val nativeMacosArm64: String = ""
+    protected open val nativeMacosX64: String = ""
     protected open val nativeMingwX64: String = ""
 
     /**
@@ -98,6 +100,8 @@ open class LibTorResourceValidationExtension private constructor(
 
         override val nativeLinuxArm64: String = ""
         override val nativeLinuxX64: String = ""
+        override val nativeMacosArm64: String = ""
+        override val nativeMacosX64: String = ""
         override val nativeMingwX64: String = ""
 
         internal companion object {
@@ -223,6 +227,18 @@ open class LibTorResourceValidationExtension private constructor(
         ValidationHash.ResourceNative(
             sourceSetName = "linuxX64".toSourceSetName(),
             ktFileName = "resource_libtor_so_gz.kt",
+            hash = nativeLinuxX64,
+        ),
+
+        // native macos
+        ValidationHash.ResourceNative(
+            sourceSetName = "macosArm64".toSourceSetName(),
+            ktFileName = "resource_libtor_dylib_gz.kt",
+            hash = nativeLinuxArm64,
+        ),
+        ValidationHash.ResourceNative(
+            sourceSetName = "macosX64".toSourceSetName(),
+            ktFileName = "resource_libtor_dylib_gz.kt",
             hash = nativeLinuxX64,
         ),
 
