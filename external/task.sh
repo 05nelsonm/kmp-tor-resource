@@ -330,35 +330,78 @@ $(
   "
 }
 
-function package { ## Packages build dir output
-  DIR_STAGING="$(mktemp -d)"
-  trap 'rm -rf "$DIR_STAGING"' SIGINT ERR
+function package:all { ## Packages geoip files & all build/out contents
+  package:geoip
+  package:android
+}
 
-  local dirname_out=
+function package:geoip { ## Packages geoip and geoip6 files
   local dirname_final="resource-geoip"
-  local libname=
   __package:geoip "geoip"
   __package:geoip "geoip6"
+}
 
-#  dirname_out="tor"
-#  dirname_final="resource-shared-$dirname_out"
-#  libname="tor"
-#  __package:libs:shared
-#
-#  dirname_out="tor-gpl"
-#  dirname_final="resource-shared-$dirname_out"
-#  __package:libs:shared
-#
-#  dirname_out="tor"
-#  dirname_final="resource-exec-$dirname_out"
-#  __package:libs:native:exec
-#
-#  dirname_out="tor-gpl"
-#  dirname_final="resource-exec-$dirname_out"
-#  __package:libs:native:exec
+function package:android { ## Packages all android build/out contents
+  local dirname_out="tor"
+  local dirname_final="resource-lib-tor"
 
-  rm -rf "$DIR_STAGING"
-  trap - SIGINT ERR
+  __package:android "arm64-v8a" "libtor.so"
+  __package:android "armeabi-v7a" "libtor.so"
+  __package:android "x86" "libtor.so"
+  __package:android "x86_64" "libtor.so"
+
+  dirname_final="resource-exec-tor"
+
+  __package:android "arm64-v8a" "libtorexec.so"
+  __package:android "armeabi-v7a" "libtorexec.so"
+  __package:android "x86" "libtorexec.so"
+  __package:android "x86_64" "libtorexec.so"
+
+  dirname_out="tor-gpl"
+  dirname_final="resource-lib-tor-gpl"
+
+  __package:android "arm64-v8a" "libtor.so"
+  __package:android "armeabi-v7a" "libtor.so"
+  __package:android "x86" "libtor.so"
+  __package:android "x86_64" "libtor.so"
+
+  dirname_final="resource-exec-tor-gpl"
+
+  __package:android "arm64-v8a" "libtorexec.so"
+  __package:android "armeabi-v7a" "libtorexec.so"
+  __package:android "x86" "libtorexec.so"
+  __package:android "x86_64" "libtorexec.so"
+
+  dirname_out="tor"
+  dirname_final="resource-lib-tor"
+  local rpath_native="resource/lib/tor"
+  local target="linux-android"
+  __package:jvm "aarch64" "libtor.so"
+  __package:jvm "armv7" "libtor.so"
+  __package:jvm "x86" "libtor.so"
+  __package:jvm "x86_64" "libtor.so"
+
+  dirname_final="resource-exec-tor"
+  rpath_native="resource/exec/tor"
+  __package:jvm "aarch64" "tor"
+  __package:jvm "armv7" "tor"
+  __package:jvm "x86" "tor"
+  __package:jvm "x86_64" "tor"
+
+  dirname_out="tor-gpl"
+  dirname_final="resource-lib-tor-gpl"
+  rpath_native="resource/lib/tor"
+  __package:jvm "aarch64" "libtor.so"
+  __package:jvm "armv7" "libtor.so"
+  __package:jvm "x86" "libtor.so"
+  __package:jvm "x86_64" "libtor.so"
+
+  dirname_final="resource-exec-tor-gpl"
+  rpath_native="resource/exec/tor"
+  __package:jvm "aarch64" "tor"
+  __package:jvm "armv7" "tor"
+  __package:jvm "x86" "tor"
+  __package:jvm "x86_64" "tor"
 }
 
 function sign:macos { ## 2 ARGS - [1]: smartcard-slot (e.g. 9c)  [2]: /path/to/app/store/connect/api_key.json
@@ -371,8 +414,8 @@ function sign:macos { ## 2 ARGS - [1]: smartcard-slot (e.g. 9c)  [2]: /path/to/a
   local smartcard_slot="$1"
   local path_apikey="$2"
 
-  __sign:generate:macos "aarch64"
-  __sign:generate:macos "x86_64"
+  __sign:generate:detached:macos "aarch64"
+  __sign:generate:detached:macos "x86_64"
 }
 
 function sign:mingw { ## Codesign mingw binaries (see codesign/windows.pkcs11.sample)
@@ -386,12 +429,12 @@ function sign:mingw { ## Codesign mingw binaries (see codesign/windows.pkcs11.sa
   local file_names="tor.dll,tor.exe"
   local dirname_out="tor"
 
-  __sign:generate:mingw "x86"
-  __sign:generate:mingw "x86_64"
+  __sign:generate:detached:mingw "x86"
+  __sign:generate:detached:mingw "x86_64"
 
   dirname_out="tor-gpl"
-  __sign:generate:mingw "x86"
-  __sign:generate:mingw "x86_64"
+  __sign:generate:detached:mingw "x86"
+  __sign:generate:detached:mingw "x86_64"
 }
 
 function validate { ## Checks the build/package directory output against expected sha256 hashes
@@ -444,6 +487,7 @@ else
   cd "$DIR_TASK"
   mkdir -p "build"
 
+  _is_sign=false
   if echo "$CMD_TASK" | grep -q "^build"; then
     . "$DIR_TASK/source.task/source.build.sh"
     __util:require:cmd "$GIT" "git"
@@ -472,10 +516,12 @@ else
     __util:git:clean "tor"
 
     __util:require:no_build_lock
-    trap 'rm -rf "$FILE_BUILD_LOCK"' EXIT
+    trap 'rm -rf "$FILE_BUILD_LOCK"; rm -rf "$DIR_STAGING"' EXIT
     echo "$CMD_TASK" > "$FILE_BUILD_LOCK"
+    DIR_STAGING="$(mktemp -d)"
   elif echo "$CMD_TASK" | grep -q "^sign"; then
     . "$DIR_TASK/source.task/source.sign.sh"
+    _is_sign=true
     trap 'rm -rf "$FILE_BUILD_LOCK"' EXIT
     echo "$CMD_TASK" > "$FILE_BUILD_LOCK"
   elif echo "$CMD_TASK" | grep -q "^validate"; then
@@ -485,5 +531,9 @@ else
   TIMEFORMAT="
     Task '$CMD_TASK' completed in %3lR
   "
-  time "$CMD_TASK"
+  if $_is_sign; then
+    time "$CMD_TASK" "$@"
+  else
+    time "$CMD_TASK"
+  fi
 fi

@@ -26,7 +26,7 @@ function __sign:input:hsm_pin {
   echo ""
 }
 
-function __sign:generate:macos {
+function __sign:generate:detached:macos {
   __util:require:cmd "$RCODESIGN" "rcodesign"
   __util:require:var_set "$hsm_pin" "HSM PIN"
   __util:require:var_set "$1" "arch"
@@ -46,7 +46,7 @@ function __sign:generate:macos {
   trap - SIGINT ERR
 }
 
-function __sign:generate:mingw {
+function __sign:generate:detached:mingw {
   __util:require:cmd "$OSSLSIGNCODE" "osslsigncode"
   __util:require:var_set "$hsm_pin" "HSM PIN"
   __util:require:var_set "$1" "arch"

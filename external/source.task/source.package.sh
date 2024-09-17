@@ -18,99 +18,51 @@
 # Dependency
 . "$DIR_TASK/source.task/source.docker.sh"
 
-function __package:libs:shared {
-  __util:require:var_set "$libname" "libname"
-  __util:require:var_set "$dirname_final" "dirname_final"
-  __util:require:var_set "$dirname_out" "dirname_out"
-
-  __package:android "arm64-v8a"
-  __package:android "armeabi-v7a"
-  __package:android "x86"
-  __package:android "x86_64"
-
-  __package:jvm "linux-android/aarch64" "$libname"
-  __package:jvm "linux-android/armv7" "$libname"
-  __package:jvm "linux-android/x86" "$libname"
-  __package:jvm "linux-android/x86_64" "$libname"
-  __package:jvm "linux-libc/aarch64" "$libname"
-  __package:jvm "linux-libc/armv7" "$libname"
-  __package:jvm "linux-libc/ppc64" "$libname"
-  __package:jvm "linux-libc/x86" "$libname"
-  __package:jvm "linux-libc/x86_64" "$libname"
-
-  __package:jvm:codesigned "macos-lts/aarch64" "$libname"
-  __package:jvm:codesigned "macos-lts/x86_64" "$libname"
-
-  # Jvm/Js utilize the LTS builds. Need to move them into
-  # their final resting place 'macos-lts' -> 'macos'
-  local dir_native="build/package/$dirname_final/src/jvmMain/resources/io/matthewnelson/kmp/tor/resource/shared/tor/native"
-  if [ -d "$dir_native/macos-lts" ]; then
-    rm -rf "$dir_native/macos"
-    mv -v "$dir_native/macos-lts" "$dir_native/macos"
-  fi
-  unset dir_native
-
-  __package:jvm:codesigned "mingw/x86" "$libname.exe"
-  __package:jvm:codesigned "mingw/x86_64" "$libname.exe"
-}
-
-function __package:libs:native:exec {
-  __util:require:var_set "$libname" "libname"
-  __util:require:var_set "$dirname_final" "dirname_final"
-  __util:require:var_set "$dirname_out" "dirname_out"
-
-  __package:native:exec "linux-libc/aarch64" "$libname" "linuxArm64Main"
-  __package:native:exec "linux-libc/x86_64" "$libname" "linuxX64Main"
-  __package:native:exec:codesigned "macos/aarch64" "$libname" "macosArm64Main"
-  __package:native:exec:codesigned "macos/x86_64" "$libname" "macosX64Main"
-  __package:native:exec:codesigned "mingw/x86_64" "$libname.exe" "mingwX64Main"
-}
-
 function __package:geoip {
+  __util:require:var_set "$1" "geoip file name"
+
   local permissions="664"
   local gzip="yes"
 
-  __package "tor/src/config" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/geoip" "$1"
+  __package:file:execute "tor/src/config" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/geoip" "$1"
 
   local native_resource="io.matthewnelson.kmp.tor.resource.geoip.internal"
-  __package "tor/src/config" "nativeMain" "$1"
+  __package:file "tor/src/config" "nativeMain" "$1"
 }
 
 function __package:android {
+  __util:require:var_set "$dirname_out" "dirname_out"
+  __util:require:var_set "$1" "[1] ndk abi"
+  __util:require:var_set "$2" "[2] Lib name"
+
   local permissions="755"
-  # no gzip
-  __package "build/out/$dirname_out/android/$1" "androidMain/jniLibs/$1" "lib$libname.so"
+  unset gzip
+
+  __package:file "build/out/$dirname_out/android/$1" "androidMain/jniLibs/$1" "$2"
 }
 
 function __package:jvm {
-  local permissions="755"
-  local gzip="yes"
-  __package "build/out/$dirname_out/$1" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/shared/tor/native/$1" "$2"
+  __util:require:var_set "$dirname_out" "dirname_out"
+  __util:require:var_set "$rpath_native" "rpath_native (e.g. jvmMain/resources/io/matthewnelson/kmp/tor/{rpath_native}/native/{target}/{arch})"
+  __util:require:var_set "$target" "target (e.g. linux-android)"
+  __util:require:var_set "$1" "[1] arch"
+  __util:require:var_set "$2" "[2] File name"
+
+  if [ -z "$permissions" ]; then
+    local permissions="775"
+  fi
+  if [ -z "$gzip" ]; then
+    local gzip="yes"
+  fi
+
+  __package:file "build/out/$dirname_out/$target/$1" "jvmMain/resources/io/matthewnelson/kmp/tor/$rpath_native/native/$target/$1" "$2"
 }
 
-function __package:jvm:codesigned {
-  local detached_sig="$1"
-  __package:jvm "$@"
-}
-
-function __package:native:exec {
-  local permissions="755"
-  local gzip="yes"
-  local native_resource="io.matthewnelson.kmp.tor.resource.exec.tor.internal"
-  __package "build/out/$dirname_out/$1" "$3" "$2"
-}
-
-function __package:native:exec:codesigned {
-  local detached_sig="$1"
-  __package:native:exec "$@"
-}
-
-function __package {
+function __package:file {
   __util:require:var_set "$1" "Packaging target dir (relative to dir external/build/)"
-  __util:require:var_set "$2" "Binary module src path (e.g. external/package/resource-shared-tor/src)"
+  __util:require:var_set "$2" "Module src path (e.g. external/package/resource-lib-tor/src)"
   __util:require:var_set "$3" "File name"
   __util:require:var_set "$dirname_final" "dirname_final"
-
   __util:require:var_set "$permissions" "permissions"
   __util:require:var_set "$DIR_STAGING" "DIR_STAGING"
 
@@ -168,4 +120,69 @@ function __package {
 
     rm -rf "$DIR_STAGING/$3$file_ext"
   fi
+}
+
+function __package:libs:shared {
+  __util:require:var_set "$libname" "libname"
+  __util:require:var_set "$dirname_final" "dirname_final"
+  __util:require:var_set "$dirname_out" "dirname_out"
+
+  __package:android "arm64-v8a"
+  __package:android "armeabi-v7a"
+  __package:android "x86"
+  __package:android "x86_64"
+
+  __package:jvm "linux-android/aarch64" "$libname"
+  __package:jvm "linux-android/armv7" "$libname"
+  __package:jvm "linux-android/x86" "$libname"
+  __package:jvm "linux-android/x86_64" "$libname"
+  __package:jvm "linux-libc/aarch64" "$libname"
+  __package:jvm "linux-libc/armv7" "$libname"
+  __package:jvm "linux-libc/ppc64" "$libname"
+  __package:jvm "linux-libc/x86" "$libname"
+  __package:jvm "linux-libc/x86_64" "$libname"
+
+  __package:jvm:codesigned "macos-lts/aarch64" "$libname"
+  __package:jvm:codesigned "macos-lts/x86_64" "$libname"
+
+  # Jvm/Js utilize the LTS builds. Need to move them into
+  # their final resting place 'macos-lts' -> 'macos'
+  local dir_native="build/package/$dirname_final/src/jvmMain/resources/io/matthewnelson/kmp/tor/resource/shared/tor/native"
+  if [ -d "$dir_native/macos-lts" ]; then
+    rm -rf "$dir_native/macos"
+    mv -v "$dir_native/macos-lts" "$dir_native/macos"
+  fi
+  unset dir_native
+
+  __package:jvm:codesigned "mingw/x86" "$libname.exe"
+  __package:jvm:codesigned "mingw/x86_64" "$libname.exe"
+}
+
+function __package:libs:native:exec {
+  __util:require:var_set "$libname" "libname"
+  __util:require:var_set "$dirname_final" "dirname_final"
+  __util:require:var_set "$dirname_out" "dirname_out"
+
+  __package:native:exec "linux-libc/aarch64" "$libname" "linuxArm64Main"
+  __package:native:exec "linux-libc/x86_64" "$libname" "linuxX64Main"
+  __package:native:exec:codesigned "macos/aarch64" "$libname" "macosArm64Main"
+  __package:native:exec:codesigned "macos/x86_64" "$libname" "macosX64Main"
+  __package:native:exec:codesigned "mingw/x86_64" "$libname.exe" "mingwX64Main"
+}
+
+function __package:jvm:codesigned {
+  local detached_sig="$1"
+  __package:jvm "$@"
+}
+
+function __package:native:exec {
+  local permissions="755"
+  local gzip="yes"
+  local native_resource="io.matthewnelson.kmp.tor.resource.exec.tor.internal"
+  __package "build/out/$dirname_out/$1" "$3" "$2"
+}
+
+function __package:native:exec:codesigned {
+  local detached_sig="$1"
+  __package:native:exec "$@"
 }
