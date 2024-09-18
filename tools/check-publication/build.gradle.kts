@@ -84,11 +84,21 @@ kmpConfiguration {
             }
         }
 
-        sourceSetConnect("nonNative", listOf("jvmAndroid", "js")) {
-            dependencies {
-                implementation("$group:resource-lib-tor:$version")
-                implementation("$group:resource-lib-tor-gpl:$version")
-            }
-        }
+        sourceSetConnect(
+            "libTor",
+            listOf(
+                "jvmAndroid",
+                "js",
+                "linux",
+                "macos",
+                "mingw",
+            ),
+            sourceSetMain = {
+                dependencies {
+                    implementation("$group:resource-lib-tor:$version")
+                    implementation("$group:resource-lib-tor-gpl:$version")
+                }
+            },
+        )
     }
 }

@@ -579,7 +579,6 @@ function __build:configure:target:finalize:output:shared {
   local strip_flags="-D"
 
   local is_apple=false
-  local is_framework=false
 
   case "$os_name" in
     "android")

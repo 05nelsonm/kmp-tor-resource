@@ -1,5 +1,3 @@
-import org.gradle.api.Project
-
 /*
  * Copyright (c) 2024 Matthew Nelson
  *
@@ -15,6 +13,7 @@ import org.gradle.api.Project
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+import org.gradle.api.Project
 
 val Project.npmVersion: String get() {
     val version = version.toString()

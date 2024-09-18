@@ -45,9 +45,9 @@ sealed class ValidationHash private constructor() {
                 "armeabi-v7a" to hashArmv7,
                 "x86" to hashX86,
                 "x86_64" to hashX86_64,
-            ).forEach { (arch, hash) ->
+            ).forEach { (abi, hash) ->
                 val lib = jniLibs
-                    .resolve(arch)
+                    .resolve(abi)
                     .resolve(libname)
 
                 val rPath = lib.path.substringAfter("${File.separatorChar}kmp-tor-resource${File.separatorChar}")

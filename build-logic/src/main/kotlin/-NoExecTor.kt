@@ -68,6 +68,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
                 }
             }
         )
+        sourceSetConnect("nonLoadable", listOf("js"))
         sourceSetConnect(
             "libTor",
             listOf(
@@ -82,7 +83,6 @@ fun KmpConfigurationExtension.configureNoExecTor(
                 }
             },
         )
-        sourceSetConnect("nonLoadable", listOf("js"))
 
         action.execute(this)
     }
