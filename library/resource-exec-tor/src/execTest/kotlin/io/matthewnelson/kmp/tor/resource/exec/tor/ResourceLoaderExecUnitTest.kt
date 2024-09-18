@@ -40,37 +40,38 @@ open class ResourceLoaderExecUnitTest {
         assertIs<ResourceLoader.Tor.Exec>(loader)
         println(loader)
 
-        val paths = loader.extract()
-        println(paths)
+        val geoips = loader.extract()
+        val tor = loader.execute { tor, _ -> tor }
+        println(geoips)
 
         try {
-            assertTrue(paths.executable.readBytes().isNotEmpty())
-            assertTrue(paths.geoips.geoip.readBytes().isNotEmpty())
-            assertTrue(paths.geoips.geoip6.readBytes().isNotEmpty())
+            assertTrue(tor.readBytes().isNotEmpty())
+            assertTrue(geoips.geoip.readBytes().isNotEmpty())
+            assertTrue(geoips.geoip6.readBytes().isNotEmpty())
 
-            assertFalse(paths.executable.name.endsWith(".gz"))
-            assertFalse(paths.geoips.geoip.name.endsWith(".gz"))
-            assertFalse(paths.geoips.geoip6.name.endsWith(".gz"))
+            assertFalse(tor.name.endsWith(".gz"))
+            assertFalse(geoips.geoip.name.endsWith(".gz"))
+            assertFalse(geoips.geoip6.name.endsWith(".gz"))
 
             // Native will first write gzipped file to system, then decompress
             // via zlib to separate file. Check to make sure that was cleaned up.
-            assertFalse("${paths.executable.path}.gz".toFile().exists())
-            assertFalse("${paths.geoips.geoip.path}.gz".toFile().exists())
-            assertFalse("${paths.geoips.geoip6.path}.gz".toFile().exists())
+            assertFalse("${tor.path}.gz".toFile().exists())
+            assertFalse("${geoips.geoip.path}.gz".toFile().exists())
+            assertFalse("${geoips.geoip6.path}.gz".toFile().exists())
 
-            val local = paths.executable.parentFile!!.resolve("tor.exe.local")
+            val local = tor.parentFile!!.resolve("tor.exe.local")
 
             if (IS_WINDOWS) {
                 assertTrue(local.exists())
             } else {
                 assertFalse(local.exists())
-                assertTrue(paths.executable.isExecutable())
-                assertFalse(paths.geoips.geoip.isExecutable())
-                assertFalse(paths.geoips.geoip.isExecutable())
+                assertTrue(tor.isExecutable())
+                assertFalse(geoips.geoip.isExecutable())
+                assertFalse(geoips.geoip.isExecutable())
             }
         } finally {
-            paths.executable.delete()
-            paths.executable.parentFile.let { parent ->
+            tor.delete()
+            tor.parentFile.let { parent ->
                 listOf(
                     "libtor.so",
                     "libtor.dylib",
@@ -81,8 +82,8 @@ open class ResourceLoaderExecUnitTest {
 
                 parent?.resolve("tor.exe.local")?.delete()
             }
-            paths.geoips.geoip.delete()
-            paths.geoips.geoip6.delete()
+            geoips.geoip.delete()
+            geoips.geoip6.delete()
             workDir.delete()
             testDir.delete()
         }

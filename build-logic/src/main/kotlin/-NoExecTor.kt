@@ -58,12 +58,6 @@ fun KmpConfigurationExtension.configureNoExecTor(
             }
         }
 
-        kotlin {
-            sourceSets.findByName("jvmAndroidMain")?.dependencies {
-                implementation(project(":library:resource-lib-tor$suffix"))
-            }
-        }
-
         sourceSetConnect(
             "loadable",
             listOf("jvmAndroid", "native"),
@@ -73,6 +67,20 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     implementation(project(":library:resource-geoip"))
                 }
             }
+        )
+        sourceSetConnect(
+            "libTor",
+            listOf(
+                "jvmAndroid",
+                "linux",
+                "macos",
+                "mingw",
+            ),
+            sourceSetMain = {
+                dependencies {
+                    implementation(project(":library:resource-lib-tor$suffix"))
+                }
+            },
         )
         sourceSetConnect("nonLoadable", listOf("js"))
 

@@ -20,15 +20,20 @@ package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.geoip.configureGeoipResources
+import kotlin.jvm.JvmSynthetic
 
+@get:JvmSynthetic
 @OptIn(InternalKmpTorApi::class)
-internal val RESOURCE_CONFIG: Resource.Config by lazy {
-    Resource.Config.create {
-        configureGeoipResources()
-        configureTorResource()
-    }
+internal val RESOURCE_CONFIG_GEOIPS: Resource.Config by lazy {
+    Resource.Config.create { configureGeoipResources() }
+}
+
+@get:JvmSynthetic
+@OptIn(InternalKmpTorApi::class)
+internal val RESOURCE_CONFIG_TOR: Resource.Config by lazy {
+    Resource.Config.create { configureTorResources() }
 }
 
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
-internal expect inline fun Resource.Config.Builder.configureTorResource()
+internal expect inline fun Resource.Config.Builder.configureTorResources()

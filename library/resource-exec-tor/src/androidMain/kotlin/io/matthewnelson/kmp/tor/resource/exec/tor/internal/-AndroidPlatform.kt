@@ -26,7 +26,7 @@ import io.matthewnelson.kmp.tor.resource.lib.tor.tryConfigureTestTorResources
 
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
-internal actual inline fun Resource.Config.Builder.configureTorResource() {
+internal actual inline fun Resource.Config.Builder.configureTorResources() {
     if (OSInfo.INSTANCE.isAndroidRuntime()) {
         val missing = ArrayList<String>(2)
 

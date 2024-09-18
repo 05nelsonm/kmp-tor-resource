@@ -101,7 +101,6 @@ fun KmpConfigurationExtension.configureExecTor(
             listOf(
                 "jvmAndroid",
                 "js",
-                "androidNative",
                 "linux",
                 "macos",
                 "mingw",

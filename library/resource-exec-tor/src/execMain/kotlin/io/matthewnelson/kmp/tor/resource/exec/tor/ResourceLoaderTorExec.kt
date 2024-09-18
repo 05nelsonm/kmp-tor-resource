@@ -18,11 +18,12 @@
 package io.matthewnelson.kmp.tor.resource.exec.tor
 
 import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.tor.common.api.GeoipFiles
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
-import io.matthewnelson.kmp.tor.common.api.Paths
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.ALIAS_TOR
-import io.matthewnelson.kmp.tor.resource.exec.tor.internal.RESOURCE_CONFIG
+import io.matthewnelson.kmp.tor.resource.exec.tor.internal.RESOURCE_CONFIG_GEOIPS
+import io.matthewnelson.kmp.tor.resource.exec.tor.internal.RESOURCE_CONFIG_TOR
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.findLibTor
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP6
@@ -41,31 +42,46 @@ public actual class ResourceLoaderTorExec: ResourceLoader.Tor.Exec {
             @OptIn(InternalKmpTorApi::class)
             return Exec.getOrCreate(
                 resourceDir = resourceDir,
-                extractTo = ::extractTo,
+                extract = ::extractGeoips,
+                extractTor = ::extractTor,
+                configureEnv = {
+                    // Compiled executables do not need to configure
+                    // any process environment variables as rpath $ORIGIN
+                    // is utilized at compile time of the executable.
+                    //
+                    // Both lib and executable must be in the same
+                    // directory for the executable to work.
+                },
                 toString = ::toString,
             )
         }
 
         @Volatile
-        private var isFirstExtraction: Boolean = true
+        private var isFirstExtractionGeoip: Boolean = true
+        @Volatile
+        private var isFirstExtractionTor: Boolean = true
 
         @OptIn(InternalKmpTorApi::class)
-        private fun extractTo(resourceDir: File): Paths.Tor {
-            val map = RESOURCE_CONFIG
-                .extractTo(resourceDir, onlyIfDoesNotExist = !isFirstExtraction)
-                .findLibTor()
+        private fun extractGeoips(resourceDir: File): GeoipFiles {
+            val map = RESOURCE_CONFIG_GEOIPS
+                .extractTo(resourceDir, onlyIfDoesNotExist = !isFirstExtractionGeoip)
 
-            isFirstExtraction = false
+            isFirstExtractionGeoip = false
 
             // If an exception has not been encountered at this point,
             // the map will contain paths for all 3 aliased resources.
-            return Paths.Tor(
-                executable = map.getValue(ALIAS_TOR),
-                geoips = Paths.Geoips(
-                    geoip = map.getValue(ALIAS_GEOIP),
-                    geoip6 = map.getValue(ALIAS_GEOIP6),
-                )
-            )
+            return GeoipFiles(geoip = map.getValue(ALIAS_GEOIP), geoip6 = map.getValue(ALIAS_GEOIP6))
+        }
+
+        @OptIn(InternalKmpTorApi::class)
+        private fun extractTor(resourceDir: File): File {
+            val map = RESOURCE_CONFIG_TOR
+                .extractTo(resourceDir, onlyIfDoesNotExist = !isFirstExtractionTor)
+                .findLibTor()
+
+            isFirstExtractionTor = false
+
+            return map.getValue(ALIAS_TOR)
         }
 
         @OptIn(InternalKmpTorApi::class)
@@ -74,11 +90,20 @@ public actual class ResourceLoaderTorExec: ResourceLoader.Tor.Exec {
             append("    resourceDir: ")
             appendLine(resourceDir)
 
-            appendLine("    resourceConfig: [")
-            val lines = RESOURCE_CONFIG.toString().lines()
-            for (i in 1 until lines.size) {
-                append("    ")
-                appendLine(lines[i])
+            RESOURCE_CONFIG_GEOIPS.toString().lines().let { lines ->
+                appendLine("    configGeoips: [")
+                for (i in 1 until lines.size) {
+                    append("    ")
+                    appendLine(lines[i])
+                }
+            }
+
+            RESOURCE_CONFIG_TOR.toString().lines().let { lines ->
+                appendLine("    configTor: [")
+                for (i in 1 until lines.size) {
+                    append("    ")
+                    appendLine(lines[i])
+                }
             }
 
             append(']')

@@ -21,7 +21,7 @@ import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 
 // nonLoadableMain
-public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.Static {
+public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
     @OptIn(InternalKmpTorApi::class)
 //    @Throws(IllegalStateException::class)

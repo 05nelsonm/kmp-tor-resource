@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+@file:Suppress("KotlinRedundantDiagnosticSuppress")
+
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
@@ -20,8 +22,20 @@ import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.geoip.configureGeoipResources
 import kotlin.jvm.JvmSynthetic
 
+internal const val ALIAS_LIB_TOR: String = "libtor"
+
 @get:JvmSynthetic
 @OptIn(InternalKmpTorApi::class)
 internal val RESOURCE_CONFIG_GEOIPS: Resource.Config by lazy {
     Resource.Config.create { configureGeoipResources() }
 }
+
+@get:JvmSynthetic
+@OptIn(InternalKmpTorApi::class)
+internal val RESOURCE_CONFIG_LIB_TOR: Resource.Config by lazy {
+    Resource.Config.create { configureLibTorResources() }
+}
+
+@Suppress("NOTHING_TO_INLINE")
+@OptIn(InternalKmpTorApi::class)
+internal expect inline fun Resource.Config.Builder.configureLibTorResources()

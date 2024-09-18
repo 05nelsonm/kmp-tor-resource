@@ -18,17 +18,18 @@
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.tor.common.api.GeoipFiles
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
-import io.matthewnelson.kmp.tor.common.api.Paths
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_GEOIPS
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP6
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import kotlin.concurrent.Volatile
 import kotlin.jvm.JvmStatic
 
 // loadableMain
-public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.Static {
+public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
     public companion object {
 
@@ -37,10 +38,10 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.Static {
             resourceDir: File
         ): ResourceLoader.Tor {
             @OptIn(InternalKmpTorApi::class)
-            return Static.getOrCreate(
+            return NoExec.getOrCreate(
                 resourceDir = resourceDir,
-                extractTo = ::extractTo,
-                load = { TODO() },
+                extract = ::extractGeoips,
+                load = { throw IllegalStateException("Not yet implemented") },
                 toString = ::toString
             )
         }
@@ -49,12 +50,13 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.Static {
         private var isFirstExtraction: Boolean = true
 
         @OptIn(InternalKmpTorApi::class)
-        private fun extractTo(resourceDir: File): Paths.Geoips {
-            val map = RESOURCE_CONFIG_GEOIPS.extractTo(resourceDir, onlyIfDoesNotExist = !isFirstExtraction)
+        private fun extractGeoips(resourceDir: File): GeoipFiles {
+            val map = RESOURCE_CONFIG_GEOIPS
+                .extractTo(resourceDir, onlyIfDoesNotExist = !isFirstExtraction)
 
             isFirstExtraction = false
 
-            return Paths.Geoips(
+            return GeoipFiles(
                 geoip = map.getValue(ALIAS_GEOIP),
                 geoip6 = map.getValue(ALIAS_GEOIP6),
             )
@@ -66,11 +68,20 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.Static {
             append("    resourceDir: ")
             appendLine(resourceDir)
 
-            appendLine("    configGeoips: [")
-            val lines = RESOURCE_CONFIG_GEOIPS.toString().lines()
-            for (i in 1 until lines.size) {
-                append("    ")
-                appendLine(lines[i])
+            RESOURCE_CONFIG_GEOIPS.toString().lines().let { lines ->
+                appendLine("    configGeoips: [")
+                for (i in 1 until lines.size) {
+                    append("    ")
+                    appendLine(lines[i])
+                }
+            }
+
+            RESOURCE_CONFIG_LIB_TOR.toString().lines().let { lines ->
+                appendLine("    configLibTor: [")
+                for (i in 1 until lines.size) {
+                    append("    ")
+                    appendLine(lines[i])
+                }
             }
 
             append(']')
