@@ -673,7 +673,6 @@ else
   cd "$DIR_TASK"
   mkdir -p "build"
 
-  _is_sign=false
   if echo "$CMD_TASK" | grep -q "^build"; then
     . "$DIR_TASK/source.task/source.build.sh"
     __util:require:cmd "$GIT" "git"
@@ -707,7 +706,6 @@ else
     DIR_STAGING="$(mktemp -d)"
   elif echo "$CMD_TASK" | grep -q "^sign"; then
     . "$DIR_TASK/source.task/source.sign.sh"
-    _is_sign=true
     trap 'rm -rf "$FILE_BUILD_LOCK"' EXIT
     echo "$CMD_TASK" > "$FILE_BUILD_LOCK"
   elif echo "$CMD_TASK" | grep -q "^validate"; then
@@ -717,7 +715,7 @@ else
   TIMEFORMAT="
     Task '$CMD_TASK' completed in %3lR
   "
-  if $_is_sign; then
+  if [ "$CMD_TASK" = "sign:macos" ]; then
     time "$CMD_TASK" "$@"
   else
     time "$CMD_TASK"
