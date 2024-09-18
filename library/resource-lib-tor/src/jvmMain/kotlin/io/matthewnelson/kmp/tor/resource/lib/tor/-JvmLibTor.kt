@@ -1,0 +1,47 @@
+/*
+ * Copyright (c) 2024 Matthew Nelson
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+package io.matthewnelson.kmp.tor.resource.lib.tor
+
+import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
+import io.matthewnelson.kmp.tor.common.api.ResourceLoader
+import io.matthewnelson.kmp.tor.common.core.Resource
+import io.matthewnelson.kmp.tor.resource.lib.tor.internal.configureExecutableResource
+import io.matthewnelson.kmp.tor.resource.lib.tor.internal.configureWindowsDLLRedirect
+import io.matthewnelson.kmp.tor.resource.lib.tor.internal.toTorResourcePath
+
+private class Loader private constructor() {
+    init { throw IllegalStateException() }
+}
+
+@InternalKmpTorApi
+public fun Resource.Config.Builder.configureLibTorResource(alias: String) {
+    configureExecutableResource(alias) { host, arch ->
+        resourcePath = host.toTorResourcePath(arch, isLib = true)
+        resourceClass = Loader::class.java
+    }
+}
+
+@InternalKmpTorApi
+public fun <LoaderImpl: ResourceLoader.Tor.Exec> Resource.Config.Builder.configureExecTorResource(
+    alias: String,
+    execLoaderClass: Class<LoaderImpl>,
+) {
+    configureExecutableResource(alias) { host, arch ->
+        resourcePath = host.toTorResourcePath(arch, isLib = false)
+        resourceClass = execLoaderClass
+    }
+    configureWindowsDLLRedirect(execLoaderClass)
+}

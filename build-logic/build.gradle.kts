@@ -22,7 +22,7 @@ gradlePlugin {
     plugins {
         create("resource-validation") {
             id = "resource-validation"
-            implementationClass = "io.matthewnelson.kmp.tor.resource.validation.ResourceValidationPlugin"
+            implementationClass = "resource.validation.ResourceValidationPlugin"
         }
     }
 }

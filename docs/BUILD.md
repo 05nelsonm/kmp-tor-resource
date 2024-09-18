@@ -1,6 +1,6 @@
 # BUILD
 
-For those who wish to verify reproducibility of the binaries being distributed, 
+For those who wish to validate reproducibility of the binaries being distributed, 
 you can do so by following along below.
 
 - What you will need:
@@ -16,9 +16,9 @@ you can do so by following along below.
    cd kmp-tor-resource
    ```
 
-2) Checkout the tag you wish to verify (replace with desired tag name)
+2) Checkout the tag you wish to validate (replace with desired tag name)
    ```shell
-   git checkout 408.10.0
+   git checkout 408.12.0
    ```
 
 3) Clean any prior builds
@@ -26,19 +26,19 @@ you can do so by following along below.
    ./external/task.sh clean
    ```
 
-4) Build `tor` binaries & go touch grass for a bit:
+4) Compile code (go touch grass for a bit):
    ```shell
    ./external/task.sh build:all
    ```
 
-5) Package them:
+5) Package everything:
    ```shell
-   ./external/task.sh package
+   ./external/task.sh package:all
    ```
 
-6) Verify hashes:
+6) Validate hashes of packaged resources with their expected hashes:
    ```shell
-   ./external/task.sh verify
+   ./external/task.sh validate
    ```
 
 If the output of the error report files is blank, all built/packaged resources matched the 

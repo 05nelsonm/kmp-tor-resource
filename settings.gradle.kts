@@ -12,17 +12,27 @@ includeBuild("build-logic")
 
 @Suppress("PrivatePropertyName")
 private val CHECK_PUBLICATION: String? by settings
+@Suppress("PrivatePropertyName")
+private val TOOLING: String? by settings
 
 if (CHECK_PUBLICATION != null) {
     include(":tools:check-publication")
 } else {
-    listOf(
-        "resource-android-unit-test",
-        "resource-tor",
-        "resource-tor-gpl",
-        "npmjs",
-    ).forEach { module ->
-        include(":library:$module")
+    if (TOOLING == null) {
+        listOf(
+            "npmjs",
+            "resource-android-unit-test-tor",
+            "resource-android-unit-test-tor-gpl",
+            "resource-exec-tor",
+            "resource-exec-tor-gpl",
+            "resource-noexec-tor",
+            "resource-noexec-tor-gpl",
+            "resource-geoip",
+            "resource-lib-tor",
+            "resource-lib-tor-gpl",
+        ).forEach { module ->
+            include(":library:$module")
+        }
     }
 
     listOf(

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Matthew Nelson
+ * Copyright (c) 2023 Matthew Nelson
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,14 +39,15 @@ kmpConfiguration {
         androidLibrary {
             sourceSetMain {
                 dependencies {
-                    // Should be a SEPARATE publication from resource-tor-jvm
-                    implementation("$group:resource-tor-android:$version")
-                    implementation("$group:resource-tor-gpl-android:$version")
+                    // Should be a SEPARATE publication from -jvm
+                    implementation("$group:resource-lib-tor-android:$version")
+                    implementation("$group:resource-lib-tor-gpl-android:$version")
                 }
             }
             sourceSetTest {
                 dependencies {
-                    implementation("$group:resource-android-unit-test:$version")
+                    implementation("$group:resource-android-unit-test-tor:$version")
+                    implementation("$group:resource-android-unit-test-tor-gpl:$version")
                 }
             }
         }
@@ -54,8 +55,19 @@ kmpConfiguration {
         jvm {
             sourceSetMain {
                 dependencies {
-                    implementation("$group:resource-tor-jvm:$version")
-                    implementation("$group:resource-tor-gpl-jvm:$version")
+                    implementation("$group:resource-lib-tor-jvm:$version")
+                    implementation("$group:resource-lib-tor-gpl-jvm:$version")
+                }
+            }
+        }
+
+        js {
+            sourceSetMain {
+                dependencies {
+                    implementation("$group:resource-lib-tor-js:$version")
+                    implementation("$group:resource-lib-tor-gpl-js:$version")
+                    implementation(npm("kmp-tor.resource-exec-tor.all", project.npmVersion))
+                    implementation(npm("kmp-tor.resource-exec-tor-gpl.all", project.npmVersion))
                 }
             }
         }
@@ -63,10 +75,30 @@ kmpConfiguration {
         common {
             sourceSetMain {
                 dependencies {
-                    implementation("$group:resource-tor:$version")
-                    implementation("$group:resource-tor-gpl:$version")
+                    implementation("$group:resource-geoip:$version")
+                    implementation("$group:resource-exec-tor:$version")
+                    implementation("$group:resource-exec-tor-gpl:$version")
+                    implementation("$group:resource-noexec-tor:$version")
+                    implementation("$group:resource-noexec-tor-gpl:$version")
                 }
             }
         }
+
+        sourceSetConnect(
+            "libTor",
+            listOf(
+                "jvmAndroid",
+                "js",
+                "linux",
+                "macos",
+                "mingw",
+            ),
+            sourceSetMain = {
+                dependencies {
+                    implementation("$group:resource-lib-tor:$version")
+                    implementation("$group:resource-lib-tor-gpl:$version")
+                }
+            },
+        )
     }
 }

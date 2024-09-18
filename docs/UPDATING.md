@@ -15,9 +15,9 @@
    ./external/task.sh build:all
    ```
 
-5) Generate code signatures. NOTE: `sign:apple` needs paths to key info, mingw needs HSM.
+5) Generate code signatures
    ```shell
-   ./external/task.sh sign:apple
+   ./external/task.sh sign:macos
    ./external/task.sh sign:mingw
    ```
 
@@ -32,3 +32,8 @@
    ```
 
 8) Update expected hash values in `build-logic/src/main/kotlin/io/matthewnelson/kmp/tor/resource/validation`
+
+9) Re-run verification to ensure updated values are correct
+   ```shell
+   ./external/task.sh verify:all
+   ```

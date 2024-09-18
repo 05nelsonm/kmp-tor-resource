@@ -6,7 +6,7 @@ gradle-kotlin = "1.9.24"
 gradle-publish-maven = "0.29.0"
 gradle-publish-npm = "3.4.1"
 
-kmp-tor-core = "2.0.1"
+kmp-tor-common = "2.1.0-SNAPSHOT"
 
 # tests & tools
 androidx-test-core = "1.5.0"
@@ -26,9 +26,9 @@ gradle-kmp-configuration = { module = "io.matthewnelson:gradle-kmp-configuration
 gradle-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "gradle-kotlin" }
 gradle-publish-maven = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "gradle-publish-maven" }
 
-kmp-tor-core-api = { module = "io.matthewnelson.kmp-tor:core-api", version.ref = "kmp-tor-core" }
-kmp-tor-core-resource = { module = "io.matthewnelson.kmp-tor:core-resource", version.ref = "kmp-tor-core" }
-kmp-tor-core-lib-locator = { module = "io.matthewnelson.kmp-tor:core-lib-locator", version.ref = "kmp-tor-core" }
+kmp-tor-common-api = { module = "io.matthewnelson.kmp-tor:common-api", version.ref = "kmp-tor-common" }
+kmp-tor-common-core = { module = "io.matthewnelson.kmp-tor:common-core", version.ref = "kmp-tor-common" }
+kmp-tor-common-lib-locator = { module = "io.matthewnelson.kmp-tor:common-lib-locator", version.ref = "kmp-tor-common" }
 
 # tests & tools
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidx-test-core" }

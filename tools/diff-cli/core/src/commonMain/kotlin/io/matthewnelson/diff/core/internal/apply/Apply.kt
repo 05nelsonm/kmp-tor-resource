@@ -75,6 +75,7 @@ internal sealed class Apply private constructor() {
             if (hashContents != hashEOF) {
                 throw IllegalStateException("""
                     Validation check failed. Was the diff file modified?
+                    Diff:     file[$diffFile]
                     Expected: sha256[$hashEOF]
                     Actual:   sha256[$hashContents]
                 """.trimIndent())
@@ -87,6 +88,7 @@ internal sealed class Apply private constructor() {
                 if (header.createdForHash != hash) {
                     throw IllegalStateException("""
                         Validation check failed. The diff was not created for this file.
+                        Diff:     file[$diffFile]
                         Expected: sha256[${header.createdForHash}]
                         Actual:   sha256[$hash]
                     """.trimIndent())
@@ -112,6 +114,7 @@ internal sealed class Apply private constructor() {
                         if (bakHash != header.createdFromHash) {
                             throw IllegalStateException("""
                                 Failed to apply diff to $applyTo.
+                                Diff:     file[$diffFile]
                                 Expected: sha256[${header.createdFromHash}]
                                 Actual:   sha256[$bakHash]
                             """.trimIndent())

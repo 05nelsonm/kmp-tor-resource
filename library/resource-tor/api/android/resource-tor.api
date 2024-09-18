@@ -1,6 +1,0 @@
-public final class io/matthewnelson/kmp/tor/resource/tor/TorResources : io/matthewnelson/kmp/tor/core/api/ResourceInstaller {
-	public fun <init> (Ljava/io/File;)V
-	public fun install ()Lio/matthewnelson/kmp/tor/core/api/ResourceInstaller$Paths$Tor;
-	public synthetic fun install ()Lio/matthewnelson/kmp/tor/core/api/ResourceInstaller$Paths;
-}
-

@@ -55,10 +55,10 @@ internal data class ResourceWriter(
             // This is an automatically generated file.
             // DO NOT MODIFY
 
-            import io.matthewnelson.kmp.tor.core.api.annotation.InternalKmpTorApi
-            import io.matthewnelson.kmp.tor.core.resource.NativeResource
+            import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
+            import io.matthewnelson.kmp.tor.common.core.NativeResource
 
-            @InternalKmpTorApi
+            @OptIn(InternalKmpTorApi::class)
             internal object $objName: NativeResource(
                 version = 1,
                 name = "$fileName",

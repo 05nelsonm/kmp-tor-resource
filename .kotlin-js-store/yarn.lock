@@ -151,9 +151,9 @@ emoji-regex@^8.0.0:
   integrity sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==
 
 escalade@^3.1.1:
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/escalade/-/escalade-3.1.2.tgz#54076e9ab29ea5bf3d8f1ed62acffbb88272df27"
-  integrity sha512-ErCHMCae19vR8vQGe50xIsVomy19rg6gFu3+r3jkEO46suLMWBksvVyoGgQV+jOfl84ZSOSlmv6Gxa89PmTGmA==
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/escalade/-/escalade-3.2.0.tgz#011a3f69856ba189dffa7dc8fcce99d2a87903e5"
+  integrity sha512-WUj2qlxaQtO4g6Pq5c29GTcWGDyd8itL8zTlipgECz3JesAiiOKotd8JU6otB3PACgG6xkJUyVhboMS+bje/jA==
 
 escape-string-regexp@4.0.0:
   version "4.0.0"
@@ -288,15 +288,70 @@ js-yaml@4.1.0:
   dependencies:
     argparse "^2.0.1"
 
-kmp-tor-resource-tor-gpl@408.10.0-SNAPSHOT.0:
-  version "408.10.0-SNAPSHOT.0"
-  resolved "https://registry.yarnpkg.com/kmp-tor-resource-tor-gpl/-/kmp-tor-resource-tor-gpl-408.10.0-SNAPSHOT.0.tgz#7e50396a48d6b58c9884f5123afa9c1db92d9889"
-  integrity sha512-343Z1nndwnaMuQMQ9VqOzOY14GqI7AOmH+gMx5QEw3h30j6vHEr58vZFKVMnqtcFOOu/ITRf4I898Dgj+aDyBw==
+kmp-tor.resource-exec-tor-gpl.all@408.12.0-SNAPSHOT.2:
+  version "408.12.0-SNAPSHOT.2"
+  resolved "https://registry.yarnpkg.com/kmp-tor.resource-exec-tor-gpl.all/-/kmp-tor.resource-exec-tor-gpl.all-408.12.0-SNAPSHOT.2.tgz#1fd10574e736cfe0230263e581b9524f5a3f3136"
+  integrity sha512-/aizK6jJ4dHGYq5R5FwJ1GN2apGl19Stpc4f37/l1gV3KUc+b7vQcCk4z+ExnQRJNp64ltgREBVlo3TpTXRCCQ==
+  dependencies:
+    kmp-tor.resource-exec-tor-gpl.linux-android "408.12.0-SNAPSHOT.2"
+    kmp-tor.resource-exec-tor-gpl.linux-libc "408.12.0-SNAPSHOT.2"
+    kmp-tor.resource-exec-tor-gpl.macos "408.12.0-SNAPSHOT.2"
+    kmp-tor.resource-exec-tor-gpl.mingw "408.12.0-SNAPSHOT.2"
 
-kmp-tor-resource-tor@408.10.0-SNAPSHOT.0:
-  version "408.10.0-SNAPSHOT.0"
-  resolved "https://registry.yarnpkg.com/kmp-tor-resource-tor/-/kmp-tor-resource-tor-408.10.0-SNAPSHOT.0.tgz#83caaf1f03d08ddd5b764fa5aa4c1347aad9f3d6"
-  integrity sha512-1dRccrHL5Bt7wEiy7j8zt2DPTKPi0yQHaE81IcbppKMpW+++cHo6K5U8WLoezBhERZVP/eXswglTMlSJ53WJDg==
+kmp-tor.resource-exec-tor-gpl.linux-android@408.12.0-SNAPSHOT.2:
+  version "408.12.0-SNAPSHOT.2"
+  resolved "https://registry.yarnpkg.com/kmp-tor.resource-exec-tor-gpl.linux-android/-/kmp-tor.resource-exec-tor-gpl.linux-android-408.12.0-SNAPSHOT.2.tgz#9aca7f541544370ca455b96f6774e4c0de5aed7a"
+  integrity sha512-NJ8sS6XPf2Id3GiRdlHJeO5a10Fl7KKuHswh9rnbzsZERcgP7DN0pDJjdhTvnqTx9cyR/x4N/f3N2y+SzTu9HQ==
+
+kmp-tor.resource-exec-tor-gpl.linux-libc@408.12.0-SNAPSHOT.2:
+  version "408.12.0-SNAPSHOT.2"
+  resolved "https://registry.yarnpkg.com/kmp-tor.resource-exec-tor-gpl.linux-libc/-/kmp-tor.resource-exec-tor-gpl.linux-libc-408.12.0-SNAPSHOT.2.tgz#27769de19aae0db8e1c89a9f3f0709ed9ab6d614"
+  integrity sha512-TjioGt3AaVwxjHUQMbYvKpLqmmTtgS+kiQQjssjAaUOcqi448hebPlP5aCTEdtLh4RYRsmuO/iItzKXd6ACi+Q==
+
+kmp-tor.resource-exec-tor-gpl.macos@408.12.0-SNAPSHOT.2:
+  version "408.12.0-SNAPSHOT.2"
+  resolved "https://registry.yarnpkg.com/kmp-tor.resource-exec-tor-gpl.macos/-/kmp-tor.resource-exec-tor-gpl.macos-408.12.0-SNAPSHOT.2.tgz#b954dcb24f29bcd54fbf43e7130173c269b5e269"
+  integrity sha512-jIS4s3UQUl2sQe63lFV44NjVShygB548yMcMxRsa/CjIiTHbtY5T3ZioXR2f7V0TRXO+hUI8hfw5ZfmeaLWP+A==
+
+kmp-tor.resource-exec-tor-gpl.mingw@408.12.0-SNAPSHOT.2:
+  version "408.12.0-SNAPSHOT.2"
+  resolved "https://registry.yarnpkg.com/kmp-tor.resource-exec-tor-gpl.mingw/-/kmp-tor.resource-exec-tor-gpl.mingw-408.12.0-SNAPSHOT.2.tgz#08ae3757489b5b5e5daf75599d4077fd57992212"
+  integrity sha512-CqDLSpdw9Dma84i4DhBBpXFj1eLEAts4AAjZl3njhGzmoOJyMV/vFmxhtgWFuOeoKCjjYRCSaCTtGZNRqDmCUQ==
+
+kmp-tor.resource-exec-tor.all@408.12.0-SNAPSHOT.2:
+  version "408.12.0-SNAPSHOT.2"
+  resolved "https://registry.yarnpkg.com/kmp-tor.resource-exec-tor.all/-/kmp-tor.resource-exec-tor.all-408.12.0-SNAPSHOT.2.tgz#5e1c86ba51a24911a934b9825d1a7554f82134e1"
+  integrity sha512-A8Yfdt4fH6kFEduk/F6KyINYa3gIjbQdY3KBPaCkuk9ZbtBwJ6NDVAcEbM4Syl/9AhrXH2Slg9SLEVhZtN14WQ==
+  dependencies:
+    kmp-tor.resource-exec-tor.linux-android "408.12.0-SNAPSHOT.2"
+    kmp-tor.resource-exec-tor.linux-libc "408.12.0-SNAPSHOT.2"
+    kmp-tor.resource-exec-tor.macos "408.12.0-SNAPSHOT.2"
+    kmp-tor.resource-exec-tor.mingw "408.12.0-SNAPSHOT.2"
+
+kmp-tor.resource-exec-tor.linux-android@408.12.0-SNAPSHOT.2:
+  version "408.12.0-SNAPSHOT.2"
+  resolved "https://registry.yarnpkg.com/kmp-tor.resource-exec-tor.linux-android/-/kmp-tor.resource-exec-tor.linux-android-408.12.0-SNAPSHOT.2.tgz#33f88759bead5430f0fd2d3fae1b6485e6706e28"
+  integrity sha512-XVP3fQo+ZgJA/kdSC8BELD1MrvEhxdINdg1TSBs7OlQAUkzkdMZNuqNZFqTZIb9PryIEUEniyYtl32GzbrOSvg==
+
+kmp-tor.resource-exec-tor.linux-libc@408.12.0-SNAPSHOT.2:
+  version "408.12.0-SNAPSHOT.2"
+  resolved "https://registry.yarnpkg.com/kmp-tor.resource-exec-tor.linux-libc/-/kmp-tor.resource-exec-tor.linux-libc-408.12.0-SNAPSHOT.2.tgz#b8f1cd1266ac3ee0f7b6c89723c49400cb2244da"
+  integrity sha512-kiLa4XIs1Rt6Qy2X+etoN3pH8c6Or8xEQkK3DEulhQq7am640BOTVm+JigP0r6/wYjhmOeSICuJ7ca/XphW+Mg==
+
+kmp-tor.resource-exec-tor.macos@408.12.0-SNAPSHOT.2:
+  version "408.12.0-SNAPSHOT.2"
+  resolved "https://registry.yarnpkg.com/kmp-tor.resource-exec-tor.macos/-/kmp-tor.resource-exec-tor.macos-408.12.0-SNAPSHOT.2.tgz#c45a65fb2942c788b989b0251acee9b3466fe814"
+  integrity sha512-JVM04mp6d0aq9jmD0EgIT8D1DPh0eKprilpamw+lFcY/E6fc2btg5ZxY8oJhRwV9KQPN4N+/tqpR/l73oUf8Lw==
+
+kmp-tor.resource-exec-tor.mingw@408.12.0-SNAPSHOT.2:
+  version "408.12.0-SNAPSHOT.2"
+  resolved "https://registry.yarnpkg.com/kmp-tor.resource-exec-tor.mingw/-/kmp-tor.resource-exec-tor.mingw-408.12.0-SNAPSHOT.2.tgz#21463f05a343896451a7318effd4d484c329eb92"
+  integrity sha512-j4MuMoRniO2e48mc0WU4NOwpQ9kzYbDQTz0vFyPUwNgGHOZQSnYmVzDdQRSVGiL5Kl9MYzf7ZKRUrG4naY9zpg==
+
+kmp-tor.resource-geoip@408.12.0-SNAPSHOT.2:
+  version "408.12.0-SNAPSHOT.2"
+  resolved "https://registry.yarnpkg.com/kmp-tor.resource-geoip/-/kmp-tor.resource-geoip-408.12.0-SNAPSHOT.2.tgz#f1c17cdaf1021397c2c9d4df42f78e663a5a0286"
+  integrity sha512-8QMU6Nf2qXgroTgftv0yhybqc15JLJpl0O4nb2908JIEUJ4o4LHulxfcDTVowmC408aKgb8JeZ/d+PHsD3T2Pw==
 
 locate-path@^6.0.0:
   version "6.0.0"

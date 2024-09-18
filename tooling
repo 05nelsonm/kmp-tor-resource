@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2021 Matthew Nelson
+# Copyright (c) 2023 Matthew Nelson
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ args="${args%"${args##*[![:space:]]}"}"
 cd "$DIR_SCRIPT" || exit 3
 
 if [ -z "$args" ]; then
-  ./gradlew --quiet ":tools:${TOOL}:jvmRun" -PKMP_TARGETS="JVM"
+  ./gradlew --quiet ":tools:${TOOL}:jvmRun" -PKMP_TARGETS="JVM" -PTOOLING=""
 else
-  ./gradlew --quiet ":tools:${TOOL}:jvmRun" --args="$args" -PKMP_TARGETS="JVM"
+  ./gradlew --quiet ":tools:${TOOL}:jvmRun" --args="$args" -PKMP_TARGETS="JVM" -PTOOLING=""
 fi

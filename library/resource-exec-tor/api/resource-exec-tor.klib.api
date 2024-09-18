@@ -1,0 +1,20 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64]
+// Alias: linux => [linuxArm64, linuxX64]
+// Alias: ios => [iosArm64, iosSimulatorArm64, iosX64]
+// Alias: macos => [macosArm64, macosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.matthewnelson.kmp-tor:resource-exec-tor>
+// Targets: [js, linux, macos, mingwX64]
+final class io.matthewnelson.kmp.tor.resource.exec.tor/ResourceLoaderTorExec : io.matthewnelson.kmp.tor.common.api/ResourceLoader.Tor.Exec { // io.matthewnelson.kmp.tor.resource.exec.tor/ResourceLoaderTorExec|null[0]
+    final object Companion { // io.matthewnelson.kmp.tor.resource.exec.tor/ResourceLoaderTorExec.Companion|null[0]
+        final fun getOrCreate(io.matthewnelson.kmp.file/File): io.matthewnelson.kmp.tor.common.api/ResourceLoader.Tor // io.matthewnelson.kmp.tor.resource.exec.tor/ResourceLoaderTorExec.Companion.getOrCreate|getOrCreate(io.matthewnelson.kmp.file.File){}[0]
+    }
+}
+
+// Targets: [ios]
+final class io.matthewnelson.kmp.tor.resource.exec.tor/ResourceLoaderTorExec : io.matthewnelson.kmp.tor.common.api/ResourceLoader.Tor.Exec // io.matthewnelson.kmp.tor.resource.exec.tor/ResourceLoaderTorExec|null[0]
