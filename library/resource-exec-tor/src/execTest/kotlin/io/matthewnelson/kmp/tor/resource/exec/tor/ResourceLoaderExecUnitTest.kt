@@ -41,25 +41,33 @@ open class ResourceLoaderExecUnitTest {
         println(loader)
 
         val geoips = loader.extract()
-        val tor = loader.execute { tor, _ -> tor }
         println(geoips)
+
+        val tor = loader.execute { tor, _ -> tor }
+
+        // Ensures that it was extracted alongside the tor executable
+        val sharedLib = tor.parentFile!!.resolve(SHARED_LIB_NAME)
+
+        // Ensure that only windows extracts a .local file for DLL redirect.
+        val local = tor.parentFile!!.resolve("tor.exe.local")
 
         try {
             assertTrue(tor.readBytes().isNotEmpty())
+            assertTrue(sharedLib.readBytes().isNotEmpty())
             assertTrue(geoips.geoip.readBytes().isNotEmpty())
             assertTrue(geoips.geoip6.readBytes().isNotEmpty())
 
             assertFalse(tor.name.endsWith(".gz"))
+            assertFalse(sharedLib.name.endsWith(".gz"))
             assertFalse(geoips.geoip.name.endsWith(".gz"))
             assertFalse(geoips.geoip6.name.endsWith(".gz"))
 
             // Native will first write gzipped file to system, then decompress
             // via zlib to separate file. Check to make sure that was cleaned up.
             assertFalse("${tor.path}.gz".toFile().exists())
+            assertFalse("${sharedLib.path}.gz".toFile().exists())
             assertFalse("${geoips.geoip.path}.gz".toFile().exists())
             assertFalse("${geoips.geoip6.path}.gz".toFile().exists())
-
-            val local = tor.parentFile!!.resolve("tor.exe.local")
 
             if (IS_WINDOWS) {
                 assertTrue(local.exists())
@@ -67,21 +75,12 @@ open class ResourceLoaderExecUnitTest {
                 assertFalse(local.exists())
                 assertTrue(tor.isExecutable())
                 assertFalse(geoips.geoip.isExecutable())
-                assertFalse(geoips.geoip.isExecutable())
+                assertFalse(geoips.geoip6.isExecutable())
             }
         } finally {
             tor.delete()
-            tor.parentFile.let { parent ->
-                listOf(
-                    "libtor.so",
-                    "libtor.dylib",
-                    "tor.dll"
-                ).forEach { libname ->
-                    parent?.resolve(libname)?.delete()
-                }
-
-                parent?.resolve("tor.exe.local")?.delete()
-            }
+            sharedLib.delete()
+            local.delete()
             geoips.geoip.delete()
             geoips.geoip6.delete()
             workDir.delete()
