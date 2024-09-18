@@ -122,9 +122,9 @@ $ ./external/task.sh
 
 The compiled output from `task.sh`'s `build` tasks are "packaged" for the given platforms and 
 moved to their designated package module's resource directories 
-(e.g. `external/build/package/resource-shared-tor/src/jvmMain/resources`).
+(e.g. `external/build/package/resource-lib-tor/src/jvmMain/resources`).
 
-Running `./external/task.sh package` after a `build` task will do the following.
+Running `./external/task.sh package:all` after a `build` task will do the following.
 
 **Android/Jvm/Node.js:**
  - Android compilations are moved to the `src/androidMain/jniLibs/{ABI}` directory.
@@ -185,4 +185,4 @@ Once that work is complete a Release will be made for `kmp-tor-resource`.
 [url-kmp-tor]: https://github.com/05nelsonm/kmp-tor
 [url-kmp-tor-core]: https://github.com/05nelsonm/kmp-tor-core
 [url-core-lib-locator]: https://github.com/05nelsonm/kmp-tor-core/tree/master/library/core-lib-locator
-[url-task-image]: https://github.com/05nelsonm/kmp-tor-resource/assets/44778092/8be9197e-4135-43ad-9629-e18ef0e90523
+[url-task-image]: https://private-user-images.githubusercontent.com/44778092/368467580-f6d1b4dd-e13b-4dcf-ab95-514f85339ee9.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjY2NDU0NDYsIm5iZiI6MTcyNjY0NTE0NiwicGF0aCI6Ii80NDc3ODA5Mi8zNjg0Njc1ODAtZjZkMWI0ZGQtZTEzYi00ZGNmLWFiOTUtNTE0Zjg1MzM5ZWU5LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNDA5MTglMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjQwOTE4VDA3MzkwNlomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPWViNTUxZmU5NmYwZDczMmNmZjk1NjdkNjBjMTRkYzI2ZTc5NDY4MmQyMWM0ODU0ZDE2MGNlZTZiNjIxNjlkYTImWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.BA3-UAWJVNtK47Xpu7-1Y7PdVkRYIrTLdX_SH8S0p6Y
