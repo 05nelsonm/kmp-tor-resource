@@ -52,7 +52,7 @@ dependencies {
     implementation("io.matthewnelson.kmp-tor:resource-noexec-tor:$vKmpTorResource")
 }
 
-// GOOD! (with flag --enable-gpl)
+// GOOD! (gpl)
 dependencies {
     implementation("io.matthewnelson.kmp-tor:resource-exec-tor-gpl:$vKmpTorResource")
     implementation("io.matthewnelson.kmp-tor:resource-noexec-tor-gpl:$vKmpTorResource")
@@ -63,7 +63,7 @@ This is to respect the `GPL` licensed code `tor` is utilizing such that projects
 have a `GPL` license are able to take advantage of the new functionality, and projects who do 
 **not** have a `GPL` license can still utilize `tor` without infringing on the license.
 
-### Build Reproducability
+### Build Reproducibility
 
 See [BUILD.md](docs/BUILD.md)
 
@@ -158,7 +158,7 @@ Once that work is complete a Release will be made for `kmp-tor-resource`.
 <!-- TAG_DEPENDENCIES -->
 [badge-kotlin]: https://img.shields.io/badge/kotlin-1.9.24-blue.svg?logo=kotlin
 [badge-build-env]: https://img.shields.io/badge/build--env-0.1.3-blue.svg?logo=docker
-[badge-kmp-tor-core]: https://img.shields.io/badge/kmp--tor--core-2.0.1-blue.svg?style=flat
+[badge-kmp-tor-core]: https://img.shields.io/badge/kmp--tor--core-2.1.0-blue.svg?style=flat
 
 <!-- TAG_PLATFORMS -->
 [badge-platform-android]: http://img.shields.io/badge/-android-6EDB8D.svg?style=flat

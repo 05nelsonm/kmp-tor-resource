@@ -18,7 +18,3 @@
 # TODO: Arg parser
 readonly DRY_RUN="$(if [ "$1" = "--dry-run" ]; then echo "true"; else echo "false"; fi)"
 readonly REBUILD="$(if [ "$1" = "--rebuild" ]; then echo "true"; else echo "false"; fi)"
-
-# Ensure source.util.sh has been sourced, and that
-# DIR_TASK is set (i.e. this was sourced from task.sh)
-__util:require:file_exists "$DIR_TASK/task.sh"

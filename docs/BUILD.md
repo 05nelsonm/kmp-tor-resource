@@ -18,7 +18,7 @@ you can do so by following along below.
 
 2) Checkout the tag you wish to validate (replace with desired tag name)
    ```shell
-   git checkout 408.10.0
+   git checkout 408.12.0
    ```
 
 3) Clean any prior builds

@@ -47,7 +47,8 @@ public actual class ResourceLoaderTorExec: ResourceLoader.Tor.Exec {
                 configureEnv = {
                     // Compiled executables do not need to configure
                     // any process environment variables as rpath $ORIGIN
-                    // is utilized at compile time of the executable.
+                    // is utilized at compile time for the executable so
+                    // that it loads lib tor from the same directory.
                     //
                     // Both lib and executable must be in the same
                     // directory for the executable to work.
@@ -98,7 +99,12 @@ public actual class ResourceLoaderTorExec: ResourceLoader.Tor.Exec {
                 }
             }
 
-            RESOURCE_CONFIG_TOR.toString().lines().let { lines ->
+            RESOURCE_CONFIG_TOR.let { config ->
+                // Android may have an empty configuration if not using
+                // test resources. Do not include
+                if (config.errors.isEmpty() && config.resources.isEmpty()) return@let
+
+                val lines = config.toString().lines()
                 appendLine("    configTor: [")
                 for (i in 1 until lines.size) {
                     append("    ")

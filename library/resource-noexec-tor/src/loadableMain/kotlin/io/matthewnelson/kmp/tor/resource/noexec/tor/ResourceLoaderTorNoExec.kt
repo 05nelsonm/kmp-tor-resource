@@ -76,7 +76,12 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
                 }
             }
 
-            RESOURCE_CONFIG_LIB_TOR.toString().lines().let { lines ->
+            RESOURCE_CONFIG_LIB_TOR.let { config ->
+                // Android may have an empty configuration if not using
+                // test resources. iOS is always empty. Do not include.
+                if (config.errors.isEmpty() && config.resources.isEmpty()) return@let
+
+                val lines = config.toString().lines()
                 appendLine("    configLibTor: [")
                 for (i in 1 until lines.size) {
                     append("    ")

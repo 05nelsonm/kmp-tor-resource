@@ -298,7 +298,7 @@ function build:mingw:x86_64 { ## Builds Windows x86_64
   __build:docker:execute
 }
 
-function clean { ## Deletes the build dir
+function clean { ## Deletes the external/build directory
   rm -rf "$DIR_TASK/build"
 }
 
