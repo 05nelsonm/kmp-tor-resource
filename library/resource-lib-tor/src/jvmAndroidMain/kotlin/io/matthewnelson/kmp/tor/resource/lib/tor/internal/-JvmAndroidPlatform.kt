@@ -29,7 +29,7 @@ internal inline fun OSHost.toTorResourcePath(
 ): String {
     val path = if (isLib) "lib" else "exec"
     val name = if (isLib) resourceNameLibTor else resourceNameTor
-    return "io/matthewnelson/kmp/tor/resource/$path/tor/native/$this/$arch/$name"
+    return "/io/matthewnelson/kmp/tor/resource/$path/tor/native/$this/$arch/$name"
 }
 
 @OptIn(InternalKmpTorApi::class)
@@ -40,7 +40,7 @@ internal inline fun Resource.Config.Builder.configureWindowsDLLRedirect(loader: 
     resource("DLL redirect") {
         isExecutable = false
         platform {
-            resourcePath = "io/matthewnelson/kmp/tor/resource/exec/tor/native/${OSHost.Windows}/tor.exe.local"
+            resourcePath = "/io/matthewnelson/kmp/tor/resource/exec/tor/native/${OSHost.Windows}/tor.exe.local"
             resourceClass = loader
         }
     }
