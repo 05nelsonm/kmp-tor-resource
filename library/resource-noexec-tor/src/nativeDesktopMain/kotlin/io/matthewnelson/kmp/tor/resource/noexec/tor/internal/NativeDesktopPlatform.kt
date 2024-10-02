@@ -13,18 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-@file:Suppress("KotlinRedundantDiagnosticSuppress")
-
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
 import io.matthewnelson.kmp.file.IOException
-import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
-import io.matthewnelson.kmp.tor.common.core.Resource
-
-@Suppress("NOTHING_TO_INLINE")
-@OptIn(InternalKmpTorApi::class)
-internal actual inline fun Resource.Config.Builder.configureLibTorResources() { /* no-op */ }
 
 @Throws(IllegalStateException::class, IOException::class)
 internal actual fun loadTorApi(): TorApi {
