@@ -68,21 +68,13 @@ sealed class ValidationHash private constructor() {
         }
     }
 
-    internal sealed class LibNative private constructor(): ValidationHash() {
-
-        internal data class JVM internal constructor(
-            override val osName: String,
-            override val osSubtype: String = "",
-            override val arch: String,
-            override val libName: String,
-            override val hash: String,
-        ): LibNative()
-
-        internal abstract val osName: String
-        internal abstract val osSubtype: String
-        internal abstract val arch: String
-        internal abstract val libName: String
-        internal abstract val hash: String
+    internal data class LibJvm internal constructor(
+        val osName: String,
+        val osSubtype: String = "",
+        val arch: String,
+        val libName: String,
+        val hash: String,
+    ): ValidationHash() {
 
         internal fun validate(nativeDir: File): ERROR? {
             val machineName = osSubtype.ifBlank { null }?.let { "$osName-$it" } ?: osName
@@ -104,6 +96,67 @@ sealed class ValidationHash private constructor() {
             }
 
             return null
+        }
+    }
+
+    internal data class LibNativeInterop internal constructor(
+        val targetName: String,
+        val inputs: List<Input>,
+    ): ValidationHash() {
+
+        internal constructor(
+            targetName: String,
+            libs: List<Pair<String, String>>,
+            headers: List<Pair<String, String>>,
+        ): this(
+            targetName = targetName,
+            inputs = libs.map { (fileName, hash) ->
+                Input(fileName, hash, isHeader = false)
+            } + headers.map { (fileName, hash) ->
+                Input(fileName, hash, isHeader = true)
+            }
+        )
+
+        internal data class Input(
+            val fileName: String,
+            val hash: String,
+            val isHeader: Boolean = false,
+        )
+
+        init {
+            require(inputs.isNotEmpty()) { "inputs cannot be empty" }
+        }
+
+        internal fun validate(packageModuleDir: File): List<ERROR> {
+            val errors = mutableListOf<ERROR>()
+
+            val nativeInteropDir = packageModuleDir
+                .resolve("src")
+                .resolve("nativeInterop")
+                .resolve(targetName)
+
+            inputs.forEach { input ->
+                val file = if (input.isHeader) {
+                    nativeInteropDir.resolve("include")
+                } else {
+                    nativeInteropDir
+                }.resolve(input.fileName)
+
+                val rPath = file.path.substringAfter("${File.separatorChar}kmp-tor-resource${File.separatorChar}")
+
+                if (!file.exists()) {
+                    errors.add("File does not exist: $rPath".toERROR())
+                    return@forEach
+                }
+
+                val actualHash = file.sha256()
+                if (input.hash != actualHash) {
+                    errors.add("File hash[$actualHash] did not match expected[${input.hash}]: $rPath".toERROR())
+                    return@forEach
+                }
+            }
+
+            return errors
         }
     }
 

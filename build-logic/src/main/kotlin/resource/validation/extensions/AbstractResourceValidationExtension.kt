@@ -19,6 +19,7 @@ import com.android.build.gradle.LibraryExtension
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.getByName
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import resource.validation.extensions.internal.ERROR
 import resource.validation.extensions.internal.SourceSetName
 import resource.validation.extensions.internal.SourceSetName.Companion.toSourceSetName
@@ -32,8 +33,8 @@ import java.io.File
  * e.g. (terminal)
  *
  *     ./external/task.sh build:all
- *     ./external/task.sh package
- *     ./external/task.sh verify
+ *     ./external/task.sh package:all
+ *     ./external/task.sh validate
  * */
 sealed class AbstractResourceValidationExtension(
     protected val project: Project,
@@ -49,11 +50,13 @@ sealed class AbstractResourceValidationExtension(
 
     private val errLibAndroid = mutableSetOf<ERROR>()
     private val errLibJvm = mutableSetOf<ERROR>()
+    private val errLibNativeInterop = mutableMapOf<String, MutableSet<ERROR>>()
     private val errResJvm = mutableSetOf<ERROR>()
     private val errResNative = mutableMapOf<SourceSetName, MutableSet<ERROR>>()
 
-    private var isConfiguredLibJvm = false
     private var isConfiguredLibAndroid = false
+    private var isConfiguredLibJvm = false
+    private var isConfiguredLibNativeInterop = false
     private var isConfiguredResJvm = false
     private var isConfiguredResNative = false
 
@@ -129,7 +132,7 @@ sealed class AbstractResourceValidationExtension(
     }
 
     protected fun jvmNativeLibsResourcesSrcDirProtected(): File {
-        val hashes = hashes.filterIsInstance<ValidationHash.LibNative.JVM>()
+        val hashes = hashes.filterIsInstance<ValidationHash.LibJvm>()
         check(hashes.isNotEmpty()) { "No hashes to validate, no jvm resources" }
 
         val name = "jvm".toSourceSetName()
@@ -179,12 +182,53 @@ sealed class AbstractResourceValidationExtension(
     }
 
     @Throws(IllegalStateException::class)
-    protected fun configureNativeResourcesProtected() {
-        check(project.plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
+    protected fun configureLibNativeInteropProtected() { project.kotlinMultiplatformExtension.configureLibNativeInterop() }
+
+    @Throws(IllegalStateException::class)
+    protected fun configureNativeResourcesProtected() { project.kotlinMultiplatformExtension.configureResourceNative() }
+
+    @get:Throws(IllegalStateException::class)
+    private val Project.kotlinMultiplatformExtension: KotlinMultiplatformExtension get() {
+        check(plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
             "The 'org.jetbrains.kotlin.multiplatform' plugin is required to utilize this function"
         }
 
-        project.extensions.getByName<KotlinMultiplatformExtension>("kotlin").configureResourceNative()
+        return extensions.getByName<KotlinMultiplatformExtension>("kotlin")
+    }
+
+    @Throws(IllegalStateException::class)
+    private fun KotlinMultiplatformExtension.configureLibNativeInterop() {
+        if (isConfiguredLibNativeInterop) return
+
+        val interops = hashes.filterIsInstance<ValidationHash.LibNativeInterop>()
+        check(interops.isNotEmpty()) { "No hashes to validate, no native interop" }
+
+        interops.forEach { interop ->
+            var errors = errLibNativeInterop[interop.targetName]
+
+            if (errors == null) {
+                errors = mutableSetOf()
+                errLibNativeInterop[interop.targetName] = errors
+            }
+
+            val result = interop.validate(dirModulePackage)
+            errors.addAll(result)
+
+            targets.findByName(interop.targetName)?.let { target ->
+                check(target is KotlinNativeTarget) { "${interop.targetName} must be a KotlinNativeTarget..." }
+
+                if (result.isNotEmpty()) {
+                    // TODO: Disable
+                    return@let
+                }
+
+                // TODO: Configure CInterop
+            }
+
+            generateReport(interop.targetName, errors)
+        }
+
+        isConfiguredLibNativeInterop = true
     }
 
     private fun KotlinMultiplatformExtension.configureResourceNative() {

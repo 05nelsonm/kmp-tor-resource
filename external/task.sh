@@ -324,7 +324,7 @@ $(
 
     Options:
         --dry-run                      Debugging output that does not execute.
-        --rebuild                      Will cause a complete rebuild of the target.
+        --rebuild                      Causes a complete rebuild of the target(s).
 
     Example: $0 build:all --dry-run
   "
@@ -405,7 +405,79 @@ function package:android { ## Packages all Android build/out contents
 }
 
 function package:ios { ## Packages all iOS & iOS Simulator build/out contents
-  echo "TODO"
+  local target="ios"
+  local dirname_out="tor"
+  local dirname_final="resource-noexec-tor"
+  local os_arch="aarch64"
+  local native_target="iosArm64"
+
+  __package:native:static "libcrypto.a"
+  __package:native:static "libevent.a"
+  __package:native:static "liblzma.a"
+  __package:native:static "libssl.a"
+  __package:native:static "libtor.a"
+  __package:native:static "libz.a"
+  __package:native:static:header "orconfig.h"
+  __package:native:static:header "tor_api.h"
+
+  dirname_out="tor-gpl"
+  dirname_final="resource-noexec-tor-gpl"
+  __package:native:static "libcrypto.a"
+  __package:native:static "libevent.a"
+  __package:native:static "liblzma.a"
+  __package:native:static "libssl.a"
+  __package:native:static "libtor.a"
+  __package:native:static "libz.a"
+  __package:native:static:header "orconfig.h"
+  __package:native:static:header "tor_api.h"
+
+  target="ios-simulator"
+  dirname_out="tor"
+  dirname_final="resource-noexec-tor"
+  native_target="iosSimulatorArm64"
+  __package:native:static "libcrypto.a"
+  __package:native:static "libevent.a"
+  __package:native:static "liblzma.a"
+  __package:native:static "libssl.a"
+  __package:native:static "libtor.a"
+  __package:native:static "libz.a"
+  __package:native:static:header "orconfig.h"
+  __package:native:static:header "tor_api.h"
+
+  dirname_out="tor-gpl"
+  dirname_final="resource-noexec-tor-gpl"
+  __package:native:static "libcrypto.a"
+  __package:native:static "libevent.a"
+  __package:native:static "liblzma.a"
+  __package:native:static "libssl.a"
+  __package:native:static "libtor.a"
+  __package:native:static "libz.a"
+  __package:native:static:header "orconfig.h"
+  __package:native:static:header "tor_api.h"
+
+  os_arch="x86_64"
+  dirname_out="tor"
+  dirname_final="resource-noexec-tor"
+  native_target="iosX64"
+  __package:native:static "libcrypto.a"
+  __package:native:static "libevent.a"
+  __package:native:static "liblzma.a"
+  __package:native:static "libssl.a"
+  __package:native:static "libtor.a"
+  __package:native:static "libz.a"
+  __package:native:static:header "orconfig.h"
+  __package:native:static:header "tor_api.h"
+
+  dirname_out="tor-gpl"
+  dirname_final="resource-noexec-tor-gpl"
+  __package:native:static "libcrypto.a"
+  __package:native:static "libevent.a"
+  __package:native:static "liblzma.a"
+  __package:native:static "libssl.a"
+  __package:native:static "libtor.a"
+  __package:native:static "libz.a"
+  __package:native:static:header "orconfig.h"
+  __package:native:static:header "tor_api.h"
 }
 
 function package:linux-libc { ## Packages all Linux Libc build/out contents
@@ -645,6 +717,8 @@ function validate { ## Checks the build/package directory output against expecte
   __validate:report "resource-lib-tor-gpl"
   __validate:report "resource-exec-tor"
   __validate:report "resource-exec-tor-gpl"
+  __validate:report "resource-noexec-tor"
+  __validate:report "resource-noexec-tor-gpl"
 }
 
 # Does not show up in help output. The `validate` task does not

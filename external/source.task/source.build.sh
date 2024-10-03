@@ -120,6 +120,7 @@ function __build:configure:target:init {
 export LANG=C.UTF-8
 export LC_ALL=C
 export SOURCE_DATE_EPOCH="1234567890"
+export ZERO_AR_DATE=1
 export TZ=UTC
 set -e
 
@@ -219,6 +220,10 @@ fi
     "mingw")
       __build:LDFLAGS '-Wl,--no-insert-timestamp'
       __build:LDFLAGS '-static-libgcc'
+      ;;
+    "ios"|"macos"|"tvos"|"watchos")
+      __build:LDFLAGS '-Wl,-no_adhoc_codesign'
+      __build:LDFLAGS '-Wl,-no_uuid'
       ;;
   esac
 
@@ -451,7 +456,7 @@ export LZMA_LIBS="$DIR_SCRIPT/xz/lib/liblzma.a"'
     __build:SCRIPT ''
 
     case "$os_name" in
-      "macos"|"ios"|"tvos"|"watchos")
+      "ios"|"macos"|"tvos"|"watchos")
         # PATCH
         __build:SCRIPT '  # https://trac.macports.org/ticket/65838#no1'
         __build:SCRIPT "  sed -i 's+\"\${AR:-ar}\" x \"\$abs\"+\"\${AR:-ar}\" x \"\$abs\"; rm -f \"__.SYMDEF SORTED\"+' \"scripts/build/combine_libs\""
@@ -461,7 +466,7 @@ export LZMA_LIBS="$DIR_SCRIPT/xz/lib/liblzma.a"'
 
     if [ "$os_arch" = "aarch64" ]; then
       case "$os_name" in
-        "ios"|"tvosos"|"watchos")
+        "ios"|"tvos"|"watchos")
           # PATCH
           __build:SCRIPT '  # https://gitlab.torproject.org/tpo/core/tor/-/issues/40903'
           __build:SCRIPT '  sed -i "s+__builtin___clear_cache((void\*)code, (void\*)pos);+return true;+" "src/ext/equix/hashx/src/compiler_a64.c"'

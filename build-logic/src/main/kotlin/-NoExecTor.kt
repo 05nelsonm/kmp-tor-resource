@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.the
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+import resource.validation.extensions.NoExecTorResourceValidationExtension
 import java.io.File
 
 fun KmpConfigurationExtension.configureNoExecTor(
@@ -33,6 +34,13 @@ fun KmpConfigurationExtension.configureNoExecTor(
     val isGpl = project.name.endsWith("gpl")
     val suffix = if (isGpl) "-gpl" else ""
     val packageName = "io.matthewnelson.kmp.tor.resource.noexec.tor"
+    val noExecResourceValidation by lazy {
+        if (isGpl) {
+            NoExecTorResourceValidationExtension.GPL::class.java
+        } else {
+            NoExecTorResourceValidationExtension::class.java
+        }.let { project.extensions.getByType(it) }
+    }
 
     configureShared(
         androidNamespace = packageName,
@@ -55,12 +63,16 @@ fun KmpConfigurationExtension.configureNoExecTor(
         }
 
         common {
+            pluginIds("resource-validation")
+
             sourceSetMain {
                 dependencies {
                     api(libs.kmp.tor.common.api)
                 }
             }
         }
+
+        kotlin { noExecResourceValidation.configureNativeInterop() }
 
         sourceSetConnect(
             "loadable",

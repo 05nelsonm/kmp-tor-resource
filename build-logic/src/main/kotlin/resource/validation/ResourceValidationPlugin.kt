@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import resource.validation.extensions.ExecTorResourceValidationExtension
 import resource.validation.extensions.GeoipResourceValidationExtension
 import resource.validation.extensions.LibTorResourceValidationExtension
+import resource.validation.extensions.NoExecTorResourceValidationExtension
 
 open class ResourceValidationPlugin internal constructor(): Plugin<Project> {
     override fun apply(target: Project) {
@@ -29,6 +30,8 @@ open class ResourceValidationPlugin internal constructor(): Plugin<Project> {
             LibTorResourceValidationExtension.GPL.NAME to LibTorResourceValidationExtension.GPL::class.java,
             ExecTorResourceValidationExtension.NAME to ExecTorResourceValidationExtension::class.java,
             ExecTorResourceValidationExtension.GPL.NAME to ExecTorResourceValidationExtension.GPL::class.java,
+            NoExecTorResourceValidationExtension.NAME to NoExecTorResourceValidationExtension::class.java,
+            NoExecTorResourceValidationExtension.GPL.NAME to NoExecTorResourceValidationExtension.GPL::class.java,
         ).forEach { (name, clazz) ->
             target.extensions.create(name, clazz, target)
         }
