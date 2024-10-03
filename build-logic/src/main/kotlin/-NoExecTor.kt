@@ -114,15 +114,17 @@ fun KmpConfigurationExtension.configureNoExecTor(
             with(sourceSets) {
                 val loadableTest = findByName("loadableTest") ?: return@with
 
-                val buildConfigDir = project.layout
+                val buildDir = project.layout
                     .buildDirectory
                     .get()
                     .asFile
+
+                val buildConfigDir = buildDir
                     .resolve("generated")
                     .resolve("sources")
                     .resolve("buildConfig")
 
-                fun KotlinSourceSet.generateBuildConfig(isUsingMockResources: Boolean?) {
+                fun KotlinSourceSet.generateBuildConfig(isErrReportEmpty: Boolean?) {
                     val kotlinSrcDir = buildConfigDir
                         .resolve(this.name)
                         .resolve("kotlin")
@@ -131,60 +133,64 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
                     dir.mkdirs()
 
-                    val textMockResources = if (isUsingMockResources == null) {
-                        "internal expect val IS_USING_MOCK_RESOURCES: Boolean"
+                    val textRunFullTests = if (isErrReportEmpty == null) {
+                        "internal expect val CAN_RUN_FULL_TESTS: Boolean"
                     } else {
-                        "internal actual val IS_USING_MOCK_RESOURCES: Boolean = $isUsingMockResources"
+                        "internal actual val CAN_RUN_FULL_TESTS: Boolean = $isErrReportEmpty"
                     }
 
                     dir.resolve("BuildConfig${this.name.capitalized()}.kt").writeText("""
                         package $packageName
 
-                        $textMockResources
+                        $textRunFullTests
 
                     """.trimIndent())
 
                     this.kotlin.srcDir(kotlinSrcDir)
                 }
 
-                loadableTest.generateBuildConfig(isUsingMockResources = null)
+                loadableTest.generateBuildConfig(isErrReportEmpty = null)
 
-                project.rootDir
+                val reportDirLibTor = project.rootDir
                     .resolve("library")
                     .resolve("resource-lib-tor$suffix")
                     .resolve("build")
                     .resolve("reports")
                     .resolve("resource-validation")
                     .resolve("resource-lib-tor$suffix")
-                    .let { validationReportDir ->
 
-                        listOf(
-                            "android" to "androidInstrumented",
+                val reportDirNoExec = buildDir
+                    .resolve("reports")
+                    .resolve("resource-validation")
+                    .resolve(project.name)
 
-                            // If no errors for JVM resources, then android-unit-test project
-                            // dependency is not utilizing mock resources and can run tests.
-                            "jvm" to "androidUnit",
+                listOf(
+                    Triple("android", "androidInstrumented", reportDirLibTor),
 
-                            "jvm" to null,
-                            "linuxArm64" to null,
-                            "linuxX64" to null,
-                            "macosArm64" to null,
-                            "macosX64" to null,
-                            "mingwX64" to null,
-                        ).forEach { (name, srcSetName) ->
-                            val srcSetTest = findByName("${srcSetName ?: name}Test") ?: return@forEach
+                    // If no errors for JVM resources, then android-unit-test project
+                    // dependency is not utilizing mock resources and can run tests.
+                    Triple("jvm", "androidUnit", reportDirLibTor),
 
-                            val hasError = validationReportDir
-                                .resolve("${name}.err")
-                                .readText()
-                                .indexOfFirst { !it.isWhitespace() } != -1
+                    Triple("jvm", null, reportDirLibTor),
+                    Triple("linuxArm64", null, reportDirLibTor),
+                    Triple("linuxX64", null, reportDirLibTor),
+                    Triple("macosArm64", null, reportDirLibTor),
+                    Triple("macosX64", null, reportDirLibTor),
+                    Triple("mingwX64", null, reportDirLibTor),
 
-                            srcSetTest.generateBuildConfig(isUsingMockResources = hasError)
-                        }
-                    }
+                    Triple("iosArm64", null, reportDirNoExec),
+                    Triple("iosSimulatorArm64", null, reportDirNoExec),
+                    Triple("iosX64", null, reportDirNoExec),
+                ).forEach { (reportName, srcSetName, reportDir) ->
+                    val srcSetTest = findByName("${srcSetName ?: reportName}Test") ?: return@forEach
 
-                // TODO: IOS
-                findByName("iosTest")?.generateBuildConfig(isUsingMockResources = true)
+                    val isErrReportEmpty = reportDir
+                        .resolve("${reportName}.err")
+                        .readText()
+                        .indexOfFirst { !it.isWhitespace() } == -1
+
+                    srcSetTest.generateBuildConfig(isErrReportEmpty = isErrReportEmpty)
+                }
             }
         }
 

@@ -66,8 +66,8 @@ open class ResourceLoaderNoExecUnitTest {
         val loader = loader
         assertIs<ResourceLoader.Tor.NoExec>(loader)
 
-        if (IS_USING_MOCK_RESOURCES) {
-            println("Mock Resources... Skipping...")
+        if (!CAN_RUN_FULL_TESTS) {
+            println("Skipping...")
             return
         }
 

@@ -111,32 +111,36 @@ sealed class ValidationHash private constructor() {
         ): this(
             targetName = targetName,
             inputs = libs.map { (fileName, hash) ->
-                Input(fileName, hash, isHeader = false)
+                Input(fileName, hash, isHeaderFile = false)
             } + headers.map { (fileName, hash) ->
-                Input(fileName, hash, isHeader = true)
+                Input(fileName, hash, isHeaderFile = true)
             }
         )
 
         internal data class Input(
             val fileName: String,
             val hash: String,
-            val isHeader: Boolean = false,
+            val isHeaderFile: Boolean,
         )
 
         init {
             require(inputs.isNotEmpty()) { "inputs cannot be empty" }
         }
 
-        internal fun validate(packageModuleDir: File): List<ERROR> {
-            val errors = mutableListOf<ERROR>()
-
-            val nativeInteropDir = packageModuleDir
+        internal fun nativeInteropDir(packageModuleDir: File): File {
+            return packageModuleDir
                 .resolve("src")
                 .resolve("nativeInterop")
                 .resolve(targetName)
+        }
+
+        internal fun validate(packageModuleDir: File): List<ERROR> {
+            val errors = mutableListOf<ERROR>()
+
+            val nativeInteropDir = nativeInteropDir(packageModuleDir)
 
             inputs.forEach { input ->
-                val file = if (input.isHeader) {
+                val file = if (input.isHeaderFile) {
                     nativeInteropDir.resolve("include")
                 } else {
                     nativeInteropDir

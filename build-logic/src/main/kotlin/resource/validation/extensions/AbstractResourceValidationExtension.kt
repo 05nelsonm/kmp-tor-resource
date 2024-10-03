@@ -200,10 +200,10 @@ sealed class AbstractResourceValidationExtension(
     private fun KotlinMultiplatformExtension.configureLibNativeInterop() {
         if (isConfiguredLibNativeInterop) return
 
-        val interops = hashes.filterIsInstance<ValidationHash.LibNativeInterop>()
-        check(interops.isNotEmpty()) { "No hashes to validate, no native interop" }
+        val nativeInterops = hashes.filterIsInstance<ValidationHash.LibNativeInterop>()
+        check(nativeInterops.isNotEmpty()) { "No hashes to validate, no native interop" }
 
-        interops.forEach { interop ->
+        nativeInterops.forEach { interop ->
             var errors = errLibNativeInterop[interop.targetName]
 
             if (errors == null) {
