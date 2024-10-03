@@ -114,17 +114,17 @@ open class NoExecTorResourceValidationExtension private constructor(
     final override val hashes: Set<ValidationHash> by lazy { setOf(
         ValidationHash.LibNativeInterop(
             targetName = "iosArm64",
-            libs = iosArm64Libs,
+            staticLibs = iosArm64Libs,
             headers = iosArm64Headers,
         ),
         ValidationHash.LibNativeInterop(
             targetName = "iosSimulatorArm64",
-            libs = iosSimulatorArm64Libs,
+            staticLibs = iosSimulatorArm64Libs,
             headers = iosSimulatorArm64Headers,
         ),
         ValidationHash.LibNativeInterop(
             targetName = "iosX64",
-            libs = iosX64Libs,
+            staticLibs = iosX64Libs,
             headers = iosX64Headers,
         ),
     ) }

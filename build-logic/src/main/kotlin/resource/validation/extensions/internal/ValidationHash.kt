@@ -106,11 +106,11 @@ sealed class ValidationHash private constructor() {
 
         internal constructor(
             targetName: String,
-            libs: List<Pair<String, String>>,
+            staticLibs: List<Pair<String, String>>,
             headers: List<Pair<String, String>>,
         ): this(
             targetName = targetName,
-            inputs = libs.map { (fileName, hash) ->
+            inputs = staticLibs.map { (fileName, hash) ->
                 Input(fileName, hash, isHeaderFile = false)
             } + headers.map { (fileName, hash) ->
                 Input(fileName, hash, isHeaderFile = true)
@@ -121,7 +121,15 @@ sealed class ValidationHash private constructor() {
             val fileName: String,
             val hash: String,
             val isHeaderFile: Boolean,
-        )
+        ) {
+            val isStaticLib: Boolean = !isHeaderFile
+
+            init {
+                if (isStaticLib) {
+                    require(fileName.endsWith(".a")) { "fileName must be a static archive" }
+                }
+            }
+        }
 
         init {
             require(inputs.isNotEmpty()) { "inputs cannot be empty" }
