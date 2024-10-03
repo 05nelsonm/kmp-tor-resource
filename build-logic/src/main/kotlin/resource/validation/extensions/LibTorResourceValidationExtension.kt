@@ -18,6 +18,7 @@
 package resource.validation.extensions
 
 import org.gradle.api.Project
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import resource.validation.extensions.internal.SourceSetName.Companion.toSourceSetName
 import resource.validation.extensions.internal.ValidationHash
 import java.io.File
@@ -56,8 +57,8 @@ open class LibTorResourceValidationExtension private constructor(
     protected open val jvmLinuxLibcX86: String = "41f4c2c8c3c9ac13e979eb173f2f6834c8b6e4f056f89a9e4f3a9836fd5e2048"
     protected open val jvmLinuxLibcX86_64: String = "400c7eb4075c75c5cfce924c578673213a1d169667413eccd88299873853859e"
 
-    protected open val jvmMacosAarch64: String = "12b9e3e07a2dcabe0fb6fdd302cd8245179a0225f74793ac84e43abe5a9ed3e6"
-    protected open val jvmMacosX86_64: String = "1f93495eb5ff1c277e8b811f245b17fa713d0c5e40243ec384fc6164db98c22d"
+    protected open val jvmMacosAarch64: String = "234061c1c46b1ec283df2d04d6a64c337a2e9245374560fa8a8353c284dcfbaa"
+    protected open val jvmMacosX86_64: String = "83678c001500cc035442c91c64d8f913dc2637230d22db78be57da72e183227a"
 
     protected open val jvmMingwX86: String = "cc6d8038c3f451aeee070d4ea0331a9fd5b02660f1c1118696c761265be100b1"
     protected open val jvmMingwX86_64: String = "a8e2e378554f6c3b9f842b1bb76c5ddeb063e581c2da13e4de7f9c1cb550ffe0"
@@ -65,8 +66,8 @@ open class LibTorResourceValidationExtension private constructor(
     protected open val nativeLinuxArm64: String = "1639575ad7a9b360fcf581b0449c80e3a4df578aabf55f57f2fedd5884055a3b"
     protected open val nativeLinuxX64: String = "400c7eb4075c75c5cfce924c578673213a1d169667413eccd88299873853859e"
 
-    protected open val nativeMacosArm64: String = "ff03f83c72ecc61a1d8a9724353bbe7a7e9f8dce6e20177cadaea0bacd08e177"
-    protected open val nativeMacosX64: String = "c3d5b1f814e1e4dd29d87ed79de58cee68903c4898b791503254a3aab5d041f0"
+    protected open val nativeMacosArm64: String = "e20c7b1ac251aeb9f719a0299bfc30dfe5404ff147f5f16200cf37584d7e2104"
+    protected open val nativeMacosX64: String = "77d2b4511b3d847ba9ba13302f517f9bced9170de82d59a51905b51b600206de"
 
     protected open val nativeMingwX64: String = "a8e2e378554f6c3b9f842b1bb76c5ddeb063e581c2da13e4de7f9c1cb550ffe0"
 
@@ -94,8 +95,8 @@ open class LibTorResourceValidationExtension private constructor(
         override val jvmLinuxLibcX86: String = "925bdab8babf9dd53d787f917128c8c4b86c9d4026c54e0f765f3a26d2a364be"
         override val jvmLinuxLibcX86_64: String = "be92cbd0be140b3311418fb06db9aa9bf21ecc4b6c4a216441b27489ca667bde"
 
-        override val jvmMacosAarch64: String = "7b7e30dbcc16b781b090b7c2ac5b3fb47bcfff7c71446ad56fd85fb5103a0bb2"
-        override val jvmMacosX86_64: String = "13e38e84da8105c6e6ff265c120df7fe88362361398f23c67450bcda2602a013"
+        override val jvmMacosAarch64: String = "6c8de9ce93b5852108190820e92b90b8cf7eb6b253b5258204d7a8564e86cefb"
+        override val jvmMacosX86_64: String = "6ac666cb0200f9e86c66c9198c075ea47f0a0099e7afab73e8c80c489c7078b4"
 
         override val jvmMingwX86: String = "4a0cbba6670bd8db5bfb83d781cacb5db16bd910abc2644bcaa61d5f56fe0773"
         override val jvmMingwX86_64: String = "b19fc7ac3701253367ab26e7c7c8d861917047206061c11429709553a7289067"
@@ -103,8 +104,8 @@ open class LibTorResourceValidationExtension private constructor(
         override val nativeLinuxArm64: String = "5f8ffb0a195b46288f6d161298c9a71772b6427db7c7c86eaec0010a4e1ddd8d"
         override val nativeLinuxX64: String = "be92cbd0be140b3311418fb06db9aa9bf21ecc4b6c4a216441b27489ca667bde"
 
-        override val nativeMacosArm64: String = "95eac1d0b448e31e763c1333dd50e14e49ea7fa4e56260cc117a474d36da2a4d"
-        override val nativeMacosX64: String = "260916dc3b7584d2d6c703525a909f6aaecfb5356ad51ce069e9c53dbbf0732f"
+        override val nativeMacosArm64: String = "6d4c3e07528aac602ddf4c9cd411bd3984458bdd8296c5b7e445b2dd9eba0aae"
+        override val nativeMacosX64: String = "892951ea8fd9903796fd3ef2941e5a5aa4caf1fc20b1a8fd433d68a89443855b"
 
         override val nativeMingwX64: String = "b19fc7ac3701253367ab26e7c7c8d861917047206061c11429709553a7289067"
 
@@ -115,7 +116,7 @@ open class LibTorResourceValidationExtension private constructor(
 
     fun configureAndroidJniResources() { configureLibAndroidProtected() }
     fun jvmNativeLibResourcesSrcDir(): File = jvmNativeLibsResourcesSrcDirProtected()
-    fun configureNativeResources() { configureNativeResourcesProtected() }
+    fun configureNativeResources(kmp: KotlinMultiplatformExtension) { configureNativeResourcesProtected(kmp) }
 
     final override val hashes: Set<ValidationHash> by lazy { setOf(
         // android
@@ -128,28 +129,28 @@ open class LibTorResourceValidationExtension private constructor(
         ),
 
         // jvm linux-android
-        ValidationHash.LibNative.JVM(
+        ValidationHash.LibJvm(
             osName = "linux",
             osSubtype = "android",
             arch = "aarch64",
             libName = "libtor.so.gz",
             hash = jvmLinuxAndroidAarch64,
         ),
-        ValidationHash.LibNative.JVM(
+        ValidationHash.LibJvm(
             osName = "linux",
             osSubtype = "android",
             arch = "armv7",
             libName = "libtor.so.gz",
             hash = jvmLinuxAndroidArmv7,
         ),
-        ValidationHash.LibNative.JVM(
+        ValidationHash.LibJvm(
             osName = "linux",
             osSubtype = "android",
             arch = "x86",
             libName = "libtor.so.gz",
             hash = jvmLinuxAndroidX86,
         ),
-        ValidationHash.LibNative.JVM(
+        ValidationHash.LibJvm(
             osName = "linux",
             osSubtype = "android",
             arch = "x86_64",
@@ -158,35 +159,35 @@ open class LibTorResourceValidationExtension private constructor(
         ),
 
         // jvm linux-libc
-        ValidationHash.LibNative.JVM(
+        ValidationHash.LibJvm(
             osName = "linux",
             osSubtype = "libc",
             arch = "aarch64",
             libName = "libtor.so.gz",
             hash = jvmLinuxLibcAarch64,
         ),
-        ValidationHash.LibNative.JVM(
+        ValidationHash.LibJvm(
             osName = "linux",
             osSubtype = "libc",
             arch = "armv7",
             libName = "libtor.so.gz",
             hash = jvmLinuxLibcArmv7,
         ),
-        ValidationHash.LibNative.JVM(
+        ValidationHash.LibJvm(
             osName = "linux",
             osSubtype = "libc",
             arch = "ppc64",
             libName = "libtor.so.gz",
             hash = jvmLinuxLibcPpc64,
         ),
-        ValidationHash.LibNative.JVM(
+        ValidationHash.LibJvm(
             osName = "linux",
             osSubtype = "libc",
             arch = "x86",
             libName = "libtor.so.gz",
             hash = jvmLinuxLibcX86,
         ),
-        ValidationHash.LibNative.JVM(
+        ValidationHash.LibJvm(
             osName = "linux",
             osSubtype = "libc",
             arch = "x86_64",
@@ -195,13 +196,13 @@ open class LibTorResourceValidationExtension private constructor(
         ),
 
         // jvm macos
-        ValidationHash.LibNative.JVM(
+        ValidationHash.LibJvm(
             osName = "macos",
             arch = "aarch64",
             libName = "libtor.dylib.gz",
             hash = jvmMacosAarch64,
         ),
-        ValidationHash.LibNative.JVM(
+        ValidationHash.LibJvm(
             osName = "macos",
             arch = "x86_64",
             libName = "libtor.dylib.gz",
@@ -209,13 +210,13 @@ open class LibTorResourceValidationExtension private constructor(
         ),
 
         // jvm mingw
-        ValidationHash.LibNative.JVM(
+        ValidationHash.LibJvm(
             osName = "mingw",
             arch = "x86",
             libName = "tor.dll.gz",
             hash = jvmMingwX86,
         ),
-        ValidationHash.LibNative.JVM(
+        ValidationHash.LibJvm(
             osName = "mingw",
             arch = "x86_64",
             libName = "tor.dll.gz",

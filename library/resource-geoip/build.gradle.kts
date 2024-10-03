@@ -45,6 +45,6 @@ kmpConfiguration {
             }
         }
 
-        kotlin { geoipResourceValidation.configureNativeResources() }
+        kotlin { geoipResourceValidation.configureNativeResources(this) }
     }
 }

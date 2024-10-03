@@ -18,7 +18,11 @@ import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigur
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.the
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+import resource.validation.extensions.NoExecTorResourceValidationExtension
+import java.io.File
 
 fun KmpConfigurationExtension.configureNoExecTor(
     project: Project,
@@ -29,10 +33,18 @@ fun KmpConfigurationExtension.configureNoExecTor(
     val libs = project.the<LibrariesForLibs>()
     val isGpl = project.name.endsWith("gpl")
     val suffix = if (isGpl) "-gpl" else ""
+    val packageName = "io.matthewnelson.kmp.tor.resource.noexec.tor"
+    val noExecResourceValidation by lazy {
+        if (isGpl) {
+            NoExecTorResourceValidationExtension.GPL::class.java
+        } else {
+            NoExecTorResourceValidationExtension::class.java
+        }.let { project.extensions.getByType(it) }
+    }
 
     configureShared(
-        androidNamespace = "io.matthewnelson.kmp.tor.resource.noexec.tor",
-        java9ModuleName = "io.matthewnelson.kmp.tor.resource.noexec.tor",
+        androidNamespace = packageName,
+        java9ModuleName = packageName,
         publish = true,
     ) {
         androidLibrary {
@@ -51,6 +63,8 @@ fun KmpConfigurationExtension.configureNoExecTor(
         }
 
         common {
+            pluginIds("resource-validation")
+
             sourceSetMain {
                 dependencies {
                     api(libs.kmp.tor.common.api)
@@ -58,31 +72,135 @@ fun KmpConfigurationExtension.configureNoExecTor(
             }
         }
 
+        kotlin { noExecResourceValidation.configureNativeInterop(this) }
+
         sourceSetConnect(
-            "loadable",
-            listOf("jvmAndroid", "native"),
+            newName = "loadable",
+            existingNames = listOf("jvmAndroid", "native"),
             sourceSetMain = {
                 dependencies {
                     implementation(libs.kmp.tor.common.core)
                     implementation(project(":library:resource-geoip"))
                 }
-            }
+            },
+            sourceSetTest = {
+                dependencies {
+                    implementation(libs.encoding.base16)
+                }
+            },
         )
-        sourceSetConnect("nonLoadable", listOf("js"))
         sourceSetConnect(
-            "libTor",
-            listOf(
-                "jvmAndroid",
+            newName = "nonLoadable",
+            existingNames = listOf("js"),
+        )
+        sourceSetConnect(
+            newName = "nativeStatic",
+            existingNames = listOf("ios"),
+            dependencyName = "loadable",
+        )
+        sourceSetConnect(
+            newName = "nativeDynamic",
+            existingNames = listOf(
                 "linux",
                 "macos",
                 "mingw",
             ),
+            dependencyName = "loadable",
             sourceSetMain = {
                 dependencies {
                     implementation(project(":library:resource-lib-tor$suffix"))
                 }
             },
         )
+        kotlin {
+            sourceSets.findByName("jvmAndroidMain")?.dependencies {
+                implementation(project(":library:resource-lib-tor$suffix"))
+            }
+        }
+
+        kotlin {
+            with(sourceSets) {
+                val loadableTest = findByName("loadableTest") ?: return@with
+
+                val buildDir = project.layout
+                    .buildDirectory
+                    .get()
+                    .asFile
+
+                val buildConfigDir = buildDir
+                    .resolve("generated")
+                    .resolve("sources")
+                    .resolve("buildConfig")
+
+                fun KotlinSourceSet.generateBuildConfig(isErrReportEmpty: Boolean?) {
+                    val kotlinSrcDir = buildConfigDir
+                        .resolve(this.name)
+                        .resolve("kotlin")
+
+                    val dir = kotlinSrcDir.resolve(packageName.replace('.', File.separatorChar))
+
+                    dir.mkdirs()
+
+                    val textRunFullTests = if (isErrReportEmpty == null) {
+                        "internal expect val CAN_RUN_FULL_TESTS: Boolean"
+                    } else {
+                        "internal actual val CAN_RUN_FULL_TESTS: Boolean = $isErrReportEmpty"
+                    }
+
+                    dir.resolve("BuildConfig${this.name.capitalized()}.kt").writeText("""
+                        package $packageName
+
+                        $textRunFullTests
+
+                    """.trimIndent())
+
+                    this.kotlin.srcDir(kotlinSrcDir)
+                }
+
+                loadableTest.generateBuildConfig(isErrReportEmpty = null)
+
+                val reportDirLibTor = project.rootDir
+                    .resolve("library")
+                    .resolve("resource-lib-tor$suffix")
+                    .resolve("build")
+                    .resolve("reports")
+                    .resolve("resource-validation")
+                    .resolve("resource-lib-tor$suffix")
+
+                val reportDirNoExec = buildDir
+                    .resolve("reports")
+                    .resolve("resource-validation")
+                    .resolve(project.name)
+
+                listOf(
+                    Triple("android", "androidInstrumented", reportDirLibTor),
+
+                    // If no errors for JVM resources, then android-unit-test project
+                    // dependency is not utilizing mock resources and can run tests.
+                    Triple("jvm", "androidUnit", reportDirLibTor),
+
+                    Triple("jvm", null, reportDirLibTor),
+                    Triple("linuxArm64", null, reportDirLibTor),
+                    Triple("linuxX64", null, reportDirLibTor),
+                    Triple("macosArm64", null, reportDirLibTor),
+                    Triple("macosX64", null, reportDirLibTor),
+                    Triple("mingwX64", null, reportDirLibTor),
+
+                    Triple("iosArm64", null, reportDirNoExec),
+                    Triple("iosSimulatorArm64", null, reportDirNoExec),
+                    Triple("iosX64", null, reportDirNoExec),
+                ).forEach { (reportName, srcSetName, reportDir) ->
+                    val srcSetTest = findByName("${srcSetName ?: reportName}Test") ?: return@forEach
+
+                    val isErrReportEmpty = reportDir
+                        .resolve("${reportName}.err")
+                        .readText()
+                        .indexOfFirst { !it.isWhitespace() } == -1
+
+                    srcSetTest.generateBuildConfig(isErrReportEmpty = isErrReportEmpty)
+                }
+            }
+        }
 
         action.execute(this)
     }

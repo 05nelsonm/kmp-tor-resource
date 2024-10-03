@@ -107,9 +107,36 @@ function __package:native:codesign {
   __package:native "$@"
 }
 
+function __package:native:static {
+  __util:require:var_set "$target" "target (e.g. ios)"
+  __util:require:var_set "$dirname_out" "dirname_out"
+  __util:require:var_set "$os_arch" "os_arch"
+  __util:require:var_set "$native_target" "native_target"
+  __util:require:var_set "$1" "[1] File name"
+
+  local permissions="775"
+  local package_dir="build/out/$dirname_out/$target/$os_arch"
+  local interop_dir="nativeInterop/$native_target"
+
+  if [ -n "$is_header" ]; then
+    permissions="664"
+    package_dir="$package_dir/include"
+    interop_dir="$interop_dir/include"
+  fi
+
+  local gzip="no"
+
+  __package:file "$package_dir" "$interop_dir" "$1"
+}
+
+function __package:native:static:header {
+  local is_header="yes"
+  __package:native:static "$@"
+}
+
 function __package:file {
   __util:require:var_set "$1" "Packaging target dir (relative to dir external/build/)"
-  __util:require:var_set "$2" "Module src path (e.g. external/package/resource-lib-tor/src)"
+  __util:require:var_set "$2" "Module src path (relative to dir external/build/package/{dirname_final}/src/)"
   __util:require:var_set "$3" "File name"
   __util:require:var_set "$dirname_final" "dirname_final"
   __util:require:var_set "$permissions" "permissions"
@@ -142,6 +169,8 @@ function __package:file {
 
   local file_ext=""
   if [ "$gzip" = "yes" ]; then
+    sleep 1
+
     # Must utilize docker gzip for reproducible results
     __docker:run "--silent" \
       "$DIR_STAGING" \
@@ -166,7 +195,7 @@ function __package:file {
       "$native_resource" \
       "$dir_module" \
       "$DIR_STAGING/$3$file_ext"
-
-    rm -rf "$DIR_STAGING/$3$file_ext"
   fi
+
+  rm -f "$DIR_STAGING/$3$file_ext"
 }

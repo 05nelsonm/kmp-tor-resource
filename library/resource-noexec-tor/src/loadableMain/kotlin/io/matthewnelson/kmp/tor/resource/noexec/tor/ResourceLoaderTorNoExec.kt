@@ -25,6 +25,7 @@ import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_GEO
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP6
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.loadTorApi
 import kotlin.concurrent.Volatile
 import kotlin.jvm.JvmStatic
 
@@ -41,7 +42,7 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
             return NoExec.getOrCreate(
                 resourceDir = resourceDir,
                 extract = ::extractGeoips,
-                load = { throw IllegalStateException("Not yet implemented") },
+                load = ::loadTorApi,
                 toString = ::toString
             )
         }
