@@ -230,6 +230,12 @@ cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-to
 cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/macosX64.err
 cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/macosArm64.err
 cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/macosX64.err
+cat library/resource-noexec-tor/build/reports/resource-validation/resource-noexec-tor/iosArm64.err
+cat library/resource-noexec-tor/build/reports/resource-validation/resource-noexec-tor/iosSimulatorArm64.err
+cat library/resource-noexec-tor/build/reports/resource-validation/resource-noexec-tor/iosX64.err
+cat library/resource-noexec-tor-gpl/build/reports/resource-validation/resource-noexec-tor-gpl/iosArm64.err
+cat library/resource-noexec-tor-gpl/build/reports/resource-validation/resource-noexec-tor-gpl/iosSimulatorArm64.err
+cat library/resource-noexec-tor-gpl/build/reports/resource-validation/resource-noexec-tor-gpl/iosX64.err
 ```
 
 - Publish macOS build
