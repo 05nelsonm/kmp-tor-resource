@@ -16,6 +16,7 @@
 package resource.validation.extensions
 
 import org.gradle.api.Project
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import resource.validation.extensions.internal.ValidationHash
 import javax.inject.Inject
 
@@ -109,7 +110,7 @@ open class NoExecTorResourceValidationExtension private constructor(
         }
     }
 
-    fun configureNativeInterop() { configureLibNativeInteropProtected() }
+    fun configureNativeInterop(kmp: KotlinMultiplatformExtension) { configureLibNativeInteropProtected(kmp) }
 
     final override val hashes: Set<ValidationHash> by lazy { setOf(
         ValidationHash.LibNativeInterop(

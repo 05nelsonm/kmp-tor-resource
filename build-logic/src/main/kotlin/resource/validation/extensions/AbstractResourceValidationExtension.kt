@@ -182,19 +182,10 @@ sealed class AbstractResourceValidationExtension(
     }
 
     @Throws(IllegalStateException::class)
-    protected fun configureLibNativeInteropProtected() { project.kotlinMultiplatformExtension.configureLibNativeInterop() }
+    protected fun configureLibNativeInteropProtected(kmp: KotlinMultiplatformExtension) { kmp.configureLibNativeInterop() }
 
     @Throws(IllegalStateException::class)
-    protected fun configureNativeResourcesProtected() { project.kotlinMultiplatformExtension.configureResourceNative() }
-
-    @get:Throws(IllegalStateException::class)
-    private val Project.kotlinMultiplatformExtension: KotlinMultiplatformExtension get() {
-        check(plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
-            "The 'org.jetbrains.kotlin.multiplatform' plugin is required to utilize this function"
-        }
-
-        return extensions.getByName<KotlinMultiplatformExtension>("kotlin")
-    }
+    protected fun configureNativeResourcesProtected(kmp: KotlinMultiplatformExtension) { kmp.configureResourceNative() }
 
     @Throws(IllegalStateException::class)
     private fun KotlinMultiplatformExtension.configureLibNativeInterop() {

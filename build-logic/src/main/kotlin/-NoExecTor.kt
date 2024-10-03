@@ -72,11 +72,11 @@ fun KmpConfigurationExtension.configureNoExecTor(
             }
         }
 
-        kotlin { noExecResourceValidation.configureNativeInterop() }
+        kotlin { noExecResourceValidation.configureNativeInterop(this) }
 
         sourceSetConnect(
-            "loadable",
-            listOf("jvmAndroid", "native"),
+            newName = "loadable",
+            existingNames = listOf("jvmAndroid", "native"),
             sourceSetMain = {
                 dependencies {
                     implementation(libs.kmp.tor.common.core)
@@ -89,15 +89,23 @@ fun KmpConfigurationExtension.configureNoExecTor(
                 }
             },
         )
-        sourceSetConnect("nonLoadable", listOf("js"))
         sourceSetConnect(
-            "nativeDesktop",
-            listOf(
+            newName = "nonLoadable",
+            existingNames = listOf("js"),
+        )
+        sourceSetConnect(
+            newName = "nativeStatic",
+            existingNames = listOf("ios"),
+            dependencyName = "loadable",
+        )
+        sourceSetConnect(
+            newName = "nativeDynamic",
+            existingNames = listOf(
                 "linux",
                 "macos",
                 "mingw",
             ),
-            "loadable",
+            dependencyName = "loadable",
             sourceSetMain = {
                 dependencies {
                     implementation(project(":library:resource-lib-tor$suffix"))

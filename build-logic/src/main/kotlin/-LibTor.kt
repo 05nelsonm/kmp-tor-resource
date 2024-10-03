@@ -102,9 +102,15 @@ fun KmpConfigurationExtension.configureLibTor(
             }
         }
 
-        kotlin { libResourceValidation.configureNativeResources() }
+        kotlin { libResourceValidation.configureNativeResources(this) }
 
-        sourceSetConnect("nonNative", listOf("jvmAndroid", "js"))
+        sourceSetConnect(
+            newName = "nonNative",
+            existingNames = listOf(
+                "jvmAndroid",
+                "js",
+            ),
+        )
 
         action.execute(this)
     }

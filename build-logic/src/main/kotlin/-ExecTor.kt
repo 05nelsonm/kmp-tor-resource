@@ -94,11 +94,11 @@ fun KmpConfigurationExtension.configureExecTor(
             }
         }
 
-        kotlin { execResourceValidation.configureNativeResources() }
+        kotlin { execResourceValidation.configureNativeResources(this) }
 
         sourceSetConnect(
-            "exec",
-            listOf(
+            newName = "exec",
+            existingNames = listOf(
                 "jvmAndroid",
                 "js",
                 "linux",
@@ -118,7 +118,14 @@ fun KmpConfigurationExtension.configureExecTor(
                 }
             },
         )
-        sourceSetConnect("nonExec", listOf("ios", "tvos", "watchos"))
+        sourceSetConnect(
+            newName = "nonExec",
+            existingNames = listOf(
+                "ios",
+                "tvos",
+                "watchos",
+            ),
+        )
 
         action.execute(this)
     }
