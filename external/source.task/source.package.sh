@@ -169,6 +169,8 @@ function __package:file {
 
   local file_ext=""
   if [ "$gzip" = "yes" ]; then
+    sleep 1
+
     # Must utilize docker gzip for reproducible results
     __docker:run "--silent" \
       "$DIR_STAGING" \
@@ -193,7 +195,7 @@ function __package:file {
       "$native_resource" \
       "$dir_module" \
       "$DIR_STAGING/$3$file_ext"
-
-    rm -rf "$DIR_STAGING/$3$file_ext"
   fi
+
+  rm -f "$DIR_STAGING/$3$file_ext"
 }
