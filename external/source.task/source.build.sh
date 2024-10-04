@@ -768,6 +768,13 @@ function __build:configure:target:finalize:output:static {
   __build:SCRIPT "  cp -a \"stage/$DIR_OUT_SUFFIX/\$1/lib/libtor.a\" \"\$_out\""
   __build:SCRIPT "  cp -aR \"stage/$DIR_OUT_SUFFIX/\$1/include\" \"\$_out\""
   __build:SCRIPT ''
+  __build:SCRIPT '  llvm-objcopy --enable-deterministic-archives "$_out/libz.a"'
+  __build:SCRIPT '  llvm-objcopy --enable-deterministic-archives "$_out/liblzma.a"'
+  __build:SCRIPT '  llvm-objcopy --enable-deterministic-archives "$_out/libcrypto.a"'
+  __build:SCRIPT '  llvm-objcopy --enable-deterministic-archives "$_out/libssl.a"'
+  __build:SCRIPT '  llvm-objcopy --enable-deterministic-archives "$_out/libevent.a"'
+  __build:SCRIPT '  llvm-objcopy --enable-deterministic-archives "$_out/libtor.a"'
+  __build:SCRIPT ''
   __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/libz.a\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"libz.a\")\""
   __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/liblzma.a\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"liblzma.a\")\""
   __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/libcrypto.a\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"libcrypto.a\")\""
