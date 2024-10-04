@@ -1,4 +1,4 @@
-name: Test
+name: CI
 
 on: [ pull_request ]
 
@@ -6,7 +6,99 @@ env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Dkotlin.incremental=false -Dorg.gradle.jvmargs="-XX:+HeapDumpOnOutOfMemoryError -XX:MetaspaceSize=1g"
 
 jobs:
-  build:
+  compile-task:
+    strategy:
+      matrix:
+        task-target: [ geoip, android, ios, linux-libc, macos, mingw ]
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      id-geoip: ${{ steps.output-artifact-id.outputs.id-geoip }}
+      id-android: ${{ steps.output-artifact-id.outputs.id-android }}
+      id-ios: ${{ steps.output-artifact-id.outputs.id-ios }}
+      id-linux-libc: ${{ steps.output-artifact-id.outputs.id-linux-libc }}
+      id-macos: ${{ steps.output-artifact-id.outputs.id-macos }}
+      id-mingw: ${{ steps.output-artifact-id.outputs.id-mingw }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Hash ResourceValidation Extensions
+        run: |
+          HASHES=""
+          cd "build-logic/src/main/kotlin/resource/validation/extensions"
+          for FILE in $(ls); do
+            if [ -d "$FILE" ]; then continue; fi
+            if [ "$FILE" = "AbstractResourceValidationExtension.kt" ]; then continue; fi
+            HASHES+="$(sha256sum "$FILE" | cut -d ' ' -f 1)"
+          done
+          COMBINED="$(echo "$HASHES" | sha256sum - | cut -d ' ' -f 1)"
+          echo "rv-hash=$COMBINED" >> "$GITHUB_ENV"
+
+      - name: Check For Existing Artifact
+        run: |
+          ARTIFACT_ID=$(
+            curl -L \
+              -H "Accept: application/vnd.githubm+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/05nelsonm/kmp-tor-resource/actions/artifacts?page=1&per_page=1&name=${{ env.rv-hash }}-${{ matrix.task-target }}" |
+              jq '.artifacts | .[0] | select(.expired==false) | .id'
+          )
+          echo "artifact-id=$ARTIFACT_ID" >> "$GITHUB_ENV"
+
+      - name: Validate Gradle Wrapper
+        if: env.artifact-id == ''
+        uses: gradle/actions/wrapper-validation@v3
+
+      - name: Setup JDK
+        if: env.artifact-id == ''
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 11
+
+      - name: Build Task Target
+        if: env.artifact-id == '' && matrix.task-target != geoip
+        run: >
+          ./external/task.sh "build:all:${{ matrix.task-target }}"
+
+      - name: Package Task Target
+        if: env.artifact-id == ''
+        run: >
+          ./external/task.sh "package:${{ matrix.task-target }}"
+
+      - name: Tar Package Directory
+        if: env.artifact-id == ''
+        run: >
+          tar -czf ${{ matrix.task-target }}.tar.gz external/build/package
+
+      - name: Upload Artifact
+        if: env.artifact-id == ''
+        id: upload-artifact-step
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.rv-hash }}-${{ matrix.task-target }}
+          path: ${{ matrix.task-target }}.tar.gz
+          if-no-files-found: error
+          overwrite: false
+
+      - name: Set Artifact ID ENV
+        if: env.artifact-id == ''
+        run: >
+          echo "artifact-id=${{ steps.upload-artifact-step.outputs.artifact-id }}" >> "$GITHUB_ENV"
+
+      - name: Output Artifact ID
+        id: output-artifact-id
+        run: |
+          if [ -z "${{ env.artifact-id  }}" ]; then
+            echo "Environment Variable artifact-id is empty..."
+            exit 3
+          fi
+          echo "id-${{ matrix.task-target }}=${{ env.artifact-id }}" >> "$GITHUB_OUTPUT"
+
+  check:
     strategy:
       fail-fast: false
       matrix:
@@ -15,86 +107,79 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
+    needs: compile-task
+
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Validate Gradle Wrapper
-        uses: gradle/wrapper-validation-action@v1
-
-      - name: Setup Caches [ Gradle Wrapper ]
-        uses: actions/cache@v1
-        with:
-          path: ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('gradle/wrapper/gradle-wrapper.*') }}
-          restore-keys: ${{ runner.os }}-gradle-wrapper-
-
-      - name: Setup Caches [ Konan ]
-        uses: actions/cache@v1
-        with:
-          path: ~/.konan
-          key: ${{ runner.os }}-konan-${{ hashFiles('**/*.gradle.kts') }}-${{ hashFiles('gradle/libs.versions.toml') }}
-          restore-keys: ${{ runner.os }}-konan-
-
-      - name: Setup Caches [ Gradle Caches ]
-        uses: actions/cache@v1
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle.kts') }}-${{ hashFiles('gradle/libs.versions.toml') }}
-          restore-keys: ${{ runner.os }}-gradle-caches-
+        uses: gradle/actions/wrapper-validation@v3
 
       - name: Setup JDK
-        uses: actions/setup-java@v3.11.0
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: ${{ matrix.java-version }}
+
+      - name: Download Native Compilations
+        shell: bash
+        run: |
+          ./.github/workflows/download_artifact.sh "geoip" "${{ needs.compile-task.outputs.id-geoip }}"
+          ./.github/workflows/download_artifact.sh "android" "${{ needs.compile-task.outputs.id-android }}"
+          ./.github/workflows/download_artifact.sh "ios" "${{ needs.compile-task.outputs.id-ios }}"
+          ./.github/workflows/download_artifact.sh "linux-libc" "${{ needs.compile-task.outputs.id-linux-libc }}"
+          ./.github/workflows/download_artifact.sh "macos" "${{ needs.compile-task.outputs.id-macos }}"
+          ./.github/workflows/download_artifact.sh "mingw" "${{ needs.compile-task.outputs.id-mingw }}"
 
       - name: Check API Compatibility
         if: matrix.os == 'macos-latest' && matrix.java-version == 19
         run: >
           ./gradlew apiCheck --stacktrace
 
-      - name: Run macOS Tests
+      - name: Run macOS Tests [ Java 19 ]
         if: matrix.os == 'macos-latest' && matrix.java-version == 19
         run: >
           ./gradlew check --stacktrace
           -PKMP_TARGETS="IOS_ARM64,IOS_X64,IOS_SIMULATOR_ARM64,JVM,MACOS_ARM64,MACOS_X64,TVOS_ARM64,TVOS_X64,TVOS_SIMULATOR_ARM64,WATCHOS_ARM32,WATCHOS_ARM64,WATCHOS_DEVICE_ARM64,WATCHOS_X64,WATCHOS_SIMULATOR_ARM64"
 
-      - name: Run macOS Java11 Tests
+      - name: Run macOS Tests [ Java 11 ]
         if: matrix.os == 'macos-latest' && matrix.java-version == 11
         run: >
           ./gradlew check --stacktrace
           -PKMP_TARGETS="JS,JVM,WASM_JS,WASM_WASI"
 
-      - name: Run Linux Tests
+      - name: Run Linux Tests [ Java 19 ]
         if: matrix.os == 'ubuntu-latest' && matrix.java-version == 19
         run: >
           ./gradlew check --stacktrace
           -PKMP_TARGETS="ANDROID,ANDROID_ARM32,ANDROID_ARM64,ANDROID_X64,ANDROID_X86,JVM,LINUX_ARM64,LINUX_X64"
 
-      - name: Run Linux Java11 Tests
+      - name: Run Linux Tests [ Java 11 ]
         if: matrix.os == 'ubuntu-latest' && matrix.java-version == 11
         run: >
           ./gradlew check --stacktrace
           -PKMP_TARGETS="JS,JVM,WASM_JS,WASM_WASI"
 
-      - name: Run Windows Tests
+      - name: Run Windows Tests [ Java 11 ]
         if: matrix.os == 'windows-latest' && matrix.java-version == 11
         run: >
           ./gradlew check --stacktrace
           -PKMP_TARGETS="JVM,JS,MINGW_X64,WASM_JS,WASM_WASI"
 
-  emulator:
-    runs-on: ubuntu-latest
-
+  emulator-check:
     strategy:
       fail-fast: false
       matrix:
         api-level: [ 21, 29 ]
-        arch: [ x86_64 ]
+
+    runs-on: ubuntu-latest
+
+    needs: compile-task
+
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Enable KVM
         run: |
@@ -103,21 +188,23 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Validate Gradle Wrapper
-        uses: gradle/wrapper-validation-action@v1
+        uses: gradle/actions/wrapper-validation@v3
 
       - name: Setup JDK
-        uses: actions/setup-java@v3.11.0
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: 17
 
-      - name: Build
-        uses: gradle/gradle-build-action@v2
+      - name: Download Native Compilations
+        run: |
+          ./.github/workflows/download_artifacts.sh "geoip" "${{ needs.compile-task.outputs.id-geoip }}"
+          ./.github/workflows/download_artifacts.sh "android" "${{ needs.compile-task.outputs.id-android }}"
 
       - name: Run Android Instrumented Tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           emulator-boot-timeout: 300 # 5 minutes
           api-level: ${{ matrix.api-level }}
-          arch: ${{ matrix.arch }}
+          arch: x86_64
           script: ./gradlew connectedCheck -PKMP_TARGETS="ANDROID,JVM"
