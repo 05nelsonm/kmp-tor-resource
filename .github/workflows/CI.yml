@@ -10,9 +10,7 @@ jobs:
     strategy:
       matrix:
         task-target: [ geoip, android, ios, linux-libc, macos, mingw ]
-
     runs-on: ubuntu-latest
-
     outputs:
       id-geoip: ${{ steps.output-artifact-id.outputs.id-geoip }}
       id-android: ${{ steps.output-artifact-id.outputs.id-android }}
@@ -20,7 +18,6 @@ jobs:
       id-linux-libc: ${{ steps.output-artifact-id.outputs.id-linux-libc }}
       id-macos: ${{ steps.output-artifact-id.outputs.id-macos }}
       id-mingw: ${{ steps.output-artifact-id.outputs.id-mingw }}
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -99,16 +96,13 @@ jobs:
           echo "id-${{ matrix.task-target }}=${{ env.artifact-id }}" >> "$GITHUB_OUTPUT"
 
   check:
+    needs: compile-task
     strategy:
       fail-fast: false
       matrix:
         os: [ macos-latest, ubuntu-latest, windows-latest ]
         java-version: [ 11, 19 ]
-
     runs-on: ${{ matrix.os }}
-
-    needs: compile-task
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -168,15 +162,12 @@ jobs:
           -PKMP_TARGETS="JVM,JS,MINGW_X64,WASM_JS,WASM_WASI"
 
   emulator-check:
+    needs: compile-task
     strategy:
       fail-fast: false
       matrix:
         api-level: [ 21, 29 ]
-
     runs-on: ubuntu-latest
-
-    needs: compile-task
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -198,8 +189,8 @@ jobs:
 
       - name: Download Native Compilations
         run: |
-          ./.github/workflows/download_artifacts.sh "geoip" "${{ needs.compile-task.outputs.id-geoip }}"
-          ./.github/workflows/download_artifacts.sh "android" "${{ needs.compile-task.outputs.id-android }}"
+          ./.github/workflows/download_artifact.sh "geoip" "${{ needs.compile-task.outputs.id-geoip }}"
+          ./.github/workflows/download_artifact.sh "android" "${{ needs.compile-task.outputs.id-android }}"
 
       - name: Run Android Instrumented Tests
         uses: reactivecircus/android-emulator-runner@v2
