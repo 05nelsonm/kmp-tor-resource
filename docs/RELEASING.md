@@ -12,6 +12,12 @@ java --version
 VERSION_NAME="<version name>"
 ```
 
+- Set ssh variables in terminal shell
+```
+SSH_MAC_PROFILE="<profile name>"
+SSH_MAC_PATH="/path/to/kmp-tor-resource"
+```
+
 - Create a release branch
 ```bash
 git checkout master
@@ -152,14 +158,9 @@ cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exe
 git push -u origin release_"$VERSION_NAME"
 ```
 
-- Push resources for `macOS` publications
+- Copy compilations to `macOS` box via ssh for publication
 ```bash
-git checkout -b release_RESOURCES
-mkdir -p external/build-release
-cp -R external/build/package external/build-release
-git add --all
-git commit -S -m "$VERSION_NAME release resources"
-git push -u origin release_RESOURCES
+cd external && tar c build | ssh $SSH_MAC_PROFILE "cd $SSH_MAC_PATH/external; rm -rf build; tar x -" && cd ..
 ```
 
 ### Macos
@@ -187,17 +188,10 @@ bash
 VERSION_NAME="<version name>"
 ```
 
-- Pull the latest code
+- Pull the latest code from release branch
 ```bash
 git checkout master
 git pull
-```
-
-- Move resources to `external/build`
-```bash
-git checkout release_RESOURCES
-./external/task.sh clean
-cp -R external/build-release external/build
 git checkout release_"$VERSION_NAME"
 ```
 
