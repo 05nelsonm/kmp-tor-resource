@@ -126,6 +126,16 @@ jobs:
           ./.github/workflows/download_artifact.sh "macos" "${{ needs.compile-task.outputs.id-macos }}"
           ./.github/workflows/download_artifact.sh "mingw" "${{ needs.compile-task.outputs.id-mingw }}"
 
+      - name: Validate Native Compilations
+        shell: bash
+        run: |
+          if ./external/task.sh validate | grep "ERROR\[ .* ]"; then
+            IS_VALID=false
+          else
+            IS_VALID=true
+          fi
+          if ! $IS_VALID; then exit 1; fi
+
       - name: Check API Compatibility
         if: matrix.os == 'macos-latest' && matrix.java-version == 19
         run: >
