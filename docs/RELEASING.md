@@ -324,12 +324,10 @@ git push origin "$VERSION_NAME"
 ```
 
 - Delete release branch on GitHub
-- Delete release resources branch on GitHub
 
 - Delete local release branch
 ```bash
 git branch -D release_"$VERSION_NAME"
-git branch -D release_RESOURCES
 git fetch origin --prune
 ```
 
@@ -344,7 +342,6 @@ git pull
 - Delete local release branch
 ```bash
 git branch -D release_"$VERSION_NAME"
-git branch -D release_RESOURCES
 git fetch origin --prune
 ```
 
