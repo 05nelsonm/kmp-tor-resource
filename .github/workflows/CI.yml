@@ -39,6 +39,7 @@ jobs:
           ARTIFACT_ID=$(
             curl -L \
               -H "Accept: application/vnd.githubm+json" \
+              -H "Authorization: Bearer ${{ secrets.PAT_ACTION_READ }}" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
               "https://api.github.com/repos/05nelsonm/kmp-tor-resource/actions/artifacts?page=1&per_page=1&name=${{ env.rv-hash }}-${{ matrix.task-target }}" |
               jq '.artifacts | .[0] | select(.expired==false) | .id'
@@ -119,12 +120,12 @@ jobs:
       - name: Download Native Compilations
         shell: bash
         run: |
-          ./.github/workflows/download_artifact.sh "geoip" "${{ needs.compile-task.outputs.id-geoip }}"
-          ./.github/workflows/download_artifact.sh "android" "${{ needs.compile-task.outputs.id-android }}"
-          ./.github/workflows/download_artifact.sh "ios" "${{ needs.compile-task.outputs.id-ios }}"
-          ./.github/workflows/download_artifact.sh "linux-libc" "${{ needs.compile-task.outputs.id-linux-libc }}"
-          ./.github/workflows/download_artifact.sh "macos" "${{ needs.compile-task.outputs.id-macos }}"
-          ./.github/workflows/download_artifact.sh "mingw" "${{ needs.compile-task.outputs.id-mingw }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "geoip" "${{ needs.compile-task.outputs.id-geoip }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "android" "${{ needs.compile-task.outputs.id-android }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "ios" "${{ needs.compile-task.outputs.id-ios }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "linux-libc" "${{ needs.compile-task.outputs.id-linux-libc }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "macos" "${{ needs.compile-task.outputs.id-macos }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "mingw" "${{ needs.compile-task.outputs.id-mingw }}"
 
       - name: Validate Native Compilations
         shell: bash
@@ -199,8 +200,8 @@ jobs:
 
       - name: Download Native Compilations
         run: |
-          ./.github/workflows/download_artifact.sh "geoip" "${{ needs.compile-task.outputs.id-geoip }}"
-          ./.github/workflows/download_artifact.sh "android" "${{ needs.compile-task.outputs.id-android }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "geoip" "${{ needs.compile-task.outputs.id-geoip }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "android" "${{ needs.compile-task.outputs.id-android }}"
 
       - name: Run Android Instrumented Tests
         uses: reactivecircus/android-emulator-runner@v2

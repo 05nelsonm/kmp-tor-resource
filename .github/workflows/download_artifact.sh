@@ -15,14 +15,20 @@
 export LC_ALL=C
 set -e
 
+# ARGS:
+#  - 1: bearer token
+#  - 2: name
+#  - 3: artifact id
+
 curl -L \
   -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer $1" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/repos/05nelsonm/kmp-tor-resource/actions/artifacts/$2/zip" \
-  --output "$1.zip"
+  "https://api.github.com/repos/05nelsonm/kmp-tor-resource/actions/artifacts/$3/zip" \
+  --output "$2.zip"
 
-unzip "$1.zip"
-tar -xzvf "$1.tar.gz"
+unzip "$2.zip"
+tar -xzvf "$2.tar.gz"
 
-rm -f "$1.zip"
-rm -f "$1.tar.gz"
+rm -f "$2.zip"
+rm -f "$2.tar.gz"
