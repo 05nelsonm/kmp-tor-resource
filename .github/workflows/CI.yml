@@ -57,7 +57,7 @@ jobs:
           java-version: 11
 
       - name: Build Task Target
-        if: env.artifact-id == '' && matrix.task-target != geoip
+        if: env.artifact-id == '' && matrix.task-target != 'geoip'
         run: >
           ./external/task.sh "build:all:${{ matrix.task-target }}"
 
@@ -95,7 +95,7 @@ jobs:
           fi
           echo "id-${{ matrix.task-target }}=${{ env.artifact-id }}" >> "$GITHUB_OUTPUT"
 
-  check:
+  run-check:
     needs: compile-task
     strategy:
       fail-fast: false
