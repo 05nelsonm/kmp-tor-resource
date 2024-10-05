@@ -73,8 +73,8 @@ protected actual constructor(): TorApi() {
             _ptrConfigurationSetCmdLine = handle.fDlSym("tor_main_configuration_set_command_line")
             _ptrRun = handle.fDlSym("tor_run_main")
 
-            DeleteOnExit.add(tempDir)
-            DeleteOnExit.add(libTor)
+            tempDir.deleteOnExit()
+            libTor.deleteOnExit()
         } catch (t: Throwable) {
             try {
                 handle?.dlClose()

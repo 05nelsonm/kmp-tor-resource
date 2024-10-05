@@ -13,57 +13,59 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
-
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.SynchronizedObject
 import io.matthewnelson.kmp.tor.common.core.synchronized
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.staticCFunction
+import platform.posix.atexit
 import kotlin.concurrent.Volatile
 
-internal expect sealed class AbstractDeleteOnExit protected constructor() {
+@Volatile
+private var HAS_EXECUTED: Boolean = false
+@OptIn(InternalKmpTorApi::class)
+private val LOCK = SynchronizedObject()
+private val FILES = ArrayDeque<File>(2)
 
-    protected abstract fun execute()
+// Deletes registered file on program exit in reverse order
+internal fun File.deleteOnExit() {
+    INIT
 
-    protected val initialize: Unit
+    @OptIn(InternalKmpTorApi::class)
+    synchronized(LOCK) {
+        if (HAS_EXECUTED) {
+            delete()
+            return@synchronized
+        }
+
+        if (FILES.contains(this)) {
+            return@synchronized
+        }
+
+        FILES.add(this)
+    }
 }
 
-@OptIn(InternalKmpTorApi::class)
-internal data object DeleteOnExit: AbstractDeleteOnExit() {
+private val INIT by lazy {
+    @OptIn(ExperimentalForeignApi::class)
+    atexit(staticCFunction(::execute))
 
-    @Volatile
-    private var _hasExecuted: Boolean = false
-    private val lock = SynchronizedObject()
-    private val files = ArrayDeque<File>(2)
+    // TODO: Install signal handlers
+    //  https://github.com/JakeWharton/finalization-hook/blob/trunk/src/posixMain/kotlin/com/jakewharton/finalization/hook.kt
+}
 
-    fun add(file: File) {
-        synchronized(lock) {
-            initialize
+private fun execute() {
+    @OptIn(InternalKmpTorApi::class)
+    val files = synchronized(LOCK) {
+        if (HAS_EXECUTED) return@synchronized null
+        HAS_EXECUTED = true
+        FILES
+    } ?: return
 
-            if (_hasExecuted) {
-                file.delete()
-                return@synchronized
-            }
-
-            if (files.contains(file)) {
-                return@synchronized
-            }
-
-            files.add(file)
-        }
-    }
-
-    override fun execute() {
-        val files = synchronized(lock) {
-            if (_hasExecuted) return@synchronized null
-            _hasExecuted = true
-            files
-        } ?: return
-
-        while (files.isNotEmpty()) {
-            files.removeLast().delete()
-        }
+    while (files.isNotEmpty()) {
+        files.removeLast().delete()
     }
 }
