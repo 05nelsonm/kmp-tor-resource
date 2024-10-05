@@ -15,7 +15,25 @@
  **/
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
-internal fun lastErrorOrNull(): String? {
-    // TODO
-    return null
+import kotlinx.cinterop.*
+import platform.windows.*
+
+internal fun lastError(): String {
+    @OptIn(ExperimentalForeignApi::class)
+    return memScoped {
+        val messageMaxSize = 2048
+        val message = allocArray<ByteVar>(messageMaxSize)
+
+        FormatMessageA(
+            dwFlags = (FORMAT_MESSAGE_FROM_SYSTEM or FORMAT_MESSAGE_IGNORE_INSERTS).toUInt(),
+            lpSource = null,
+            dwMessageId = GetLastError(),
+            dwLanguageId = (SUBLANG_DEFAULT * 1024 + LANG_NEUTRAL).toUInt(), // MAKELANGID macro.
+            lpBuffer = message,
+            nSize = messageMaxSize.toUInt(),
+            Arguments = null
+        )
+
+        message.toKString().trim()
+    }
 }

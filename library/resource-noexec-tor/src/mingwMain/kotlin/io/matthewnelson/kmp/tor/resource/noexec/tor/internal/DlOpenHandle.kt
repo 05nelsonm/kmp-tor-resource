@@ -27,12 +27,12 @@ internal actual value class DlOpenHandle private actual constructor(private actu
 
     @Throws(IllegalStateException::class)
     internal actual fun dlSym(name: String): CPointer<out CPointed> = GetProcAddress(ptr.reinterpret(), name)
-        ?: throw IllegalStateException(lastErrorOrNull() ?: "GetProcAddress failed for name[$name]")
+        ?: throw IllegalStateException("GetProcAddress failed for name[$name]. LastError >> ${lastError()}")
 
     @Throws(IllegalStateException::class)
     internal actual fun dlClose() {
         // https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-freelibrary
-        check(FreeLibrary(ptr.reinterpret()) != 0) { lastErrorOrNull() ?: "FreeLibrary failed" }
+        check(FreeLibrary(ptr.reinterpret()) != 0) { "FreeLibrary failed. LastError >> ${lastError()}" }
     }
 
     internal actual companion object {
@@ -42,7 +42,7 @@ internal actual value class DlOpenHandle private actual constructor(private actu
             val ptr = LoadLibraryExW(absolutePath, NULL, DONT_RESOLVE_DLL_REFERENCES.convert())
                 ?: LoadLibraryW(absolutePath)
 
-            check(ptr != null) { lastErrorOrNull() ?: "LoadLibrary failed for lib [$this]" }
+            check(ptr != null) { "LoadLibrary failed for lib [$this]. LastError >> ${lastError()}" }
 
             return DlOpenHandle(ptr)
         }
