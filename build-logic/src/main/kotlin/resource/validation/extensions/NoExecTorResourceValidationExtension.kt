@@ -114,16 +114,19 @@ open class NoExecTorResourceValidationExtension private constructor(
 
     final override val hashes: Set<ValidationHash> by lazy { setOf(
         ValidationHash.LibNativeInterop(
+            defFileName = "tor",
             targetName = "iosArm64",
             staticLibs = iosArm64Libs,
             headers = iosArm64Headers,
         ),
         ValidationHash.LibNativeInterop(
+            defFileName = "tor",
             targetName = "iosSimulatorArm64",
             staticLibs = iosSimulatorArm64Libs,
             headers = iosSimulatorArm64Headers,
         ),
         ValidationHash.LibNativeInterop(
+            defFileName = "tor",
             targetName = "iosX64",
             staticLibs = iosX64Libs,
             headers = iosX64Headers,
