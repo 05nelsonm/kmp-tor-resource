@@ -205,15 +205,54 @@ sealed class AbstractResourceValidationExtension(
             val result = interop.validate(dirModulePackage)
             errors.addAll(result)
 
-            targets.findByName(interop.targetName)?.let { target ->
+            targets.findByName(interop.targetName)?.let target@ { target ->
                 check(target is KotlinNativeTarget) { "${interop.targetName} must be a KotlinNativeTarget..." }
 
-                if (result.isNotEmpty()) {
-                    // TODO: Disable
-                    return@let
-                }
+                target.compilations.getByName("main").apply {
 
-                // TODO: Configure CInterop
+                    val cinterop = cinterops.create(interop.defFileName)
+
+                    if (result.isNotEmpty()) {
+                        cinterop.defFile = dirModuleMock
+                            .resolve("src")
+                            .resolve("nativeInterop")
+                            .resolve("cinterop")
+                            .resolve(interop.defFileName + ".def")
+
+                        return@target
+                    }
+
+                    val packageInteropDir = interop.nativeInteropDir(dirModulePackage)
+
+                    cinterop.apply {
+                        defFile = dirProjectRoot
+                            .resolve("library")
+                            .resolve(moduleName)
+                            .resolve("src")
+                            .resolve("nativeInterop")
+                            .resolve("cinterop")
+                            .resolve(interop.defFileName + ".def")
+
+                        val headersDir = packageInteropDir.resolve("include")
+
+                        includeDirs(headersDir.path)
+
+                        interop.inputs.forEach header@ { input ->
+                            if (!input.isHeaderFile) return@header
+                            header(headersDir.resolve(input.fileName).path)
+                        }
+                    }
+
+                    kotlinOptions {
+                        interop.inputs.forEach static@ { input ->
+                            if (!input.isStaticLib) return@static
+                            val libPath = packageInteropDir.resolve(input.fileName).path
+
+                            freeCompilerArgs += listOf("-include-binary", libPath)
+                            freeCompilerArgs += listOf("-linker-options", libPath)
+                        }
+                    }
+                }
             }
 
             generateReport(interop.targetName, errors)
