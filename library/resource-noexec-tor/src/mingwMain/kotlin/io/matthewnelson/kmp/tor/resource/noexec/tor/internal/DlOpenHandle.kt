@@ -23,7 +23,7 @@ import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual value class DlOpenHandle private actual constructor(private actual val handle: CPointer<out CPointed>) {
+internal actual value class DlOpenHandle private actual constructor(private actual val ptr: CPointer<out CPointed>) {
 
     internal actual fun dlSym(name: String): CPointer<out CPointed>? = null
     internal actual fun dlClose() {}

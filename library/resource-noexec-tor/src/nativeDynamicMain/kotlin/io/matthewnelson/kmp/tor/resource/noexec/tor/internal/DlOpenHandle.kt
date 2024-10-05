@@ -24,7 +24,7 @@ import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 
 @OptIn(ExperimentalForeignApi::class)
-internal expect value class DlOpenHandle private constructor(private val handle: CPointer<out CPointed>) {
+internal expect value class DlOpenHandle private constructor(private val ptr: CPointer<out CPointed>) {
 
     internal fun dlSym(name: String): CPointer<out CPointed>?
     internal fun dlClose()

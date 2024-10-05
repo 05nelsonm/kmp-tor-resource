@@ -18,21 +18,29 @@
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
 import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.file.absolutePath
 import kotlinx.cinterop.CPointed
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
+import platform.posix.RTLD_LAZY
+import platform.posix.dlclose
+import platform.posix.dlopen
+import platform.posix.dlsym
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual value class DlOpenHandle private actual constructor(private actual val handle: CPointer<out CPointed>) {
+internal actual value class DlOpenHandle private actual constructor(private actual val ptr: CPointer<out CPointed>) {
 
-    internal actual fun dlSym(name: String): CPointer<out CPointed>? = null
-    internal actual fun dlClose() {}
+    internal actual fun dlSym(name: String): CPointer<out CPointed>? = dlsym(ptr, name)
+    internal actual fun dlClose() { dlclose(ptr) }
 
     internal actual companion object {
 
         @Throws(IllegalStateException::class)
         internal actual fun File.dlOpen(): DlOpenHandle {
-            throw IllegalStateException("Not yet implemented")
+            val ptr = dlopen(absolutePath, RTLD_LAZY)
+                ?: throw IllegalStateException("dlopen failed for lib [$this]")
+
+            return DlOpenHandle(ptr)
         }
     }
 }
