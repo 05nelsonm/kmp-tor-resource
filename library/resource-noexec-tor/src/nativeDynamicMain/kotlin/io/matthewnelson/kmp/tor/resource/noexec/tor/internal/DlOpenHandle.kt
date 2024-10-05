@@ -26,7 +26,9 @@ import kotlinx.cinterop.ExperimentalForeignApi
 @OptIn(ExperimentalForeignApi::class)
 internal expect value class DlOpenHandle private constructor(private val ptr: CPointer<out CPointed>) {
 
-    internal fun dlSym(name: String): CPointer<out CPointed>?
+    @Throws(IllegalStateException::class)
+    internal fun dlSym(name: String): CPointer<out CPointed>
+    @Throws(IllegalStateException::class)
     internal fun dlClose()
 
     internal companion object {
@@ -36,10 +38,9 @@ internal expect value class DlOpenHandle private constructor(private val ptr: CP
     }
 }
 
-@Throws(NullPointerException::class)
+@Suppress("UNCHECKED_CAST")
+@Throws(IllegalStateException::class)
 @OptIn(ExperimentalForeignApi::class)
-internal inline fun <reified F: Function<*>> DlOpenHandle.fDlSym(name: String): CPointer<CFunction<F>> {
-    val ptr = dlSym(name) ?: throw NullPointerException("failed to acquire pointer for function $name")
-    @Suppress("UNCHECKED_CAST")
-    return ptr as CPointer<CFunction<F>>
-}
+internal inline fun <reified F: Function<*>> DlOpenHandle.fDlSym(
+    name: String,
+): CPointer<CFunction<F>> = dlSym(name) as CPointer<CFunction<F>>

@@ -25,14 +25,17 @@ import kotlinx.cinterop.ExperimentalForeignApi
 @OptIn(ExperimentalForeignApi::class)
 internal actual value class DlOpenHandle private actual constructor(private actual val ptr: CPointer<out CPointed>) {
 
-    internal actual fun dlSym(name: String): CPointer<out CPointed>? = null
+    @Throws(IllegalStateException::class)
+    internal actual fun dlSym(name: String): CPointer<out CPointed> = error("Not yet implemented")
+
+    @Throws(IllegalStateException::class)
     internal actual fun dlClose() {}
 
     internal actual companion object {
 
         @Throws(IllegalStateException::class)
         internal actual fun File.dlOpen(): DlOpenHandle {
-            throw IllegalStateException("Not yet implemented")
+            error("Not yet implemented")
         }
     }
 }

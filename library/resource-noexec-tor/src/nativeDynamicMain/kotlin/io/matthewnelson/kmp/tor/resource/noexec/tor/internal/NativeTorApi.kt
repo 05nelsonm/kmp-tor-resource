@@ -76,7 +76,12 @@ protected actual constructor(): TorApi() {
             // TODO: libTor.deleteOnExit()
             // TODO: tempDir.deleteOnExit()
         } catch (t: Throwable) {
-            handle?.dlClose()
+            try {
+                handle?.dlClose()
+            } catch (e: IllegalStateException) {
+                t.addSuppressed(e)
+            }
+
             libTor?.delete()
             tempDir.delete()
 
