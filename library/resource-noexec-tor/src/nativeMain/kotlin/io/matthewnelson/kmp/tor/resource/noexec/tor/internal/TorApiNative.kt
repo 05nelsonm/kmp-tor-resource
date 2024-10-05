@@ -22,6 +22,9 @@ import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
 import kotlinx.cinterop.*
 
+@Throws(IllegalStateException::class, IOException::class)
+internal actual fun loadTorApi(): TorApi = KmpTorApi()
+
 @OptIn(ExperimentalForeignApi::class, InternalKmpTorApi::class)
 internal expect sealed class NativeTorApi
 @Throws(IllegalStateException::class, IOException::class)
@@ -36,4 +39,12 @@ protected constructor(): TorApi {
         argv: CArrayPointer<CPointerVar<ByteVar>>,
     ): Int
     protected fun run(cfg: CPointer<*>): Int
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private class KmpTorApi: NativeTorApi() {
+
+    override fun torMainProtected(args: Array<String>) {
+        throw IllegalStateException("Not yet implemented")
+    }
 }

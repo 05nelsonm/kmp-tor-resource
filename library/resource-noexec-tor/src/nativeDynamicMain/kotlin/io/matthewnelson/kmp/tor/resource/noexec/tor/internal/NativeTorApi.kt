@@ -51,7 +51,7 @@ protected actual constructor(): TorApi() {
     private val _ptrRun: CPointer<CFunction<(CPointer<*>?) -> Int>>
 
     init {
-        // TODO: Use UUID
+        // TODO: Use UUID (Kotlin 2.0.0)
         @Suppress("DEPRECATION")
         val tempDir = Random(getTimeNanos()).nextBytes(16).let { bytes ->
             @OptIn(ExperimentalStdlibApi::class)
@@ -73,8 +73,8 @@ protected actual constructor(): TorApi() {
             _ptrConfigurationSetCmdLine = handle.fDlSym("tor_main_configuration_set_command_line")
             _ptrRun = handle.fDlSym("tor_run_main")
 
-            // TODO: libTor.deleteOnExit()
-            // TODO: tempDir.deleteOnExit()
+            DeleteOnExit.add(libTor)
+            DeleteOnExit.add(tempDir)
         } catch (t: Throwable) {
             try {
                 handle?.dlClose()
@@ -84,9 +84,6 @@ protected actual constructor(): TorApi() {
 
             libTor?.delete()
             tempDir.delete()
-
-            // TODO: Remove once all are implemented
-            if (t.message == "Not yet implemented") throw t
 
             throw IllegalStateException("Failed to dynamically load tor library", t)
         }

@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
-import io.matthewnelson.kmp.file.IOException
-import io.matthewnelson.kmp.tor.common.api.TorApi
+internal actual sealed class AbstractDeleteOnExit protected actual constructor() {
 
-@Throws(IllegalStateException::class, IOException::class)
-internal actual fun loadTorApi(): TorApi = KmpTorApi()
+    protected actual abstract fun execute()
 
-private class KmpTorApi: NativeTorApi() {
-    override fun torMainProtected(args: Array<String>) {
-        throw IllegalStateException("Not yet implemented")
+    protected actual val initialize: Unit by lazy(LazyThreadSafetyMode.NONE) {
+        // TODO
     }
 }
