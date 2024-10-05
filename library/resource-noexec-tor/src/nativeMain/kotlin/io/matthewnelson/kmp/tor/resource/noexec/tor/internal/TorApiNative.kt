@@ -44,7 +44,48 @@ protected constructor(): TorApi {
 @OptIn(ExperimentalForeignApi::class)
 private class KmpTorApi: NativeTorApi() {
 
+    @Throws(IllegalArgumentException::class, IllegalStateException::class, IOException::class)
     override fun torMainProtected(args: Array<String>) {
-        throw IllegalStateException("Not yet implemented")
+        withNewConfiguration { cfg ->
+            val (argc, argv) = args.toConfigurationArgs(scope = this)
+            configurationSetCmdLine(cfg, argc, argv)
+
+            val result = run(cfg)
+            if (result == 0) return@withNewConfiguration
+
+            val err = "tor exited exceptionally. ARGS: ${args.toList()}."
+            throw if (args.contains("--verify-config")) {
+                IllegalArgumentException(err)
+            } else {
+                IllegalStateException(err)
+            }
+        }
+    }
+
+    private fun Array<String>.toConfigurationArgs(
+        scope: MemScope,
+    ): Pair<Int, CArrayPointer<CPointerVar<ByteVar>>> = with(scope) {
+        val argc = size + 1
+        val argv = allocArray<CPointerVar<ByteVar>>(argc)
+
+        var i = 0
+        argv[i++] = "tor".cstr.ptr
+        forEach { argument -> argv[i++] = argument.cstr.ptr }
+
+        argc to argv
+    }
+
+    @Throws(IllegalStateException::class)
+    private inline fun <T: Any?> withNewConfiguration(block: MemScope.(cfg: CPointer<*>) -> T): T {
+        val cfg = configurationNew()
+            ?: throw IllegalStateException("Failed to acquire a new configuration")
+
+        return memScoped {
+            try {
+                block(cfg)
+            } finally {
+                configurationFree(cfg)
+            }
+        }
     }
 }

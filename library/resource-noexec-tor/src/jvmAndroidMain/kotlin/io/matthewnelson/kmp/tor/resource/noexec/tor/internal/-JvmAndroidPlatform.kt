@@ -35,7 +35,7 @@ private class KmpTorApi: TorApi() {
 
     @Throws(IllegalArgumentException::class, IllegalStateException::class, IOException::class)
     override fun torMainProtected(args: Array<String>) {
-        throw IllegalStateException("Not yet implemented")
+        TODO("Not yet implemented")
     }
 
     init {

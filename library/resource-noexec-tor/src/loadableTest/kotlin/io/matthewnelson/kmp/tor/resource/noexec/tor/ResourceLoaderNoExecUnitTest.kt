@@ -23,10 +23,7 @@ import io.matthewnelson.kmp.file.resolve
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 import kotlin.random.Random
-import kotlin.test.AfterTest
-import kotlin.test.Test
-import kotlin.test.assertIs
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 @OptIn(InternalKmpTorApi::class)
 open class ResourceLoaderNoExecUnitTest {
@@ -71,8 +68,42 @@ open class ResourceLoaderNoExecUnitTest {
             return
         }
 
-        loader.withApi {
-            // TODO
+        try {
+            loader.withApi {
+                torMain(listOf("--version"))
+            }
+        } catch (e: NotImplementedError) {
+            println("Skipping...")
+            return
+        }
+    }
+
+    @Test
+    fun givenResourceLoaderNoExec_whenRunInvalidConfig_thenThrowsIllegalArgumentException() {
+        val loader = loader
+        assertIs<ResourceLoader.Tor.NoExec>(loader)
+
+        if (!CAN_RUN_FULL_TESTS) {
+            println("Skipping...")
+            return
+        }
+
+        try {
+            loader.withApi {
+                torMain(listOf(
+                    "--SocksPort", "-1",
+                    "--verify-config",
+                    "--quiet",
+                ))
+            }
+
+            fail("Tor completed without expected exception...")
+        } catch (e: NotImplementedError) {
+            // TODO: Remove. Issue #58
+            println("Skipping...")
+            return
+        } catch (e: IllegalArgumentException) {
+            // pass
         }
     }
 }
