@@ -47,6 +47,10 @@ internal data object DeleteOnExit: AbstractDeleteOnExit() {
                 return@synchronized
             }
 
+            if (files.contains(file)) {
+                return@synchronized
+            }
+
             files.add(file)
         }
     }
@@ -59,7 +63,7 @@ internal data object DeleteOnExit: AbstractDeleteOnExit() {
         } ?: return
 
         while (files.isNotEmpty()) {
-            files.removeFirst().delete()
+            files.removeLast().delete()
         }
     }
 }
