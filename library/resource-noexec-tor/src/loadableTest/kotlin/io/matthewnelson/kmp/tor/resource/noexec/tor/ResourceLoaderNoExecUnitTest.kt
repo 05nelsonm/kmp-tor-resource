@@ -71,14 +71,8 @@ open class ResourceLoaderNoExecUnitTest {
             return
         }
 
-        try {
-            loader.withApi {}
-        } catch (t: IllegalStateException) {
-            // TODO: Remove once all platforms implemented...
-            if (t.message == "Not yet implemented") {
-                println("Skipping...")
-                return
-            }
+        loader.withApi {
+            // TODO
         }
     }
 }

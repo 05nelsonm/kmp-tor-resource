@@ -53,8 +53,8 @@ private class KmpTorApi: TorApi() {
 
                     System.load(libTor.absolutePath)
 
-                    libTor.deleteOnExit()
                     tempDir.deleteOnExit()
+                    libTor.deleteOnExit()
                 } catch (t: Throwable) {
                     tempDir.deleteRecursively()
                     throw t

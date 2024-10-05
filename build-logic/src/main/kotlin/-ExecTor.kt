@@ -122,8 +122,6 @@ fun KmpConfigurationExtension.configureExecTor(
             newName = "nonExec",
             existingNames = listOf(
                 "ios",
-                "tvos",
-                "watchos",
             ),
         )
 

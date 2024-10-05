@@ -84,7 +84,10 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
         sourceSetConnect(
             newName = "loadable",
-            existingNames = listOf("jvmAndroid", "native"),
+            existingNames = listOf(
+                "jvmAndroid",
+                "native",
+            ),
             sourceSetMain = {
                 dependencies {
                     implementation(libs.kmp.tor.common.core)
@@ -99,12 +102,16 @@ fun KmpConfigurationExtension.configureNoExecTor(
         )
         sourceSetConnect(
             newName = "nonLoadable",
-            existingNames = listOf("js"),
+            existingNames = listOf(
+                "js",
+            ),
         )
         sourceSetConnect(
             newName = "nativeStatic",
-            existingNames = listOf("ios"),
-            dependencyName = "loadable",
+            existingNames = listOf(
+                "ios",
+            ),
+            dependencyName = "native",
         )
         sourceSetConnect(
             newName = "nativeDynamic",
@@ -113,16 +120,15 @@ fun KmpConfigurationExtension.configureNoExecTor(
                 "macos",
                 "mingw",
             ),
-            dependencyName = "loadable",
-            sourceSetMain = {
-                dependencies {
-                    implementation(project(":library:resource-lib-tor$suffix"))
-                }
-            },
+            dependencyName = "native",
         )
         kotlin {
-            sourceSets.findByName("jvmAndroidMain")?.dependencies {
-                implementation(project(":library:resource-lib-tor$suffix"))
+            with(sourceSets) {
+                listOf("jvmAndroid", "nativeDynamic").forEach { name ->
+                    findByName(name + "Main")?.dependencies {
+                        implementation(project(":library:resource-lib-tor$suffix"))
+                    }
+                }
             }
         }
 
