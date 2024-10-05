@@ -18,24 +18,33 @@
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
 import io.matthewnelson.kmp.file.File
-import kotlinx.cinterop.CPointed
-import kotlinx.cinterop.CPointer
-import kotlinx.cinterop.ExperimentalForeignApi
+import io.matthewnelson.kmp.file.absolutePath
+import kotlinx.cinterop.*
+import platform.windows.*
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual value class DlOpenHandle private actual constructor(private actual val ptr: CPointer<out CPointed>) {
+internal actual value class DlOpenHandle private actual constructor(private actual val ptr: CPointer<*>) {
 
     @Throws(IllegalStateException::class)
-    internal actual fun dlSym(name: String): CPointer<out CPointed> = error("Not yet implemented")
+    internal actual fun dlSym(name: String): CPointer<out CPointed> = GetProcAddress(ptr.reinterpret(), name)
+        ?: throw IllegalStateException(lastErrorOrNull() ?: "GetProcAddress failed for name[$name]")
 
     @Throws(IllegalStateException::class)
-    internal actual fun dlClose() {}
+    internal actual fun dlClose() {
+        // https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-freelibrary
+        check(FreeLibrary(ptr.reinterpret()) != 0) { lastErrorOrNull() ?: "FreeLibrary failed" }
+    }
 
     internal actual companion object {
 
         @Throws(IllegalStateException::class)
         internal actual fun File.dlOpen(): DlOpenHandle {
-            error("Not yet implemented")
+            val ptr = LoadLibraryExW(absolutePath, NULL, DONT_RESOLVE_DLL_REFERENCES.convert())
+                ?: LoadLibraryW(absolutePath)
+
+            check(ptr != null) { lastErrorOrNull() ?: "LoadLibrary failed for lib [$this]" }
+
+            return DlOpenHandle(ptr)
         }
     }
 }

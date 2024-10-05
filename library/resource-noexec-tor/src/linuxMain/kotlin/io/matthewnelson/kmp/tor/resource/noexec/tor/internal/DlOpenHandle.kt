@@ -26,7 +26,7 @@ import kotlinx.cinterop.toKString
 import platform.posix.*
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual value class DlOpenHandle private actual constructor(private actual val ptr: CPointer<out CPointed>) {
+internal actual value class DlOpenHandle private actual constructor(private actual val ptr: CPointer<*>) {
 
     @Throws(IllegalStateException::class)
     internal actual fun dlSym(name: String): CPointer<out CPointed> = dlsym(ptr, name)
