@@ -45,6 +45,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
     configureShared(
         androidNamespace = packageName,
         java9ModuleName = packageName,
+        excludeNative = true,
         publish = true,
     ) {
         androidLibrary {
@@ -61,6 +62,13 @@ fun KmpConfigurationExtension.configureNoExecTor(
                 }
             }
         }
+
+        // TODO: Fix cinterop for iosX64. Issue #64
+        iosArm64()
+        iosSimulatorArm64()
+        linuxAll()
+        macosAll()
+        mingwAll()
 
         common {
             pluginIds("resource-validation")

@@ -8,6 +8,7 @@ env:
 jobs:
   compile-task:
     strategy:
+      fail-fast: false
       matrix:
         task-target: [ geoip, android, ios, linux-libc, macos, mingw ]
     runs-on: ubuntu-latest

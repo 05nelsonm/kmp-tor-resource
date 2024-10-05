@@ -100,15 +100,18 @@ sealed class ValidationHash private constructor() {
     }
 
     internal data class LibNativeInterop internal constructor(
+        val defFileName: String,
         val targetName: String,
         val inputs: List<Input>,
     ): ValidationHash() {
 
         internal constructor(
+            defFileName: String,
             targetName: String,
             staticLibs: List<Pair<String, String>>,
             headers: List<Pair<String, String>>,
         ): this(
+            defFileName = defFileName,
             targetName = targetName,
             inputs = staticLibs.map { (fileName, hash) ->
                 Input(fileName, hash, isHeaderFile = false)
@@ -133,6 +136,7 @@ sealed class ValidationHash private constructor() {
 
         init {
             require(inputs.isNotEmpty()) { "inputs cannot be empty" }
+            require(!defFileName.endsWith(".def")) { "defFileName must not end with .def" }
         }
 
         internal fun nativeInteropDir(packageModuleDir: File): File {

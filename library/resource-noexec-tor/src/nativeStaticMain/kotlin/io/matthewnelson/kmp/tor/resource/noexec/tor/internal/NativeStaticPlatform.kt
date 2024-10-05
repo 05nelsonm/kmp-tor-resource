@@ -21,12 +21,32 @@ import io.matthewnelson.kmp.file.IOException
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
+import kotlinx.cinterop.ExperimentalForeignApi
 
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
 internal actual inline fun Resource.Config.Builder.configureLibTorResources() { /* no-op */ }
 
 @Throws(IllegalStateException::class, IOException::class)
-internal actual fun loadTorApi(): TorApi {
-    throw IllegalStateException("Not yet implemented")
+internal actual fun loadTorApi(): TorApi = KmpTorApi
+
+@OptIn(ExperimentalForeignApi::class, InternalKmpTorApi::class)
+private object KmpTorApi: TorApi() {
+
+    @Throws(IllegalArgumentException::class, IllegalStateException::class, IOException::class)
+    override fun torMainProtected(args: Array<String>) {
+        throw IllegalStateException("Not yet implemented")
+
+        // TODO: Implement
+        @Suppress("UNREACHABLE_CODE")
+        tor_api_get_provider_version()
+        @Suppress("UNREACHABLE_CODE")
+        tor_main_configuration_new()
+        @Suppress("UNREACHABLE_CODE")
+        tor_main_configuration_set_command_line(null, 0, null)
+        @Suppress("UNREACHABLE_CODE")
+        tor_run_main(null)
+        @Suppress("UNREACHABLE_CODE")
+        tor_main_configuration_free(null)
+    }
 }
