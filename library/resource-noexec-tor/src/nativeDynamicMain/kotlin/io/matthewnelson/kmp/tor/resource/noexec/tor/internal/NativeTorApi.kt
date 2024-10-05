@@ -17,29 +17,73 @@
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
+import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.IOException
+import io.matthewnelson.kmp.file.SysTempDir
+import io.matthewnelson.kmp.file.resolve
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.DlOpenHandle.Companion.dlOpen
 import kotlinx.cinterop.*
+import kotlin.random.Random
+import kotlin.system.getTimeNanos
 
+// nativeDynamicMain
 @OptIn(ExperimentalForeignApi::class, InternalKmpTorApi::class)
 internal actual sealed class NativeTorApi
 @Throws(IllegalStateException::class, IOException::class)
 protected actual constructor(): TorApi() {
 
-    protected actual fun getProviderVersion(): CPointer<ByteVarOf<Byte>>? = null
-    protected actual fun configurationNew(): CPointer<*>? = null
-    protected actual fun configurationFree(cfg: CPointer<*>) { }
+    protected actual fun getProviderVersion(): CPointer<ByteVar>? = _ptrGetProviderVersion.invoke()
+    protected actual fun configurationNew(): CPointer<*>? = _ptrConfigurationNew.invoke()
+    protected actual fun configurationFree(cfg: CPointer<*>) { _ptrConfigurationFree.invoke(cfg) }
     protected actual fun configurationSetCmdLine(
         cfg: CPointer<*>,
         argc: Int,
         argv: CArrayPointer<CPointerVar<ByteVar>>,
-    ): Int {
-        return -1
-    }
-    protected actual fun run(cfg: CPointer<*>): Int = -1
+    ): Int = _ptrConfigurationSetCmdLine.invoke(cfg, argc, argv)
+    protected actual fun run(cfg: CPointer<*>): Int = _ptrRun.invoke(cfg)
+
+    private val _ptrGetProviderVersion: CPointer<CFunction<() -> CPointer<ByteVar>?>>
+    private val _ptrConfigurationNew: CPointer<CFunction<() -> CPointer<*>?>>
+    private val _ptrConfigurationFree: CPointer<CFunction<(CPointer<*>?) -> Unit>>
+    private val _ptrConfigurationSetCmdLine: CPointer<CFunction<(CPointer<*>?, Int, CArrayPointer<CPointerVar<ByteVar>>?) -> Int>>
+    private val _ptrRun: CPointer<CFunction<(CPointer<*>?) -> Int>>
 
     init {
-        // TODO: Load
+        // TODO: Use UUID
+        @Suppress("DEPRECATION")
+        val tempDir = Random(getTimeNanos()).nextBytes(16).let { bytes ->
+            @OptIn(ExperimentalStdlibApi::class)
+            SysTempDir.resolve("kmp-tor_${bytes.toHexString(HexFormat.UpperCase)}")
+        }
+
+        var libTor: File? = null
+        var handle: DlOpenHandle? = null
+
+        try {
+            libTor = RESOURCE_CONFIG_LIB_TOR
+                .extractTo(tempDir, onlyIfDoesNotExist = false)
+                .getValue(ALIAS_LIB_TOR)
+
+            handle = libTor.dlOpen()
+            _ptrGetProviderVersion = handle.fDlSym("tor_api_get_provider_version")
+            _ptrConfigurationNew = handle.fDlSym("tor_main_configuration_new")
+            _ptrConfigurationFree = handle.fDlSym("tor_main_configuration_free")
+            _ptrConfigurationSetCmdLine = handle.fDlSym("tor_main_configuration_set_command_line")
+            _ptrRun = handle.fDlSym("tor_run_main")
+
+            // TODO: libTor.deleteOnExit()
+            // TODO: tempDir.deleteOnExit()
+        } catch (t: Throwable) {
+            handle?.dlClose()
+            libTor?.delete()
+            tempDir.delete()
+
+            // TODO: Remove once all are implemented
+            if (t.message == "Not yet implemented") throw t
+
+            throw IllegalStateException("Failed to dynamically load tor library", t)
+        }
     }
 }

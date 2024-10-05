@@ -1,0 +1,45 @@
+/*
+ * Copyright (c) 2024 Matthew Nelson
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+
+package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
+
+import io.matthewnelson.kmp.file.File
+import kotlinx.cinterop.CFunction
+import kotlinx.cinterop.CPointed
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.ExperimentalForeignApi
+
+@OptIn(ExperimentalForeignApi::class)
+internal expect value class DlOpenHandle private constructor(private val handle: CPointer<out CPointed>) {
+
+    internal fun dlSym(name: String): CPointer<out CPointed>?
+    internal fun dlClose()
+
+    internal companion object {
+
+        @Throws(IllegalStateException::class)
+        internal fun File.dlOpen(): DlOpenHandle
+    }
+}
+
+@Throws(NullPointerException::class)
+@OptIn(ExperimentalForeignApi::class)
+internal inline fun <reified F: Function<*>> DlOpenHandle.fDlSym(name: String): CPointer<CFunction<F>> {
+    val ptr = dlSym(name) ?: throw NullPointerException("failed to acquire pointer for function $name")
+    @Suppress("UNCHECKED_CAST")
+    return ptr as CPointer<CFunction<F>>
+}

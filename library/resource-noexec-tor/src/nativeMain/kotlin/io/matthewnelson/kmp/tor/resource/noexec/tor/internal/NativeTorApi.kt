@@ -27,7 +27,7 @@ internal expect sealed class NativeTorApi
 @Throws(IllegalStateException::class, IOException::class)
 protected constructor(): TorApi {
 
-    protected fun getProviderVersion(): CPointer<ByteVarOf<Byte>>?
+    protected fun getProviderVersion(): CPointer<ByteVar>?
     protected fun configurationNew(): CPointer<*>?
     protected fun configurationFree(cfg: CPointer<*>)
     protected fun configurationSetCmdLine(

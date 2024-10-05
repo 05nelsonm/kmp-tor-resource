@@ -22,12 +22,13 @@ import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
 import kotlinx.cinterop.*
 
+// nativeStaticMain
 @OptIn(ExperimentalForeignApi::class, InternalKmpTorApi::class)
 internal actual sealed class NativeTorApi
 @Throws(IllegalStateException::class, IOException::class)
 protected actual constructor(): TorApi() {
 
-    protected actual fun getProviderVersion(): CPointer<ByteVarOf<Byte>>? = tor_api_get_provider_version()
+    protected actual fun getProviderVersion(): CPointer<ByteVar>? = tor_api_get_provider_version()
     protected actual fun configurationNew(): CPointer<*>? = tor_main_configuration_new()
     protected actual fun configurationFree(cfg: CPointer<*>) { tor_main_configuration_free(cfg.reinterpret()) }
     protected actual fun configurationSetCmdLine(
