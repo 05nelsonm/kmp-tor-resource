@@ -13,12 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
 import io.matthewnelson.kmp.file.IOException
+import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
+import kotlinx.cinterop.*
 
+@OptIn(ExperimentalForeignApi::class, InternalKmpTorApi::class)
+internal actual sealed class NativeTorApi
 @Throws(IllegalStateException::class, IOException::class)
-internal actual fun loadTorApi(): TorApi {
-    throw IllegalStateException("Not yet implemented")
+protected actual constructor(): TorApi() {
+
+    protected actual fun getProviderVersion(): CPointer<ByteVarOf<Byte>>? = null
+    protected actual fun configurationNew(): CPointer<*>? = null
+    protected actual fun configurationFree(cfg: CPointer<*>) { }
+    protected actual fun configurationSetCmdLine(
+        cfg: CPointer<*>,
+        argc: Int,
+        argv: CArrayPointer<CPointerVar<ByteVar>>,
+    ): Int {
+        return -1
+    }
+    protected actual fun run(cfg: CPointer<*>): Int = -1
+
+    init {
+        // TODO: Load
+    }
 }
