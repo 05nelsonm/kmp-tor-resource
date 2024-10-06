@@ -39,7 +39,7 @@ internal actual value class DlOpenHandle private actual constructor(private actu
 
         @Throws(IllegalStateException::class)
         internal actual fun File.dlOpen(): DlOpenHandle {
-            val ptr = LoadLibraryExW(absolutePath, NULL, DONT_RESOLVE_DLL_REFERENCES.convert())
+            val ptr = LoadLibraryExW(absolutePath, NULL, 0.convert())
                 ?: LoadLibraryW(absolutePath)
 
             check(ptr != null) { "LoadLibrary failed for lib[$this]. LastError >> ${lastError()}" }
