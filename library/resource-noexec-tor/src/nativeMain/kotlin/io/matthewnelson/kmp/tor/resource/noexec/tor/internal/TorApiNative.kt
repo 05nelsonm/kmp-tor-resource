@@ -18,14 +18,13 @@
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
 import io.matthewnelson.kmp.file.IOException
-import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
 import kotlinx.cinterop.*
 
 @Throws(IllegalStateException::class, IOException::class)
 internal actual fun loadTorApi(): TorApi = KmpTorApi()
 
-@OptIn(ExperimentalForeignApi::class, InternalKmpTorApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal expect sealed class NativeTorApi
 @Throws(IllegalStateException::class, IOException::class)
 protected constructor(): TorApi {
@@ -44,35 +43,11 @@ protected constructor(): TorApi {
 @OptIn(ExperimentalForeignApi::class)
 private class KmpTorApi: NativeTorApi() {
 
-    @Throws(IllegalArgumentException::class, IllegalStateException::class, IOException::class)
-    override fun torMainProtected(args: Array<String>) {
-        withNewConfiguration { cfg ->
-            val (argc, argv) = args.toConfigurationArgs(scope = this)
-            configurationSetCmdLine(cfg, argc, argv)
-
-            val result = run(cfg)
-            if (result == 0) return@withNewConfiguration
-
-            val err = "tor exited exceptionally. ARGS: ${args.toList()}."
-            throw if (args.contains("--verify-config")) {
-                IllegalArgumentException(err)
-            } else {
-                IllegalStateException(err)
-            }
+    override fun torRunMainProtected(args: Array<String>): Int {
+        return withNewConfiguration { cfg ->
+            configurationSetCmdLine(cfg, args.size, args.toCStringArray(autofreeScope = this))
+            run(cfg)
         }
-    }
-
-    private fun Array<String>.toConfigurationArgs(
-        scope: MemScope,
-    ): Pair<Int, CArrayPointer<CPointerVar<ByteVar>>> = with(scope) {
-        val argc = size + 1
-        val argv = allocArray<CPointerVar<ByteVar>>(argc)
-
-        var i = 0
-        argv[i++] = "tor".cstr.ptr
-        forEach { argument -> argv[i++] = argument.cstr.ptr }
-
-        argc to argv
     }
 
     @Throws(IllegalStateException::class)

@@ -26,8 +26,9 @@ import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
-@OptIn(InternalKmpTorApi::class)
 open class ResourceLoaderExecUnitTest {
+
+    private object TestBinder: ResourceLoader.RuntimeBinder
 
     @Test
     fun givenResourceLoaderExec_whenExtracted_thenIsSuccessful() {
@@ -43,7 +44,7 @@ open class ResourceLoaderExecUnitTest {
         val geoips = loader.extract()
         println(geoips)
 
-        val tor = loader.execute { tor, _ -> tor }
+        val tor = loader.process(TestBinder) { tor, _ -> tor }
 
         // Ensures that it was extracted alongside the tor executable
         val sharedLib = tor.parentFile!!.resolve(SHARED_LIB_NAME)

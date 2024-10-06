@@ -38,7 +38,6 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
         public fun getOrCreate(
             resourceDir: File
         ): ResourceLoader.Tor {
-            @OptIn(InternalKmpTorApi::class)
             return NoExec.getOrCreate(
                 resourceDir = resourceDir,
                 extract = ::extractGeoips,
@@ -94,7 +93,6 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
         }
     }
 
-    @OptIn(InternalKmpTorApi::class)
     @Throws(IllegalStateException::class)
     @Suppress("ConvertSecondaryConstructorToPrimary", "UnnecessaryOptInAnnotation", "unused")
     private actual constructor()
