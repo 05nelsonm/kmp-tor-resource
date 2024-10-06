@@ -35,7 +35,7 @@ private class KmpTorApi: TorApi() {
 
     @Throws(IllegalArgumentException::class, IllegalStateException::class, IOException::class)
     override fun torMainProtected(args: Array<String>) {
-        throw IllegalStateException("Not yet implemented")
+        TODO("Not yet implemented")
     }
 
     init {
@@ -61,6 +61,7 @@ private class KmpTorApi: TorApi() {
                 }
             }
         } catch (t: Throwable) {
+            if (t is IOException) throw t
             throw IllegalStateException("Failed to dynamically load tor library", t)
         }
     }

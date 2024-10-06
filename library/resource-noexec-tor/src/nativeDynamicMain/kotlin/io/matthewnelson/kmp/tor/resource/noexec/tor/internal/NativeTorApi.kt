@@ -85,6 +85,7 @@ protected actual constructor(): TorApi() {
             libTor?.delete()
             tempDir.delete()
 
+            if (t is IOException) throw t
             throw IllegalStateException("Failed to dynamically load tor library", t)
         }
     }

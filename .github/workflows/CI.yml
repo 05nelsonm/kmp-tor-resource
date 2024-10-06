@@ -176,7 +176,15 @@ jobs:
           ./gradlew check --stacktrace
           -PKMP_TARGETS="JVM,JS,MINGW_X64,WASM_JS,WASM_WASI"
 
-  emulator-check:
+      - name: Upload Test Reports
+        uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: test-report-${{ matrix.os }}-java${{ matrix.java-version }}
+          path: '**/build/reports/tests/**'
+          retention-days: 1
+
+  android-check:
     needs: compile-task
     strategy:
       fail-fast: false
