@@ -42,7 +42,7 @@ internal actual value class DlOpenHandle private actual constructor(private actu
             val ptr = LoadLibraryExW(absolutePath, NULL, DONT_RESOLVE_DLL_REFERENCES.convert())
                 ?: LoadLibraryW(absolutePath)
 
-            check(ptr != null) { "LoadLibrary failed for lib [$this]. LastError >> ${lastError()}" }
+            check(ptr != null) { "LoadLibrary failed for lib[$this]. LastError >> ${lastError()}" }
 
             return DlOpenHandle(ptr)
         }
