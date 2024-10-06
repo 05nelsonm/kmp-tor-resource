@@ -61,6 +61,7 @@ private class KmpTorApi: TorApi() {
                 }
             }
         } catch (t: Throwable) {
+            if (t is IOException) throw t
             throw IllegalStateException("Failed to dynamically load tor library", t)
         }
     }
