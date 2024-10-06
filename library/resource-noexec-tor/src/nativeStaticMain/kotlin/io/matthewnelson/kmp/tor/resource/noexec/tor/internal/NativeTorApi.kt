@@ -18,12 +18,11 @@
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
 import io.matthewnelson.kmp.file.IOException
-import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
 import kotlinx.cinterop.*
 
 // nativeStaticMain
-@OptIn(ExperimentalForeignApi::class, InternalKmpTorApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal actual sealed class NativeTorApi
 @Throws(IllegalStateException::class, IOException::class)
 protected actual constructor(): TorApi() {

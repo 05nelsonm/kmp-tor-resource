@@ -28,6 +28,8 @@ import kotlin.test.*
 @OptIn(InternalKmpTorApi::class)
 open class ResourceLoaderNoExecUnitTest {
 
+    private object TestBinder: ResourceLoader.RuntimeBinder
+
     private companion object {
         val random = Random.Default.nextBytes(8).encodeToString(Base16)
         val testDir = SysTempDir.resolve("kmp_tor_resource_noexec_test")
@@ -69,8 +71,8 @@ open class ResourceLoaderNoExecUnitTest {
         }
 
         try {
-            loader.withApi {
-                torMain(listOf("--version"))
+            loader.withApi(TestBinder) {
+                torRunMain(listOf("--version"))
             }
         } catch (e: NotImplementedError) {
             println("Skipping...")
@@ -89,8 +91,8 @@ open class ResourceLoaderNoExecUnitTest {
         }
 
         try {
-            loader.withApi {
-                torMain(listOf(
+            loader.withApi(TestBinder) {
+                torRunMain(listOf(
                     "--SocksPort", "-1",
                     "--verify-config",
                     "--quiet",

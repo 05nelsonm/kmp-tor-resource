@@ -17,13 +17,11 @@
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
-import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 
 // nonLoadableMain
 public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
-    @OptIn(InternalKmpTorApi::class)
 //    @Throws(IllegalStateException::class)
     @Suppress("ConvertSecondaryConstructorToPrimary", "UnnecessaryOptInAnnotation", "unused")
     private actual constructor()
