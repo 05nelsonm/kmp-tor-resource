@@ -33,7 +33,7 @@ private class KmpTorApi: TorApi() {
 
     // TODO: tor_main JNI implementation. Issue #58.
 
-    override fun torRunMainProtected(args: Array<String>): Int {
+    override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
         TODO("Not yet implemented")
     }
 
