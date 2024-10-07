@@ -27,12 +27,3 @@ actual fun File.isExecutable(): Boolean = access(path, X_OK) == 0
 actual val IS_WINDOWS: Boolean by lazy {
     Platform.osFamily == OsFamily.WINDOWS
 }
-
-@OptIn(ExperimentalNativeApi::class)
-actual val SHARED_LIB_NAME: String by lazy {
-    when (Platform.osFamily) {
-        OsFamily.WINDOWS -> "tor.dll"
-        OsFamily.MACOSX -> "libtor.dylib"
-        else -> "libtor.so"
-    }
-}

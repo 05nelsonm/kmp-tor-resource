@@ -51,19 +51,11 @@ protected actual constructor(): TorApi() {
     private val _ptrRun: CPointer<CFunction<(CPointer<*>?) -> Int>>
 
     init {
-        // TODO: Use UUID (Kotlin 2.0.0)
-        @Suppress("DEPRECATION")
-        val tempDir = Random(getTimeNanos()).nextBytes(16).let { bytes ->
-            @OptIn(ExperimentalStdlibApi::class)
-            SysTempDir.resolve("kmp-tor_${bytes.toHexString(HexFormat.UpperCase)}")
-        }
-
-        var libTor: File? = null
         var handle: DlOpenHandle? = null
 
         try {
-            libTor = RESOURCE_CONFIG_LIB_TOR
-                .extractTo(tempDir, onlyIfDoesNotExist = false)
+            val libTor = RESOURCE_CONFIG_LIB_TOR
+                .extractTo(TEMP_DIR, onlyIfDoesNotExist = false)
                 .getValue(ALIAS_LIB_TOR)
 
             handle = libTor.dlOpen()
@@ -72,9 +64,6 @@ protected actual constructor(): TorApi() {
             _ptrConfigurationFree = handle.fDlSym("tor_main_configuration_free")
             _ptrConfigurationSetCmdLine = handle.fDlSym("tor_main_configuration_set_command_line")
             _ptrRun = handle.fDlSym("tor_run_main")
-
-            tempDir.deleteOnExit()
-            libTor.deleteOnExit()
         } catch (t: Throwable) {
             try {
                 handle?.dlClose()
@@ -82,11 +71,27 @@ protected actual constructor(): TorApi() {
                 t.addSuppressed(e)
             }
 
-            libTor?.delete()
-            tempDir.delete()
-
             if (t is IOException) throw t
             throw IllegalStateException("Failed to dynamically load tor library", t)
+        }
+    }
+
+    private companion object {
+
+        private val TEMP_DIR: File by lazy {
+            // TODO: Use UUID (Kotlin 2.0.0)
+            @Suppress("DEPRECATION")
+            val tempDir = Random(getTimeNanos()).nextBytes(16).let { bytes ->
+                @OptIn(ExperimentalStdlibApi::class)
+                SysTempDir.resolve("kmp-tor_${bytes.toHexString(HexFormat.UpperCase)}")
+            }
+
+            val libTor = tempDir.resolve(RESOURCE_CONFIG_LIB_TOR[ALIAS_LIB_TOR].platform.fsFileName)
+
+            tempDir.deleteOnExit()
+            libTor.deleteOnExit()
+
+            tempDir
         }
     }
 }

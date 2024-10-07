@@ -36,12 +36,3 @@ actual fun File.isExecutable(): Boolean {
 actual val IS_WINDOWS: Boolean by lazy {
     OSInfo.INSTANCE.osHost is OSHost.Windows
 }
-
-@OptIn(InternalKmpTorApi::class)
-actual val SHARED_LIB_NAME: String by lazy {
-    when (OSInfo.INSTANCE.osHost) {
-        is OSHost.Windows -> "tor.dll"
-        is OSHost.MacOS -> "libtor.dylib"
-        else -> "libtor.so"
-    }
-}

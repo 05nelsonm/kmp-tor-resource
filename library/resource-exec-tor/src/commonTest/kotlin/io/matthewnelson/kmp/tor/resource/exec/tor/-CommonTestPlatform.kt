@@ -20,5 +20,3 @@ import io.matthewnelson.kmp.file.File
 expect fun File.isExecutable(): Boolean
 
 expect val IS_WINDOWS: Boolean
-
-expect val SHARED_LIB_NAME: String
