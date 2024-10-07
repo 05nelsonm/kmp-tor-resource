@@ -19,16 +19,15 @@ import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.SynchronizedObject
 import io.matthewnelson.kmp.tor.common.core.synchronized
+import kotlinx.cinterop.CFunction
+import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.staticCFunction
 import platform.posix.atexit
-import kotlin.concurrent.Volatile
 
-@Volatile
-private var HAS_EXECUTED: Boolean = false
 @OptIn(InternalKmpTorApi::class)
 private val LOCK = SynchronizedObject()
-private val FILES = ArrayDeque<File>(2)
+private val FILES = ArrayList<File>(4)
 
 // Deletes registered file on program exit in reverse order
 internal fun File.deleteOnExit() {
@@ -36,11 +35,6 @@ internal fun File.deleteOnExit() {
 
     @OptIn(InternalKmpTorApi::class)
     synchronized(LOCK) {
-        if (HAS_EXECUTED) {
-            delete()
-            return@synchronized
-        }
-
         if (FILES.contains(this)) {
             return@synchronized
         }
@@ -49,23 +43,21 @@ internal fun File.deleteOnExit() {
     }
 }
 
-private val INIT by lazy {
-    @OptIn(ExperimentalForeignApi::class)
-    atexit(staticCFunction(::execute))
+@OptIn(ExperimentalForeignApi::class)
+internal expect fun installAbnormalExitSignalHandler(execute: CPointer<CFunction<() -> Unit>>)
 
-    // TODO: Install signal handlers
-    //  https://github.com/JakeWharton/finalization-hook/blob/trunk/src/posixMain/kotlin/com/jakewharton/finalization/hook.kt
+@OptIn(ExperimentalForeignApi::class)
+private val INIT by lazy {
+    val cFunction = staticCFunction(::execute)
+    atexit(cFunction)
+    installAbnormalExitSignalHandler(cFunction)
 }
 
 private fun execute() {
     @OptIn(InternalKmpTorApi::class)
-    val files = synchronized(LOCK) {
-        if (HAS_EXECUTED) return@synchronized null
-        HAS_EXECUTED = true
-        FILES
-    } ?: return
-
-    while (files.isNotEmpty()) {
-        files.removeLast().delete()
+    synchronized(LOCK) {
+        while (FILES.isNotEmpty()) {
+            FILES.removeLast().delete()
+        }
     }
 }

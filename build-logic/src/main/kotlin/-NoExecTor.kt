@@ -131,6 +131,14 @@ fun KmpConfigurationExtension.configureNoExecTor(
                 }
             }
         }
+        sourceSetConnect(
+            newName = "unixDynamic",
+            existingNames = listOf(
+                "linux",
+                "macos",
+            ),
+            dependencyName = "nativeDynamic",
+        )
 
         kotlin {
             with(sourceSets) {
