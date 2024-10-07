@@ -20,12 +20,10 @@ import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import io.matthewnelson.kmp.file.SysTempDir
 import io.matthewnelson.kmp.file.readBytes
 import io.matthewnelson.kmp.file.resolve
-import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 import kotlin.random.Random
 import kotlin.test.*
 
-@OptIn(InternalKmpTorApi::class)
 open class ResourceLoaderNoExecUnitTest {
 
     private object TestBinder: ResourceLoader.RuntimeBinder
@@ -70,14 +68,17 @@ open class ResourceLoaderNoExecUnitTest {
             return
         }
 
-        try {
+        val result = try {
             loader.withApi(TestBinder) {
                 torRunMain(listOf("--version"))
             }
         } catch (e: NotImplementedError) {
+            // TODO: Remove. Issue #58
             println("Skipping...")
             return
         }
+
+        assertEquals(0, result)
     }
 
     @Test
@@ -90,7 +91,7 @@ open class ResourceLoaderNoExecUnitTest {
             return
         }
 
-        try {
+        val result = try {
             loader.withApi(TestBinder) {
                 torRunMain(listOf(
                     "--SocksPort", "-1",
@@ -98,14 +99,12 @@ open class ResourceLoaderNoExecUnitTest {
                     "--quiet",
                 ))
             }
-
-            fail("Tor completed without expected exception...")
         } catch (e: NotImplementedError) {
             // TODO: Remove. Issue #58
             println("Skipping...")
             return
-        } catch (e: IllegalArgumentException) {
-            // pass
         }
+
+        assertEquals(-1, result)
     }
 }

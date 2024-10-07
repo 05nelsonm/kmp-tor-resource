@@ -33,35 +33,49 @@ private class KmpTorApi: TorApi() {
 
     // TODO: tor_main JNI implementation. Issue #58.
 
-    override fun torRunMainProtected(args: Array<String>): Int {
+    override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
         TODO("Not yet implemented")
     }
 
     init {
+        val tempDir = TEMP_DIR
+
         try {
-            if (OSInfo.INSTANCE.isAndroidRuntime()) {
-                // libtor.so
+            if (tempDir == null) {
+                // Android Runtime. libtor.so
                 System.loadLibrary("tor")
             } else {
-                val tempDir = SysTempDir.resolve("kmp-tor_${UUID.randomUUID()}")
+                val libTor: File = RESOURCE_CONFIG_LIB_TOR
+                    .extractTo(tempDir, onlyIfDoesNotExist = false)
+                    .getValue(ALIAS_LIB_TOR)
 
-                try {
-                    val libTor: File = RESOURCE_CONFIG_LIB_TOR
-                        .extractTo(tempDir, onlyIfDoesNotExist = false)
-                        .getValue(ALIAS_LIB_TOR)
-
-                    System.load(libTor.absolutePath)
-
-                    tempDir.deleteOnExit()
-                    libTor.deleteOnExit()
-                } catch (t: Throwable) {
-                    tempDir.deleteRecursively()
-                    throw t
-                }
+                System.load(libTor.absolutePath)
             }
         } catch (t: Throwable) {
             if (t is IOException) throw t
             throw IllegalStateException("Failed to dynamically load tor library", t)
+        }
+    }
+
+    private companion object {
+
+        private val TEMP_DIR: File? by lazy {
+            if (OSInfo.INSTANCE.isAndroidRuntime()) return@lazy null
+
+            val tempDir = SysTempDir.resolve("kmp-tor_${UUID.randomUUID()}")
+
+            val libTor = try {
+                tempDir.resolve(RESOURCE_CONFIG_LIB_TOR[ALIAS_LIB_TOR].platform.fsFileName)
+            } catch (_: NoSuchElementException) {
+                // Is possible with android unit tests if the dependency is not present.
+                // Will result in an error upon extraction attempt. Ignore it here.
+                null
+            }
+
+            tempDir.deleteOnExit()
+            libTor?.deleteOnExit()
+
+            tempDir
         }
     }
 }

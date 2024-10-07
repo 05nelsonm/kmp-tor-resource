@@ -20,12 +20,15 @@ import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
+import io.matthewnelson.kmp.tor.resource.exec.tor.internal.ALIAS_LIB_TOR
+import io.matthewnelson.kmp.tor.resource.exec.tor.internal.RESOURCE_CONFIG_TOR
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
+@OptIn(InternalKmpTorApi::class)
 open class ResourceLoaderExecUnitTest {
 
     private object TestBinder: ResourceLoader.RuntimeBinder
@@ -47,7 +50,12 @@ open class ResourceLoaderExecUnitTest {
         val tor = loader.process(TestBinder) { tor, _ -> tor }
 
         // Ensures that it was extracted alongside the tor executable
-        val sharedLib = tor.parentFile!!.resolve(SHARED_LIB_NAME)
+        val sharedLib = tor.parentFile!!.resolve(try {
+            RESOURCE_CONFIG_TOR[ALIAS_LIB_TOR].platform.fsFileName
+        } catch (_: NoSuchElementException) {
+            // Android Runtime
+            "libtor.so"
+        })
 
         // Ensure that only windows extracts a .local file for DLL redirect.
         val local = tor.parentFile!!.resolve("tor.exe.local")

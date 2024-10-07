@@ -43,23 +43,30 @@ protected constructor(): TorApi {
 @OptIn(ExperimentalForeignApi::class)
 private class KmpTorApi: NativeTorApi() {
 
-    override fun torRunMainProtected(args: Array<String>): Int {
-        return withNewConfiguration { cfg ->
-            configurationSetCmdLine(cfg, args.size, args.toCStringArray(autofreeScope = this))
-            run(cfg)
-        }
-    }
-
-    @Throws(IllegalStateException::class)
-    private inline fun <T: Any?> withNewConfiguration(block: MemScope.(cfg: CPointer<*>) -> T): T {
+    override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
         val cfg = configurationNew()
-            ?: throw IllegalStateException("Failed to acquire a new configuration")
+        if (cfg == null) {
+            log.notifyErr("failed to acquire a new configuration")
+            return -1
+        }
 
+        @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+        var logger: Logger? = log
         return memScoped {
             try {
-                block(cfg)
+                configurationSetCmdLine(cfg, args.size, args.toCStringArray(autofreeScope = this)).let { result ->
+                    if (result == 0) return@let
+
+                    log.notifyErr("failed to set configuration cmd line options")
+                    return@memScoped result
+                }
+
+                // TODO: Add logging
+
+                run(cfg)
             } finally {
                 configurationFree(cfg)
+                logger = null
             }
         }
     }
