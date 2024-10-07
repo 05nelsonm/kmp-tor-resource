@@ -50,7 +50,12 @@ open class ResourceLoaderExecUnitTest {
         val tor = loader.process(TestBinder) { tor, _ -> tor }
 
         // Ensures that it was extracted alongside the tor executable
-        val sharedLib = tor.parentFile!!.resolve(RESOURCE_CONFIG_TOR[ALIAS_LIB_TOR].platform.fsFileName)
+        val sharedLib = tor.parentFile!!.resolve(try {
+            RESOURCE_CONFIG_TOR[ALIAS_LIB_TOR].platform.fsFileName
+        } catch (_: NoSuchElementException) {
+            // Android Runtime
+            "libtor.so"
+        })
 
         // Ensure that only windows extracts a .local file for DLL redirect.
         val local = tor.parentFile!!.resolve("tor.exe.local")
