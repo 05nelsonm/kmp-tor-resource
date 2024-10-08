@@ -16,20 +16,10 @@
 package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
 import io.matthewnelson.kmp.file.File
-import io.matthewnelson.kmp.file.path
-import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
-import io.matthewnelson.kmp.tor.common.core.OSHost
-import io.matthewnelson.kmp.tor.common.core.OSInfo
 
 @Throws(IllegalStateException::class)
 @Suppress("NOTHING_TO_INLINE")
 internal actual inline fun Map<String, File>.findLibTorExec(): Map<String, File> = this
 
 @Suppress("NOTHING_TO_INLINE")
-@OptIn(InternalKmpTorApi::class)
-internal actual inline fun MutableMap<String, String>.configureProcessEnvironment(resourceDir: File) {
-    when (OSInfo.INSTANCE.osHost) {
-        OSHost.MacOS -> this["LD_LIBRARY_PATH"] = resourceDir.path
-        else -> Unit
-    }
-}
+internal actual inline fun MutableMap<String, String>.configureProcessEnvironment(resourceDir: File) {}

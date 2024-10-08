@@ -20,7 +20,6 @@ package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.parentPath
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
-import io.matthewnelson.kmp.tor.common.core.OSHost
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.common.lib.locator.KmpTorLibLocator
@@ -85,11 +84,5 @@ internal actual inline fun MutableMap<String, String>.configureProcessEnvironmen
         // if the configureEnv callback is being invoked.
         val dir = KmpTorLibLocator.find("libtor.so")?.parentPath ?: return
         this["LD_LIBRARY_PATH"] = dir
-        return
-    }
-
-    when (OSInfo.INSTANCE.osHost) {
-        OSHost.MacOS -> this["LD_LIBRARY_PATH"] = resourceDir.path
-        else -> Unit
     }
 }

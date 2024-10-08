@@ -15,8 +15,8 @@
  **/
 package io.matthewnelson.kmp.tor.resource.exec.tor
 
+import io.matthewnelson.kmp.file.readBytes
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
-import kotlin.io.readBytes
 import kotlin.test.Test
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
@@ -37,7 +37,7 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
 
         val geoipFiles = loader.extract().let { files ->
             if (files.geoip.readBytes().size < 50_000) {
-                // mock resources being utilized. do not use
+                // Mock resources. Do not use geoip files...
                 files.geoip.delete()
                 files.geoip6.delete()
                 return@let null
@@ -86,6 +86,8 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
         var p: Process? = null
         val out = StringBuilder()
 
+        val expected = "Delaying directory fetches: DisableNetwork is set."
+        var expectedFound = false
         try {
             p = b.start()
 
@@ -100,13 +102,20 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
                     while (true) {
                         val line = reader.readLine() ?: break
                         out.appendLine(line)
+                        if (!line.contains(expected)) continue
+                        expectedFound = true
+
                     }
                 } catch (_: Throwable) {}
             }.start()
 
             // Can't use Process.waitFor(3, TimeUnit.SECONDS) b/c
             // it requires Android API 24+ so emulator will fail.
-            Thread.sleep(3_000)
+            var i = 0
+            // max 10 seconds at 250ms delay intervals
+            while (i++ < 10 * 4 && !expectedFound) {
+                Thread.sleep(1_000 / 4)
+            }
         } finally {
             p?.destroy()
         }
@@ -114,6 +123,6 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
         Thread.sleep(500)
 
         val outString = out.toString()
-        assertTrue(outString.contains("Delaying directory fetches: DisableNetwork is set."), outString)
+        assertTrue(outString.contains(expected), outString)
     }
 }

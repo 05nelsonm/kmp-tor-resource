@@ -51,16 +51,16 @@ public fun Resource.Config.Builder.tryConfigureTestTorResources(
         return
     }
 
+    configureExecutableResource(aliasLibTor) { host, arch ->
+        resourcePath = host.toTorResourcePath(arch, isLib = true)
+        resourceClass = loader
+    }
+
     if (aliasTor != null) {
+        configureWindowsDLLRedirect(loader)
         configureExecutableResource(aliasTor) { host, arch ->
             resourcePath = host.toTorResourcePath(arch, isLib = false)
             resourceClass = loader
         }
-        configureWindowsDLLRedirect(loader)
-    }
-
-    configureExecutableResource(aliasLibTor) { host, arch ->
-        resourcePath = host.toTorResourcePath(arch, isLib = true)
-        resourceClass = loader
     }
 }
