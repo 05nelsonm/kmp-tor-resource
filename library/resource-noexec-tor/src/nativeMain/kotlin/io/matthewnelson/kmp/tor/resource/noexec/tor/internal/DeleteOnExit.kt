@@ -13,59 +13,68 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+@file:Suppress("KotlinRedundantDiagnosticSuppress")
+
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.SynchronizedObject
 import io.matthewnelson.kmp.tor.common.core.synchronized
+import kotlinx.cinterop.CFunction
+import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.staticCFunction
 import platform.posix.atexit
-import kotlin.concurrent.Volatile
 
-@Volatile
-private var HAS_EXECUTED: Boolean = false
 @OptIn(InternalKmpTorApi::class)
 private val LOCK = SynchronizedObject()
-private val FILES = ArrayDeque<File>(2)
+private val FILES = ArrayList<File>(4)
 
-// Deletes registered file on program exit in reverse order
+@OptIn(ExperimentalForeignApi::class)
+private val INIT by lazy {
+    atexit(staticCFunction(::execute))
+
+    // TODO: Install signal handlers. See #72
+//
+//    val ptrExecuteOnSignal = staticCFunction(::executeOnSignal)
+//    if (installUnixSignalHandlerOrNull(ptrExecuteOnSignal) != null) return@lazy
+//
+//    // windows...
+}
+
+/**
+ * Deletes registered file on program exit in reverse order
+ * of when they were added (just like for JVM).
+ * */
 internal fun File.deleteOnExit() {
-    INIT
-
     @OptIn(InternalKmpTorApi::class)
     synchronized(LOCK) {
-        if (HAS_EXECUTED) {
-            delete()
-            return@synchronized
-        }
-
         if (FILES.contains(this)) {
             return@synchronized
         }
 
         FILES.add(this)
     }
-}
 
-private val INIT by lazy {
-    @OptIn(ExperimentalForeignApi::class)
-    atexit(staticCFunction(::execute))
-
-    // TODO: Install signal handlers
-    //  https://github.com/JakeWharton/finalization-hook/blob/trunk/src/posixMain/kotlin/com/jakewharton/finalization/hook.kt
+    INIT
 }
 
 private fun execute() {
     @OptIn(InternalKmpTorApi::class)
-    val files = synchronized(LOCK) {
-        if (HAS_EXECUTED) return@synchronized null
-        HAS_EXECUTED = true
-        FILES
-    } ?: return
-
-    while (files.isNotEmpty()) {
-        files.removeLast().delete()
+    synchronized(LOCK) {
+        while (FILES.isNotEmpty()) {
+            FILES.removeLast().delete()
+        }
     }
 }
+
+private fun executeOnSignal(sig: Int) {
+    println("Caught signal $sig. Executing File.deleteOnExit hooks.")
+    execute()
+}
+
+@OptIn(ExperimentalForeignApi::class)
+internal expect fun installUnixSignalHandlerOrNull(
+    handler: CPointer<CFunction<(sig: Int) -> Unit>>,
+): Unit?
