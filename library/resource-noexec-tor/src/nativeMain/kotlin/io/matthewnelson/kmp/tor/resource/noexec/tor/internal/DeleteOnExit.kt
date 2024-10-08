@@ -49,13 +49,13 @@ private val INIT by lazy {
  * */
 internal fun File.deleteOnExit() {
     @OptIn(InternalKmpTorApi::class)
-    (synchronized(LOCK) {
+    synchronized(LOCK) {
         if (FILES.contains(this)) {
             return@synchronized
         }
 
         FILES.add(this)
-    })
+    }
 
     INIT
 }

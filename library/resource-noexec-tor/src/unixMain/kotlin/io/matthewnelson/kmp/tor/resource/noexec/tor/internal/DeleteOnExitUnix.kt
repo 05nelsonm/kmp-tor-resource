@@ -37,6 +37,7 @@ import platform.posix.sigaction
 internal actual fun installUnixSignalHandlerOrNull(
     handler: CPointer<CFunction<(sig: Int) -> Unit>>,
 ): Unit? {
+    // TODO: See Issue #72
     val sa = cValue<sigaction> {
         sa_flags = 0
         configure(handler)
