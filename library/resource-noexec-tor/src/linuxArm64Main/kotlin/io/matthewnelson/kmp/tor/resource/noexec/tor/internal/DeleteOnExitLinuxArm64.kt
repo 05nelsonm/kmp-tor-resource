@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+@file:Suppress("KotlinRedundantDiagnosticSuppress")
+
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
 import kotlinx.cinterop.CFunction
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ptr
+import platform.posix.sigaction
+import platform.posix.sigemptyset
 
+@Suppress("NOTHING_TO_INLINE")
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun installAbnormalExitSignalHandler(execute: CPointer<CFunction<() -> Unit>>) {
-    // TODO: sigaction
+internal actual inline fun sigaction.configure(handler: CPointer<CFunction<(sig: Int) -> Unit>>) {
+    __sigaction_handler.sa_handler = handler
+    sigemptyset(sa_mask.ptr)
 }

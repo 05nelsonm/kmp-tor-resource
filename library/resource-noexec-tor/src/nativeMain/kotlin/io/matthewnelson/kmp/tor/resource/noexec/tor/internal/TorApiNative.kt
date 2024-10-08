@@ -41,7 +41,9 @@ protected constructor(): TorApi {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private class KmpTorApi: NativeTorApi() {
+private class KmpTorApi
+@Throws(IllegalStateException::class, IOException::class)
+constructor(): NativeTorApi() {
 
     override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
         val cfg = configurationNew()
@@ -52,7 +54,7 @@ private class KmpTorApi: NativeTorApi() {
 
         @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
         var logger: Logger? = log
-        return memScoped {
+        val result = memScoped {
             try {
                 configurationSetCmdLine(cfg, args.size, args.toCStringArray(autofreeScope = this)).let { result ->
                     if (result == 0) return@let
@@ -69,5 +71,7 @@ private class KmpTorApi: NativeTorApi() {
                 logger = null
             }
         }
+
+        return result
     }
 }

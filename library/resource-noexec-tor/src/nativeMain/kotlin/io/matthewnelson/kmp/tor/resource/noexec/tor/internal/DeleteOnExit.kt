@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+@file:Suppress("KotlinRedundantDiagnosticSuppress")
+
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
 import io.matthewnelson.kmp.file.File
@@ -29,28 +31,31 @@ import platform.posix.atexit
 private val LOCK = SynchronizedObject()
 private val FILES = ArrayList<File>(4)
 
-// Deletes registered file on program exit in reverse order
-internal fun File.deleteOnExit() {
-    INIT
+@OptIn(ExperimentalForeignApi::class)
+private val INIT by lazy {
+    atexit(staticCFunction(::execute))
 
+    val ptrExecuteOnSignal = staticCFunction(::executeOnSignal)
+    if (installUnixSignalHandlerOrNull(ptrExecuteOnSignal) != null) return@lazy
+
+    // windows...
+}
+
+/**
+ * Deletes registered file on program exit in reverse order
+ * of when they were added (just like for JVM).
+ * */
+internal fun File.deleteOnExit() {
     @OptIn(InternalKmpTorApi::class)
-    synchronized(LOCK) {
+    (synchronized(LOCK) {
         if (FILES.contains(this)) {
             return@synchronized
         }
 
         FILES.add(this)
-    }
-}
+    })
 
-@OptIn(ExperimentalForeignApi::class)
-internal expect fun installAbnormalExitSignalHandler(execute: CPointer<CFunction<() -> Unit>>)
-
-@OptIn(ExperimentalForeignApi::class)
-private val INIT by lazy {
-    val cFunction = staticCFunction(::execute)
-    atexit(cFunction)
-    installAbnormalExitSignalHandler(cFunction)
+    INIT
 }
 
 private fun execute() {
@@ -61,3 +66,13 @@ private fun execute() {
         }
     }
 }
+
+private fun executeOnSignal(sig: Int) {
+    println("Caught signal $sig. Executing File.deleteOnExit hooks.")
+    execute()
+}
+
+@OptIn(ExperimentalForeignApi::class)
+internal expect fun installUnixSignalHandlerOrNull(
+    handler: CPointer<CFunction<(sig: Int) -> Unit>>,
+): Unit?

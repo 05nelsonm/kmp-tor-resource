@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+@file:Suppress("KotlinRedundantDiagnosticSuppress")
+
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
 import kotlinx.cinterop.CFunction
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
+import platform.posix.sigaction
 
+@Suppress("NOTHING_TO_INLINE")
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun installUnixSignalHandlerOrNull(
-    handler: CPointer<CFunction<(sig: Int) -> Unit>>,
-): Unit? = null
+internal actual inline fun sigaction.configure(handler: CPointer<CFunction<(sig: Int) -> Unit>>) {
+    __sigaction_u.__sa_handler = handler
+    sa_mask = 0u
+}
