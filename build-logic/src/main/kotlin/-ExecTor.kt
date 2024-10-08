@@ -123,6 +123,19 @@ fun KmpConfigurationExtension.configureExecTor(
                 "ios",
             ),
         )
+        sourceSetConnect(
+            newName = "jvmJs",
+            existingNames = listOf(
+                "jvm",
+                "js",
+            ),
+            dependencyName = "exec",
+            sourceSetMain = {
+                dependencies {
+                    implementation(libs.kmp.tor.common.core)
+                }
+            }
+        )
 
         kotlin {
             with(sourceSets) {
@@ -143,7 +156,6 @@ fun KmpConfigurationExtension.configureExecTor(
                     .resolve("buildConfig")
 
                 fun KotlinSourceSet.generateBuildConfig(areErrReportsEmpty: () -> Boolean?) {
-                    val sourceSet = this
                     val kotlinSrcDir = buildConfigDir
                         .resolve(this.name)
                         .resolve("kotlin")
@@ -173,7 +185,7 @@ fun KmpConfigurationExtension.configureExecTor(
                             lineTestDir = "internal expect val TEST_DIR: String"
                         }
 
-                        dir.resolve("BuildConfig${sourceSet.name.capitalized()}.kt").writeText("""
+                        dir.resolve("BuildConfig${this.name.capitalized()}.kt").writeText("""
                             package $packageName
     
                             $lineRunFullTests

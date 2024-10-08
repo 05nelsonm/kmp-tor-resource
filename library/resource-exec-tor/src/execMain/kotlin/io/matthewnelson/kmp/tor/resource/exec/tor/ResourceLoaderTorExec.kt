@@ -18,10 +18,10 @@
 package io.matthewnelson.kmp.tor.resource.exec.tor
 
 import io.matthewnelson.kmp.file.File
-import io.matthewnelson.kmp.file.parentPath
 import io.matthewnelson.kmp.tor.common.api.GeoipFiles
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
+import io.matthewnelson.kmp.tor.resource.exec.tor.internal.*
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.ALIAS_TOR
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.RESOURCE_CONFIG_GEOIPS
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.RESOURCE_CONFIG_TOR
@@ -44,14 +44,7 @@ public actual class ResourceLoaderTorExec: ResourceLoader.Tor.Exec {
                 resourceDir = resourceDir,
                 extract = ::extractGeoips,
                 extractTor = ::extractTor,
-                configureEnv = {
-                    // Android cries about using rpath=$ORIGIN for the linked executable
-                    val path = emptyMap<String, File>().findLibTorExec()[ALIAS_TOR]?.parentPath
-
-                    if (path != null) {
-                        set("LD_LIBRARY_PATH", path)
-                    }
-                },
+                configureEnv = { configureProcessEnvironment(it) },
                 toString = ::toString,
             )
         }

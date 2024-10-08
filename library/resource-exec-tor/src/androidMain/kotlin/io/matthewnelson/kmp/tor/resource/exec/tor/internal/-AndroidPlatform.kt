@@ -18,7 +18,9 @@
 package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
 import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.file.parentPath
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
+import io.matthewnelson.kmp.tor.common.core.OSHost
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.common.lib.locator.KmpTorLibLocator
@@ -73,4 +75,21 @@ internal actual inline fun Map<String, File>.findLibTorExec(): Map<String, File>
 
     val lib = KmpTorLibLocator.require("libtorexec.so")
     return toMutableMap().apply { put(ALIAS_TOR, lib) }
+}
+
+@Suppress("NOTHING_TO_INLINE")
+@OptIn(InternalKmpTorApi::class)
+internal actual inline fun MutableMap<String, String>.configureProcessEnvironment(resourceDir: File) {
+    if (OSInfo.INSTANCE.isAndroidRuntime()) {
+        // Should never be null here b/c extraction would have failed
+        // if the configureEnv callback is being invoked.
+        val dir = KmpTorLibLocator.find("libtor.so")?.parentPath ?: return
+        this["LD_LIBRARY_PATH"] = dir
+        return
+    }
+
+    when (OSInfo.INSTANCE.osHost) {
+        OSHost.MacOS -> this["LD_LIBRARY_PATH"] = resourceDir.path
+        else -> Unit
+    }
 }
