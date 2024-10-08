@@ -30,4 +30,4 @@ internal actual inline fun Resource.Config.Builder.configureTorResources() {
 
 //@Throws(IllegalStateException::class)
 @Suppress("NOTHING_TO_INLINE", "ACTUAL_ANNOTATIONS_NOT_MATCH_EXPECT")
-internal actual inline fun Map<String, File>.findLibTor(): Map<String, File> = this
+internal actual inline fun Map<String, File>.findLibTorExec(): Map<String, File> = this

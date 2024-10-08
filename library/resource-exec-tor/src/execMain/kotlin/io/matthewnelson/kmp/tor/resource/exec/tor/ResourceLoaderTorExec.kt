@@ -18,13 +18,14 @@
 package io.matthewnelson.kmp.tor.resource.exec.tor
 
 import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.file.parentPath
 import io.matthewnelson.kmp.tor.common.api.GeoipFiles
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.ALIAS_TOR
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.RESOURCE_CONFIG_GEOIPS
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.RESOURCE_CONFIG_TOR
-import io.matthewnelson.kmp.tor.resource.exec.tor.internal.findLibTor
+import io.matthewnelson.kmp.tor.resource.exec.tor.internal.findLibTorExec
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP6
 import kotlin.concurrent.Volatile
@@ -44,13 +45,12 @@ public actual class ResourceLoaderTorExec: ResourceLoader.Tor.Exec {
                 extract = ::extractGeoips,
                 extractTor = ::extractTor,
                 configureEnv = {
-                    // Compiled executables do not need to configure
-                    // any process environment variables as rpath $ORIGIN
-                    // is utilized at compile time for the executable so
-                    // that it loads lib tor from the same directory.
-                    //
-                    // Both lib and executable must be in the same
-                    // directory for the executable to work.
+                    // Android cries about using rpath=$ORIGIN for the linked executable
+                    val path = emptyMap<String, File>().findLibTorExec()[ALIAS_TOR]?.parentPath
+
+                    if (path != null) {
+                        set("LD_LIBRARY_PATH", path)
+                    }
                 },
                 toString = ::toString,
             )
@@ -77,7 +77,7 @@ public actual class ResourceLoaderTorExec: ResourceLoader.Tor.Exec {
         private fun extractTor(resourceDir: File): File {
             val map = RESOURCE_CONFIG_TOR
                 .extractTo(resourceDir, onlyIfDoesNotExist = !isFirstExtractionTor)
-                .findLibTor()
+                .findLibTorExec()
 
             isFirstExtractionTor = false
 

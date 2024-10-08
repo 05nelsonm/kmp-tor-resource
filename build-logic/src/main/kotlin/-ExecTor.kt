@@ -125,12 +125,6 @@ fun KmpConfigurationExtension.configureExecTor(
         )
 
         kotlin {
-            sourceSets.findByName("jvmAndroidTest")?.dependencies {
-                implementation(kotlin("test"))
-            }
-        }
-
-        kotlin {
             with(sourceSets) {
                 val execTest = findByName("execTest") ?: return@with
 

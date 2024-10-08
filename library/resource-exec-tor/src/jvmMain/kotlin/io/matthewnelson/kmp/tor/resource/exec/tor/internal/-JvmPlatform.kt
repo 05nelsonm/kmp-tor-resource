@@ -33,4 +33,4 @@ internal actual inline fun Resource.Config.Builder.configureTorResources() {
 
 @Suppress("NOTHING_TO_INLINE")
 @Throws(IllegalStateException::class)
-internal actual inline fun Map<String, File>.findLibTor(): Map<String, File> = this
+internal actual inline fun Map<String, File>.findLibTorExec(): Map<String, File> = this

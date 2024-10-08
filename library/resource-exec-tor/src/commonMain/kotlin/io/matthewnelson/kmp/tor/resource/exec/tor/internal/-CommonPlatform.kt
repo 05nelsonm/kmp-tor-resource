@@ -24,4 +24,4 @@ internal const val ALIAS_LIB_TOR: String = "libtor"
 
 @Suppress("NOTHING_TO_INLINE")
 @Throws(IllegalStateException::class)
-internal expect inline fun Map<String, File>.findLibTor(): Map<String, File>
+internal expect inline fun Map<String, File>.findLibTorExec(): Map<String, File>

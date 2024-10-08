@@ -68,7 +68,7 @@ internal actual inline fun Resource.Config.Builder.configureTorResources() {
 
 @Suppress("NOTHING_TO_INLINE")
 @Throws(IllegalStateException::class)
-internal actual inline fun Map<String, File>.findLibTor(): Map<String, File> {
+internal actual inline fun Map<String, File>.findLibTorExec(): Map<String, File> {
     if (contains(ALIAS_TOR)) return this
 
     val lib = KmpTorLibLocator.require("libtorexec.so")

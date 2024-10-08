@@ -16,8 +16,7 @@
 package io.matthewnelson.kmp.tor.resource.exec.tor
 
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
-import io.matthewnelson.kmp.file.path
-import io.matthewnelson.kmp.file.readBytes
+import kotlin.io.readBytes
 import kotlin.test.Test
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
@@ -68,8 +67,8 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
                     }
 
                     if (geoipFiles != null) {
-                        add("--GeoIPFile"); add(geoipFiles.geoip.path)
-                        add("--GeoIPv6File"); add(geoipFiles.geoip6.path)
+                        add("--GeoIPFile"); add(geoipFiles.geoip.toString())
+                        add("--GeoIPv6File"); add(geoipFiles.geoip6.toString())
                     }
 
                     add("--DormantCanceledByStartup"); add("1")
@@ -101,7 +100,6 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
                     while (true) {
                         val line = reader.readLine() ?: break
                         out.appendLine(line)
-                        println(line)
                     }
                 } catch (_: Throwable) {}
             }.start()
@@ -115,7 +113,7 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
 
         Thread.sleep(500)
 
-        // Executable works...
-        assertTrue(out.toString().contains("Delaying directory fetches: DisableNetwork is set."))
+        val outString = out.toString()
+        assertTrue(outString.contains("Delaying directory fetches: DisableNetwork is set."), outString)
     }
 }
