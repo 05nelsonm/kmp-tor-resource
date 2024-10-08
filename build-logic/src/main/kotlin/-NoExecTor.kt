@@ -136,6 +136,10 @@ fun KmpConfigurationExtension.configureNoExecTor(
             with(sourceSets) {
                 val loadableTest = findByName("loadableTest") ?: return@with
 
+                try {
+                    project.evaluationDependsOn(":library:resource-lib-tor$suffix")
+                } catch (_: Throwable) {}
+
                 val buildDir = project.layout
                     .buildDirectory
                     .get()
@@ -146,32 +150,38 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     .resolve("sources")
                     .resolve("buildConfig")
 
-                fun KotlinSourceSet.generateBuildConfig(isErrReportEmpty: Boolean?) {
+                fun KotlinSourceSet.generateBuildConfig(isErrReportEmpty: () -> Boolean?) {
                     val kotlinSrcDir = buildConfigDir
                         .resolve(this.name)
                         .resolve("kotlin")
+
+                    this.kotlin.srcDir(kotlinSrcDir)
 
                     val dir = kotlinSrcDir.resolve(packageName.replace('.', File.separatorChar))
 
                     dir.mkdirs()
 
-                    val textRunFullTests = if (isErrReportEmpty == null) {
-                        "internal expect val CAN_RUN_FULL_TESTS: Boolean"
-                    } else {
-                        "internal actual val CAN_RUN_FULL_TESTS: Boolean = $isErrReportEmpty"
+                    val writeReport = {
+                        val isErrReportEmptyResult = isErrReportEmpty.invoke()
+
+                        val textRunFullTests = if (isErrReportEmptyResult == null) {
+                            "internal expect val CAN_RUN_FULL_TESTS: Boolean"
+                        } else {
+                            "internal actual val CAN_RUN_FULL_TESTS: Boolean = $isErrReportEmptyResult"
+                        }
+
+                        dir.resolve("BuildConfig${this.name.capitalized()}.kt").writeText("""
+                            package $packageName
+    
+                            $textRunFullTests
+    
+                        """.trimIndent())
                     }
 
-                    dir.resolve("BuildConfig${this.name.capitalized()}.kt").writeText("""
-                        package $packageName
-
-                        $textRunFullTests
-
-                    """.trimIndent())
-
-                    this.kotlin.srcDir(kotlinSrcDir)
+                    project.afterEvaluate { writeReport.invoke() }
                 }
 
-                loadableTest.generateBuildConfig(isErrReportEmpty = null)
+                loadableTest.generateBuildConfig(isErrReportEmpty = { null })
 
                 val reportDirLibTor = project.rootDir
                     .resolve("library")
@@ -206,10 +216,12 @@ fun KmpConfigurationExtension.configureNoExecTor(
                 ).forEach { (reportName, srcSetName, reportDir) ->
                     val srcSetTest = findByName("${srcSetName ?: reportName}Test") ?: return@forEach
 
-                    val isErrReportEmpty = reportDir
-                        .resolve("${reportName}.err")
-                        .readText()
-                        .indexOfFirst { !it.isWhitespace() } == -1
+                    val isErrReportEmpty = {
+                        reportDir
+                            .resolve("${reportName}.err")
+                            .readText()
+                            .indexOfFirst { !it.isWhitespace() } == -1
+                    }
 
                     srcSetTest.generateBuildConfig(isErrReportEmpty = isErrReportEmpty)
                 }

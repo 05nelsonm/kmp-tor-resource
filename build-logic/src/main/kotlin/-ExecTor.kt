@@ -128,6 +128,10 @@ fun KmpConfigurationExtension.configureExecTor(
             with(sourceSets) {
                 val execTest = findByName("execTest") ?: return@with
 
+                try {
+                    project.evaluationDependsOn(":library:resource-lib-tor$suffix")
+                } catch (_: Throwable) {}
+
                 val buildDir = project.layout
                     .buildDirectory
                     .get()
@@ -143,6 +147,8 @@ fun KmpConfigurationExtension.configureExecTor(
                     val kotlinSrcDir = buildConfigDir
                         .resolve(this.name)
                         .resolve("kotlin")
+
+                    this.kotlin.srcDir(kotlinSrcDir)
 
                     val dir = kotlinSrcDir.resolve(packageName.replace('.', File.separatorChar))
 
@@ -176,15 +182,7 @@ fun KmpConfigurationExtension.configureExecTor(
                         """.trimIndent())
                     }
 
-                    this.kotlin.srcDir(kotlinSrcDir)
-
-                    try {
-                        writeReport.invoke()
-                    } catch (_: Throwable) {
-                        Thread {
-                            writeReport.invoke()
-                        }.start()
-                    }
+                    project.afterEvaluate { writeReport.invoke() }
                 }
 
                 execTest.generateBuildConfig(areErrReportsEmpty = { null })
