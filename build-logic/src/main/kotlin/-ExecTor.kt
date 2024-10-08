@@ -176,15 +176,15 @@ fun KmpConfigurationExtension.configureExecTor(
                         """.trimIndent())
                     }
 
+                    this.kotlin.srcDir(kotlinSrcDir)
+
                     try {
                         writeReport.invoke()
                     } catch (_: Throwable) {
-                        project.project(":library:resource-lib-tor$suffix").afterEvaluate {
+                        Thread {
                             writeReport.invoke()
-                        }
+                        }.start()
                     }
-
-                    this.kotlin.srcDir(kotlinSrcDir)
                 }
 
                 execTest.generateBuildConfig(areErrReportsEmpty = { null })
