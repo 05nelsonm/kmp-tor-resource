@@ -13,16 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+
 package io.matthewnelson.kmp.tor.resource.exec.tor
 
-import io.matthewnelson.kmp.file.File
-import io.matthewnelson.kmp.file.SysTempDir
-import kotlin.test.Test
-
-class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
-
-    override val testDir: File = SysTempDir.resolve("exec-tor")
-
-    @Test
-    fun stub() {}
-}
+actual abstract class ResourceLoaderExecBaseTest
