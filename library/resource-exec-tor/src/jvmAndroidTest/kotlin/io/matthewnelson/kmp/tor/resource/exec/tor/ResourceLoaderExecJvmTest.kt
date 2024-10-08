@@ -24,6 +24,8 @@ import kotlin.test.assertTrue
 
 open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
 
+    protected open val ctrlPortArgument = "auto"
+
     @Test
     fun givenTor_whenProcessExecution_thenRuns() {
         if (!CAN_RUN_FULL_TESTS) {
@@ -71,7 +73,7 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
                     }
 
                     add("--DormantCanceledByStartup"); add("1")
-                    add("--ControlPort"); add("auto")
+                    add("--ControlPort"); add(ctrlPortArgument)
                     add("--SocksPort"); add("auto")
 
                     add("--DisableNetwork"); add("1")
