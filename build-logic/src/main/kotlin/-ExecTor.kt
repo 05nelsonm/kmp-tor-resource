@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-import com.android.build.gradle.internal.tasks.factory.dependsOn
 import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import org.gradle.accessors.dm.LibrariesForLibs
@@ -162,7 +161,7 @@ fun KmpConfigurationExtension.configureExecTor(
                         .replace("\\", "\\\\")
 
                     // Cannot read reports until after resource-lib-tor has been evaluated.
-                    project.project(":library:resource-lib-tor$suffix").afterEvaluate {
+                    val writeReport = {
                         val areErrReportsEmptyResult = areErrReportsEmpty.invoke()
 
                         var lineRunFullTests =
@@ -181,6 +180,14 @@ fun KmpConfigurationExtension.configureExecTor(
                             $lineTestDir
     
                         """.trimIndent())
+                    }
+
+                    try {
+                        writeReport.invoke()
+                    } catch (_: Throwable) {
+                        project.project(":library:resource-lib-tor$suffix").afterEvaluate {
+                            writeReport.invoke()
+                        }
                     }
 
                     this.kotlin.srcDir(kotlinSrcDir)
