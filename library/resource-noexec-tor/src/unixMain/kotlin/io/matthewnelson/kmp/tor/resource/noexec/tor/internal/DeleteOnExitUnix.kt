@@ -52,3 +52,5 @@ internal actual fun installUnixSignalHandlerOrNull(
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(ExperimentalForeignApi::class)
 internal expect inline fun sigaction.configure(handler: CPointer<CFunction<(sig: Int) -> Unit>>)
+
+

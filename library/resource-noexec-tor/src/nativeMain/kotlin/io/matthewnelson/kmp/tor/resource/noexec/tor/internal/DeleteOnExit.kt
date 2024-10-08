@@ -35,10 +35,12 @@ private val FILES = ArrayList<File>(4)
 private val INIT by lazy {
     atexit(staticCFunction(::execute))
 
-    val ptrExecuteOnSignal = staticCFunction(::executeOnSignal)
-    if (installUnixSignalHandlerOrNull(ptrExecuteOnSignal) != null) return@lazy
-
-    // windows...
+    // TODO: Install signal handlers. See #72
+//
+//    val ptrExecuteOnSignal = staticCFunction(::executeOnSignal)
+//    if (installUnixSignalHandlerOrNull(ptrExecuteOnSignal) != null) return@lazy
+//
+//    // windows...
 }
 
 /**
