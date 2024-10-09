@@ -18,6 +18,7 @@
 package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
 import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.file.path
 
 internal const val ALIAS_TOR: String = "tor"
 internal const val ALIAS_LIB_TOR: String = "libtor"
@@ -28,3 +29,13 @@ internal expect inline fun Map<String, File>.findLibTorExec(): Map<String, File>
 
 @Suppress("NOTHING_TO_INLINE")
 internal expect inline fun MutableMap<String, String>.configureProcessEnvironment(resourceDir: File)
+
+@Suppress("NOTHING_TO_INLINE", "FunctionName")
+internal inline fun MutableMap<String, String>.setLD_LIBRARY_PATH(dir: File) {
+    val current = get("LD_LIBRARY_PATH")
+    this["LD_LIBRARY_PATH"] = if (current.isNullOrBlank()) {
+        dir.path
+    } else {
+        "${dir.path}:$current"
+    }
+}

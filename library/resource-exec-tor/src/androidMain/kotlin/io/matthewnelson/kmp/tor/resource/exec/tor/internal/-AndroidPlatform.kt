@@ -17,9 +17,12 @@
 
 package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
+import android.os.Build
+import io.matthewnelson.kmp.file.ANDROID
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.parentPath
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
+import io.matthewnelson.kmp.tor.common.core.OSHost
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.common.lib.locator.KmpTorLibLocator
@@ -80,9 +83,21 @@ internal actual inline fun Map<String, File>.findLibTorExec(): Map<String, File>
 @OptIn(InternalKmpTorApi::class)
 internal actual inline fun MutableMap<String, String>.configureProcessEnvironment(resourceDir: File) {
     if (OSInfo.INSTANCE.isAndroidRuntime()) {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) return
+        // API 23-
+
         // Should never be null here b/c extraction would have failed
         // if the configureEnv callback is being invoked.
-        val dir = KmpTorLibLocator.find("libtor.so")?.parentPath ?: return
-        this["LD_LIBRARY_PATH"] = dir
+        val dir = KmpTorLibLocator.find("libtor.so")?.parentFile ?: return
+        setLD_LIBRARY_PATH(dir)
+        return
     }
+
+    // If we're configuring the process environment, extraction was
+    // successful (so utilizing android unit test dependency).
+    if (OSInfo.INSTANCE.osHost !is OSHost.Linux.Android) return
+
+    // This would only be the case if someone is compiling an Android
+    // app ON an Android device, but hey...
+    setLD_LIBRARY_PATH(resourceDir)
 }
