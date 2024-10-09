@@ -42,13 +42,13 @@ protected actual constructor(): TorApi() {
         argc: Int,
         argv: CArrayPointer<CPointerVar<ByteVar>>,
     ): Int = _ptrConfigurationSetCmdLine.invoke(cfg, argc, argv)
-    protected actual fun run(cfg: CPointer<*>): Int = _ptrRun.invoke(cfg)
+    protected actual fun runMain(cfg: CPointer<*>): Int = _ptrRunMain.invoke(cfg)
 
     private val _ptrGetProviderVersion: CPointer<CFunction<() -> CPointer<ByteVar>?>>
     private val _ptrConfigurationNew: CPointer<CFunction<() -> CPointer<*>?>>
     private val _ptrConfigurationFree: CPointer<CFunction<(CPointer<*>?) -> Unit>>
     private val _ptrConfigurationSetCmdLine: CPointer<CFunction<(CPointer<*>?, Int, CArrayPointer<CPointerVar<ByteVar>>?) -> Int>>
-    private val _ptrRun: CPointer<CFunction<(CPointer<*>?) -> Int>>
+    private val _ptrRunMain: CPointer<CFunction<(CPointer<*>?) -> Int>>
 
     init {
         var handle: DlOpenHandle? = null
@@ -63,7 +63,7 @@ protected actual constructor(): TorApi() {
             _ptrConfigurationNew = handle.fDlSym("tor_main_configuration_new")
             _ptrConfigurationFree = handle.fDlSym("tor_main_configuration_free")
             _ptrConfigurationSetCmdLine = handle.fDlSym("tor_main_configuration_set_command_line")
-            _ptrRun = handle.fDlSym("tor_run_main")
+            _ptrRunMain = handle.fDlSym("tor_run_main")
         } catch (t: Throwable) {
             try {
                 handle?.dlClose()

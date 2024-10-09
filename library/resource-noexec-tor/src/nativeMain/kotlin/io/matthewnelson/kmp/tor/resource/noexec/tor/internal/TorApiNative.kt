@@ -37,7 +37,7 @@ protected constructor(): TorApi {
         argc: Int,
         argv: CArrayPointer<CPointerVar<ByteVar>>,
     ): Int
-    protected fun run(cfg: CPointer<*>): Int
+    protected fun runMain(cfg: CPointer<*>): Int
 }
 
 @OptIn(ExperimentalForeignApi::class)
@@ -65,7 +65,7 @@ constructor(): NativeTorApi() {
 
                 // TODO: Add logging
 
-                run(cfg)
+                runMain(cfg)
             } finally {
                 configurationFree(cfg)
                 logger = null
