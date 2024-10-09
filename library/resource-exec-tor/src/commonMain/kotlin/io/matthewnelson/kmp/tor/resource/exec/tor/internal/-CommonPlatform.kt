@@ -33,9 +33,11 @@ internal expect inline fun MutableMap<String, String>.configureProcessEnvironmen
 @Suppress("NOTHING_TO_INLINE", "FunctionName")
 internal inline fun MutableMap<String, String>.setLD_LIBRARY_PATH(dir: File) {
     val current = get("LD_LIBRARY_PATH")
-    this["LD_LIBRARY_PATH"] = if (current.isNullOrBlank()) {
-        dir.path
+    if (current.isNullOrBlank()) {
+        this["LD_LIBRARY_PATH"] = dir.path
     } else {
-        "${dir.path}:$current"
+        // Already present
+        if (current.split(':').find { it == dir.path } != null) return
+        this["LD_LIBRARY_PATH"] = "${dir.path}:$current"
     }
 }
