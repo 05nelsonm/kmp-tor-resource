@@ -19,6 +19,7 @@ import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.configurationcache.extensions.capitalized
+import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.the
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import resource.validation.extensions.ExecTorResourceValidationExtension
@@ -48,7 +49,16 @@ fun KmpConfigurationExtension.configureExecTor(
         publish = true,
     ) {
         androidLibrary {
-            android { execResourceValidation.configureAndroidJniResources() }
+            android {
+                execResourceValidation.configureAndroidJniResources()
+
+                sourceSets["androidTest"].manifest.srcFile(
+                    project.projectDir
+                        .resolve("src")
+                        .resolve("androidInstrumentedTest")
+                        .resolve("AndroidManifest.xml")
+                )
+            }
 
             sourceSetMain {
                 dependencies {
