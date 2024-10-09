@@ -17,7 +17,6 @@
 
 package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
-import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.exec.tor.ResourceLoaderTorExec
@@ -27,10 +26,6 @@ import io.matthewnelson.kmp.tor.resource.lib.tor.configureLibTorResource
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
 internal actual inline fun Resource.Config.Builder.configureTorResources() {
-    configureExecTorResource(ALIAS_TOR, ResourceLoaderTorExec::class.java)
     configureLibTorResource(ALIAS_LIB_TOR)
+    configureExecTorResource(ALIAS_TOR, ResourceLoaderTorExec::class.java)
 }
-
-@Suppress("NOTHING_TO_INLINE")
-@Throws(IllegalStateException::class)
-internal actual inline fun Map<String, File>.findLibTor(): Map<String, File> = this

@@ -17,7 +17,6 @@
 
 package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
-import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.lib.tor.configureTorResources
@@ -27,7 +26,3 @@ import io.matthewnelson.kmp.tor.resource.lib.tor.configureTorResources
 internal actual inline fun Resource.Config.Builder.configureTorResources() {
     configureTorResources(aliasLibTor = ALIAS_LIB_TOR, aliasTor = ALIAS_TOR)
 }
-
-//@Throws(IllegalStateException::class)
-@Suppress("NOTHING_TO_INLINE", "ACTUAL_ANNOTATIONS_NOT_MATCH_EXPECT")
-internal actual inline fun Map<String, File>.findLibTor(): Map<String, File> = this

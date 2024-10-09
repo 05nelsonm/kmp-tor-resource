@@ -31,9 +31,9 @@ public fun Resource.Config.Builder.configureTorResources(
 ) {
     val moduleNamePrefix = "kmp-tor.resource-exec-tor" + if (IS_GPL) "-gpl" else ""
 
-    configureExecutableResource(aliasTor) { host, arch ->
+    configureExecutableResource(aliasLibTor) { host, arch ->
         moduleName = "$moduleNamePrefix.$host"
-        resourcePath = "/$arch/${host.resourceNameTor}"
+        resourcePath = "/$arch/${host.resourceNameLibTor}"
     }
 
     if (OSInfo.INSTANCE.osHost is OSHost.Windows) {
@@ -46,8 +46,8 @@ public fun Resource.Config.Builder.configureTorResources(
         }
     }
 
-    configureExecutableResource(aliasLibTor) { host, arch ->
+    configureExecutableResource(aliasTor) { host, arch ->
         moduleName = "$moduleNamePrefix.$host"
-        resourcePath = "/$arch/${host.resourceNameLibTor}"
+        resourcePath = "/$arch/${host.resourceNameTor}"
     }
 }

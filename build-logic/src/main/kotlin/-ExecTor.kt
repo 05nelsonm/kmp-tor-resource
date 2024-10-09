@@ -18,8 +18,12 @@ import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigur
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.configurationcache.extensions.capitalized
+import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.the
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import resource.validation.extensions.ExecTorResourceValidationExtension
+import java.io.File
 
 fun KmpConfigurationExtension.configureExecTor(
     project: Project,
@@ -30,6 +34,7 @@ fun KmpConfigurationExtension.configureExecTor(
     val libs = project.the<LibrariesForLibs>()
     val isGpl = project.name.endsWith("gpl")
     val suffix = if (isGpl) "-gpl" else ""
+    val packageName = "io.matthewnelson.kmp.tor.resource.exec.tor"
     val execResourceValidation by lazy {
         if (isGpl) {
             ExecTorResourceValidationExtension.GPL::class.java
@@ -39,12 +44,21 @@ fun KmpConfigurationExtension.configureExecTor(
     }
 
     configureShared(
-        androidNamespace = "io.matthewnelson.kmp.tor.resource.exec.tor",
-        java9ModuleName = "io.matthewnelson.kmp.tor.resource.exec.tor",
+        androidNamespace = packageName,
+        java9ModuleName = packageName,
         publish = true,
     ) {
         androidLibrary {
-            android { execResourceValidation.configureAndroidJniResources() }
+            android {
+                execResourceValidation.configureAndroidJniResources()
+
+                sourceSets["androidTest"].manifest.srcFile(
+                    project.projectDir
+                        .resolve("src")
+                        .resolve("androidInstrumentedTest")
+                        .resolve("AndroidManifest.xml")
+                )
+            }
 
             sourceSetMain {
                 dependencies {
@@ -112,11 +126,6 @@ fun KmpConfigurationExtension.configureExecTor(
                     implementation(project(":library:resource-lib-tor$suffix"))
                 }
             },
-            sourceSetTest = {
-                dependencies {
-                    implementation(libs.encoding.base16)
-                }
-            },
         )
         sourceSetConnect(
             newName = "nonExec",
@@ -124,6 +133,133 @@ fun KmpConfigurationExtension.configureExecTor(
                 "ios",
             ),
         )
+        sourceSetConnect(
+            newName = "jvmJs",
+            existingNames = listOf(
+                "jvm",
+                "js",
+            ),
+            dependencyName = "exec",
+            sourceSetMain = {
+                dependencies {
+                    implementation(libs.kmp.tor.common.core)
+                }
+            }
+        )
+
+        kotlin {
+            with(sourceSets) {
+                val execTest = findByName("execTest") ?: return@with
+
+                try {
+                    project.evaluationDependsOn(":library:resource-lib-tor$suffix")
+                } catch (_: Throwable) {}
+
+                val buildDir = project.layout
+                    .buildDirectory
+                    .get()
+                    .asFile
+
+                val buildConfigDir = buildDir
+                    .resolve("generated")
+                    .resolve("sources")
+                    .resolve("buildConfig")
+
+                fun KotlinSourceSet.generateBuildConfig(areErrReportsEmpty: () -> Boolean?) {
+                    val kotlinSrcDir = buildConfigDir
+                        .resolve(this.name)
+                        .resolve("kotlin")
+
+                    this.kotlin.srcDir(kotlinSrcDir)
+
+                    val dir = kotlinSrcDir.resolve(packageName.replace('.', File.separatorChar))
+
+                    dir.mkdirs()
+
+                    val testResourcesDir = buildDir
+                        .resolve("test-resources")
+                        .resolve(this.name)
+                        .path
+                        .replace("\\", "\\\\")
+
+                    // Cannot read reports until after resource-lib-tor has been evaluated.
+                    val writeReport = {
+                        val areErrReportsEmptyResult = areErrReportsEmpty.invoke()
+
+                        var lineIsGpl = ""
+                        var lineRunFullTests = "internal actual val CAN_RUN_FULL_TESTS: Boolean = $areErrReportsEmptyResult"
+                        var lineTestDir = "internal actual val TEST_DIR: String = \"$testResourcesDir\""
+
+                        if (areErrReportsEmptyResult == null) {
+                            lineIsGpl = "internal val IS_GPL: Boolean = $isGpl"
+                            lineRunFullTests = "internal expect val CAN_RUN_FULL_TESTS: Boolean"
+                            lineTestDir = "internal expect val TEST_DIR: String"
+                        }
+
+                        if (name.startsWith("android")) {
+                            lineTestDir = "internal actual val TEST_DIR: String = \"\""
+                        }
+
+                        dir.resolve("BuildConfig${this.name.capitalized()}.kt").writeText("""
+                            package $packageName
+    
+                            $lineIsGpl
+                            $lineRunFullTests
+                            $lineTestDir
+    
+                        """.trimIndent())
+                    }
+
+                    project.afterEvaluate { writeReport.invoke() }
+                }
+
+                execTest.generateBuildConfig(areErrReportsEmpty = { null })
+
+                val reportDirLibTor = project.rootDir
+                    .resolve("library")
+                    .resolve("resource-lib-tor$suffix")
+                    .resolve("build")
+                    .resolve("reports")
+                    .resolve("resource-validation")
+                    .resolve("resource-lib-tor$suffix")
+
+                val reportDirExec = buildDir
+                    .resolve("reports")
+                    .resolve("resource-validation")
+                    .resolve(project.name)
+
+                listOf(
+                    "android" to "androidInstrumented",
+
+                    // If no errors for JVM resources, then android-unit-test project
+                    // dependency and js is not utilizing mock resources and can run tests.
+                    "jvm" to "androidUnit",
+                    "jvm" to "js",
+
+                    "jvm" to null,
+                    "linuxArm64" to null,
+                    "linuxX64" to null,
+                    "macosArm64" to null,
+                    "macosX64" to null,
+                    "mingwX64" to null,
+                ).forEach { (reportName, srcSetName) ->
+                    val srcSetTest = findByName("${srcSetName ?: reportName}Test") ?: return@forEach
+
+                    val areErrReportsEmpty = {
+                        val reportLibTor = reportDirLibTor
+                            .resolve("${reportName}.err")
+                            .readText()
+                        val reportExec = reportDirExec
+                            .resolve("${reportName}.err")
+                            .readText()
+
+                        (reportLibTor + reportExec).indexOfFirst { !it.isWhitespace() } == -1
+                    }
+
+                    srcSetTest.generateBuildConfig(areErrReportsEmpty = areErrReportsEmpty)
+                }
+            }
+        }
 
         action.execute(this)
     }

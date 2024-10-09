@@ -15,7 +15,7 @@ VERSION_NAME="<version name>"
 - Set ssh variables in terminal shell
 ```
 SSH_MAC_PROFILE="<profile name>"
-SSH_MAC_PATH="/path/to/kmp-tor-resource"
+SSH_MAC_PATH="/Users/path/on/mac/to/kmp-tor-resource"
 ```
 
 - Create a release branch

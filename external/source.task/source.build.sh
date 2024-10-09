@@ -573,42 +573,43 @@ function __build:configure:target:finalize:output:shared {
   __util:require:var_set "$os_name" "os_name"
   __util:require:var_set "$DIR_OUT_SUFFIX" "DIR_OUT_SUFFIX"
 
-  # TODO: JNI
+  local is_apple=false
+
+  local exec_name="tor"
+  # NOTE: Android API 23 and below will still need LD_LIBRARY_PATH set
+  local exec_ldflags="-Wl,-rpath,'\$ORIGIN'"
+
   local shared_name="libtor.so"
   local shared_cflags="-shared"
   local shared_ldadd="-ldl -lm -pthread"
 
-  local exec_name="tor"
-  local exec_ldflags='-Wl,-rpath,"\$ORIGIN"' # must use comma (Apple clang cries)
-
   local strip_flags="-D"
-
-  local is_apple=false
 
   case "$os_name" in
     "android")
       exec_name="libtorexec.so"
-      shared_cflags="$shared_cflags -I\$CROSS_ROOT/sysroot/usr/include -Wl,-soname,$shared_name"
+      shared_cflags+=" -I\$CROSS_ROOT/sysroot/usr/include -Wl,-soname,$shared_name"
       ;;
     "linux")
       # Defaults
       ;;
     "macos")
       is_apple=true
+      exec_ldflags=""
       shared_name="libtor.dylib"
-      strip_flags="${strip_flags}u"
-      shared_cflags="-dynamiclib"
+      shared_cflags="-dynamiclib -install_name @executable_path/$shared_name"
       shared_ldadd=""
+      strip_flags+="u"
       ;;
     "mingw")
-      shared_name="tor.dll"
       exec_name="tor.exe"
+      shared_name="tor.dll"
       shared_ldadd="-lws2_32 -lcrypt32 -lshlwapi -liphlpapi"
 
       # So if tor.exe is clicked on, it opens in console.
       # This is the same behavior as the tor.exe output by
       # tor-browser-build.
-      exec_ldflags="$exec_ldflags -Wl,--subsystem,console"
+      exec_ldflags+=" -Wl,--subsystem,console"
       ;;
     "ios"|"tvos"|"watchos")
       return 0

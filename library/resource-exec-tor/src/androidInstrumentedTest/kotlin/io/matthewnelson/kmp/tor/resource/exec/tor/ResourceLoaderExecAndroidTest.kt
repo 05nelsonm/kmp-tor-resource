@@ -17,7 +17,7 @@ package io.matthewnelson.kmp.tor.resource.exec.tor
 
 import kotlin.test.Test
 
-class ResourceLoaderExecAndroidTest: ResourceLoaderExecUnitTest() {
+class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
 
     @Test
     fun stub() {}

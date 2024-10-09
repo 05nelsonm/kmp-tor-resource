@@ -24,11 +24,11 @@ import io.matthewnelson.kmp.tor.resource.lib.tor.configureLibTorResource
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
 internal actual inline fun Resource.Config.Builder.configureTorResources() {
+    configureLibTorResource(ALIAS_LIB_TOR)
     resource(ALIAS_TOR) {
         isExecutable = true
         platform {
             nativeResource = resource_tor_gz
         }
     }
-    configureLibTorResource(ALIAS_LIB_TOR)
 }
