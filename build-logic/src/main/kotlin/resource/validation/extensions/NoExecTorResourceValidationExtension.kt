@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+@file:Suppress("SpellCheckingInspection")
+
 package resource.validation.extensions
 
 import org.gradle.api.Project
@@ -30,6 +32,7 @@ open class NoExecTorResourceValidationExtension private constructor(
 ) {
 
     @Inject
+    @Suppress("unused")
     internal constructor(project: Project): this(project, isGpl = false)
 
     private val headerTorApi: String = "c346e767d3e6dbad44d1802579e7e4a8cf1b1ff8595152ebd4679b05d2de6df3"
