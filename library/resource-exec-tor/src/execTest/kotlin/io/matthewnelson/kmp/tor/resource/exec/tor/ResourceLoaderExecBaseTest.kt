@@ -28,7 +28,14 @@ import kotlin.test.*
 @OptIn(InternalKmpTorApi::class)
 actual abstract class ResourceLoaderExecBaseTest {
 
-    protected open val testDir: File by lazy { TEST_DIR.toFile() }
+    protected val testDir: File by lazy {
+        if (TEST_DIR.isBlank()) {
+            val suffix = if (IS_GPL) "-gpl" else ""
+            SysTempDir.resolve("kmp-tor-exec$suffix")
+        } else {
+            TEST_DIR.toFile()
+        }
+    }
 
     @Test
     fun givenResourceLoaderExec_whenExtracted_thenIsSuccessful() {

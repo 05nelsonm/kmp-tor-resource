@@ -186,18 +186,24 @@ fun KmpConfigurationExtension.configureExecTor(
                     val writeReport = {
                         val areErrReportsEmptyResult = areErrReportsEmpty.invoke()
 
-                        var lineRunFullTests =
-                            "internal actual val CAN_RUN_FULL_TESTS: Boolean = $areErrReportsEmptyResult"
+                        var lineIsGpl = ""
+                        var lineRunFullTests = "internal actual val CAN_RUN_FULL_TESTS: Boolean = $areErrReportsEmptyResult"
                         var lineTestDir = "internal actual val TEST_DIR: String = \"$testResourcesDir\""
 
                         if (areErrReportsEmptyResult == null) {
+                            lineIsGpl = "internal val IS_GPL: Boolean = $isGpl"
                             lineRunFullTests = "internal expect val CAN_RUN_FULL_TESTS: Boolean"
                             lineTestDir = "internal expect val TEST_DIR: String"
+                        }
+
+                        if (name.startsWith("android")) {
+                            lineTestDir = "internal actual val TEST_DIR: String = \"\""
                         }
 
                         dir.resolve("BuildConfig${this.name.capitalized()}.kt").writeText("""
                             package $packageName
     
+                            $lineIsGpl
                             $lineRunFullTests
                             $lineTestDir
     

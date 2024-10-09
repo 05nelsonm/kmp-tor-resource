@@ -15,13 +15,9 @@
  **/
 package io.matthewnelson.kmp.tor.resource.exec.tor
 
-import io.matthewnelson.kmp.file.File
-import io.matthewnelson.kmp.file.SysTempDir
 import kotlin.test.Test
 
 class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
-
-    override val testDir: File by lazy { SysTempDir.resolve("exec-tor") }
 
     @Test
     fun stub() {}
