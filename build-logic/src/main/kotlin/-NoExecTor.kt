@@ -83,7 +83,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
         kotlin { noExecResourceValidation.configureNativeInterop(this) }
 
         sourceSetConnect(
-            newName = "loadable",
+            newName = "noExec",
             existingNames = listOf(
                 "jvmAndroid",
                 "native",
@@ -101,7 +101,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
             },
         )
         sourceSetConnect(
-            newName = "nonLoadable",
+            newName = "nonNoExec",
             existingNames = listOf(
                 "js",
             ),
@@ -134,7 +134,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
         kotlin {
             with(sourceSets) {
-                val loadableTest = findByName("loadableTest") ?: return@with
+                val noExecTest = findByName("noExecTest") ?: return@with
 
                 try {
                     project.evaluationDependsOn(":library:resource-lib-tor$suffix")
@@ -181,7 +181,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     project.afterEvaluate { writeReport.invoke() }
                 }
 
-                loadableTest.generateBuildConfig(isErrReportEmpty = { null })
+                noExecTest.generateBuildConfig(isErrReportEmpty = { null })
 
                 val reportDirLibTor = project.rootDir
                     .resolve("library")

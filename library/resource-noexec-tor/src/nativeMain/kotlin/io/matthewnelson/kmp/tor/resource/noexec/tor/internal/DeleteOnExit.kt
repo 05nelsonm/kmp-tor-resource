@@ -69,7 +69,7 @@ private fun deleteFiles() {
 }
 
 private fun deleteFilesOnSignal(sig: Int) {
-    println("Caught signal $sig. Executing File.deleteOnExit hooks.")
+    println("KmpTor: Caught signal $sig. Executing File.deleteOnExit hook.")
     deleteFiles()
 }
 

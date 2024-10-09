@@ -29,7 +29,7 @@ import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.loadTorApi
 import kotlin.concurrent.Volatile
 import kotlin.jvm.JvmStatic
 
-// loadableMain
+// noExecMain
 public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
     public companion object {
