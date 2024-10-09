@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Sourced by external/task.sh
+# Sourced by external/task.sh for all 'sign:*' tasks
 
 readonly OSSLSIGNCODE="$(which osslsigncode)"
 readonly RCODESIGN="$(which rcodesign)"

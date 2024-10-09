@@ -697,12 +697,12 @@ function sign:mingw { ## Codesign mingw binaries (see codesign/windows.pkcs11.sa
 
 function validate { ## Checks the build/package directory output against expected sha256 hashes
   local targets="JVM"
-  targets="$targets,LINUX_ARM64,LINUX_X64"
-  targets="$targets,MACOS_ARM64,MACOS_X64"
-  targets="$targets,MINGW_X64"
-  targets="$targets,IOS_ARM64,IOS_SIMULATOR_ARM64,IOS_X64"
-  targets="$targets,TVOS_ARM64,TVOS_SIMULATOR_ARM64,TVOS_X64"
-  targets="$targets,WATCHOS_ARM32,WATCHOS_ARM64,WATCHOS_DEVICE_ARM64,WATCHOS_SIMULATOR_ARM64,WATCHOS_X64"
+  targets+=",LINUX_ARM64,LINUX_X64"
+  targets+=",MACOS_ARM64,MACOS_X64"
+  targets+=",MINGW_X64"
+  targets+=",IOS_ARM64,IOS_SIMULATOR_ARM64,IOS_X64"
+  targets+=",TVOS_ARM64,TVOS_SIMULATOR_ARM64,TVOS_X64"
+  targets+=",WATCHOS_ARM32,WATCHOS_ARM64,WATCHOS_DEVICE_ARM64,WATCHOS_SIMULATOR_ARM64,WATCHOS_X64"
 
   if [ -n "$include_android" ]; then
     targets="ANDROID,$targets"
@@ -721,12 +721,7 @@ function validate { ## Checks the build/package directory output against expecte
   __validate:report "resource-noexec-tor-gpl"
 }
 
-# Does not show up in help output. The `validate` task does not
-# include android, as the linux-android JVM binaries are the
-# same.
-#
-# Including ANDROID in KMP_TARGETS requires Java 17+
-function validate:all {
+function validate:all { ## Includes Android (which are implicitly checked in validate). Requires Java 17+ & Android Studio
   local include_android="yes"
   validate
 }

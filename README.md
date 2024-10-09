@@ -4,7 +4,7 @@
 
 [![badge-kotlin]][url-kotlin]
 [![badge-build-env]][url-build-env]
-[![badge-kmp-tor-core]][url-kmp-tor-core]
+[![badge-kmp-tor-common]][url-kmp-tor-common]
 
 ![badge-platform-android]
 ![badge-platform-jvm]
@@ -17,22 +17,63 @@
 ![badge-support-js-ir]
 ![badge-support-linux-arm]
 
-This project is focused on the compilation, packaging, distribution and installation of `tor`
-resources for Kotlin Multiplatform, primarily to be consumed as a dependency for [kmp-tor][url-kmp-tor].
+This project is focused on the packaging and distribution of pre-compiled `tor` resources 
+for Kotlin Multiplatform, primarily to be consumed as a dependency for [kmp-tor][url-kmp-tor].
+
+### Build Reproducibility
+
+See [DETERMINISTIC_BUILDS.md](docs/DETERMINISTIC_BUILDS.md)
+
+### Compilations
+
+Tor and its dependencies are compiled from source using the following versions
+
+<!-- TAG_VERSION -->
+<!-- TAG_DEPENDENCIES -->
+
+|          | git tag                 |
+|----------|-------------------------|
+| libevent | `release-2.1.12-stable` |
+| openssl  | `openssl-3.2.2`         |
+| tor      | `tor-0.4.8.12`          |
+| xz       | `v5.6.2`                |
+| zlib     | `v1.3.1`                |
+
+**NOTE:** All `macOS` and `Windows` compilations are code signed so they work out of the box.
+
+More details about how things are compiled can be found [HERE](docs/COMPILATION_DETAILS.md)
+
+### Jvm/Node.js Supported Operating Systems & Architectures
+
+|                 | x86 | x86_64 | armv7 | aarch64 | ppc64 |
+|-----------------|-----|--------|-------|---------|-------|
+| Windows         | ✔   | ✔      |       |         |       |
+| macOS           |     | ✔      |       | ✔       |       |
+| Linux (android) | ✔   | ✔      | ✔     | ✔       |       |
+| Linux (libc)    | ✔   | ✔      | ✔     | ✔       | ✔     |
+| Linux (musl)    |     |        |       |         |       |
+| FreeBSD         |     |        |       |         |       |
+
+### Types (`exec` & `noexec`)
+
+TODO
 
 ### Variants (`tor` & `tor-gpl`)
 
 2 variants of `tor` are compiled; 1 **with** the flag `--enable-gpl`, and 1 with**out** it.
 
-Publications with the `-gpl` suffix are indicitive of the presence of the `--enable-gpl` compile 
+Publications with the `-gpl` suffix are indicative of the presence of the `--enable-gpl` compile
 time flag.
 
-Both variants are positionally identical with the same package names, classes, resource 
+Both variants are positionally identical with the same package names, classes, resource
 names/locations, etc. The only difference between them are the compilations of `tor` being provided.
 
 Only **1** variant can be had for a project, as a conflict will occur if both are present.
 
-e.g. (`build.gradle.kts`)
+<details>
+    <summary>Example</summary>
+
+`build.gradle.kts`
 ```kotlin
 // BAD
 dependencies {
@@ -59,94 +100,15 @@ dependencies {
 }
 ```
 
-This is to respect the `GPL` licensed code `tor` is utilizing such that projects who 
-have a `GPL` license are able to take advantage of the new functionality, and projects who do 
-**not** have a `GPL` license can still utilize `tor` without infringing on the license.
-
-### Build Reproducibility
-
-See [BUILD.md](docs/BUILD.md)
-
-### Jvm/Node.js Supported Operating Systems & Architectures
-
-**NOTE:** `macOS` and `Windows` compilations are code signed, so they work out of the box.
-
-|                 | x86 | x86_64 | armv7 | aarch64 | ppc64 |
-|-----------------|-----|--------|-------|---------|-------|
-| Windows         | ✔   | ✔      |       |         |       |
-| macOS           |     | ✔      |       | ✔       |       |
-| Linux (android) | ✔   | ✔      | ✔     | ✔       |       |
-| Linux (libc)    | ✔   | ✔      | ✔     | ✔       | ✔     |
-| Linux (musl)    |     |        |       |         |       |
-| FreeBSD         |     |        |       |         |       |
-
-### Compilation
-
-Tor and its dependencies are compiled from source using the following versions 
-
-<!-- TAG_VERSION -->
-<!-- TAG_DEPENDENCIES -->
-
-|          | git tag                 |
-|----------|-------------------------|
-| libevent | `release-2.1.12-stable` |
-| openssl  | `openssl-3.2.2`         |
-| tor      | `tor-0.4.8.12`          |
-| xz       | `v5.6.2`                |
-| zlib     | `v1.3.1`                |
-
-`tor` is compiled via the `external/task.sh` script using `Docker` in order to maintain 
-reproducability.
-
-Detached code signatures are generated for Apple/Windows builds which are checked into 
-`git`; this is so others wishing to verify reproducability of the `tor` binaries they 
-are running (or providing to their users) can do so.
-
-You can view the `help` output of `task.sh` by running `./external/task.sh` from the project's 
-root directory.
-
-```
-$ git clone https://github.com/05nelsonm/kmp-tor-resource.git
-$ cd kmp-tor-resource
-$ ./external/task.sh
-```
-
-<details>
-    <summary>Task help example</summary>
-
-![image][url-task-image]
-
 </details>
 
-### Packaging
+This is to respect the `GPL` licensed code `tor` is utilizing such that projects who
+have a `GPL` license are able to take advantage of the new functionality, and projects who do
+**not** have a `GPL` license can still utilize `tor` without infringing on the license.
 
-The compiled output from `task.sh`'s `build` tasks are "packaged" for the given platforms and 
-moved to their designated package module's resource directories 
-(e.g. `external/build/package/resource-lib-tor/src/jvmMain/resources`).
+### Usage
 
-Running `./external/task.sh package:all` after a `build` task will do the following.
-
-**Android/Jvm/Node.js:**
- - Android compilations are moved to the `src/androidMain/jniLibs/{ABI}` directory.
- - `geoip` & `geoip6` files are `gzipped` and moved to the `src/jvmMain/resources` directory.
- - Detached code signatures for `macOS` and `Windows` are applied to the compilations (if needed).
- - All compilations are `gzipped` and moved to the `src/jvmMain/resources` directory for their respective 
-   hosts and architectures.
-
-**Native:**
- - The same process occurs as above, but after being `gzipped` each resource is transformed into 
-   a `NativeResource` (e.g. `resource_tor_gz.kt`).
-
-After "packaging" all resources, an additional step for Node.js is performed.
- - `geoip`, `geoip6`, and all compilations are published to `Npmjs` via the `:library:npmjs` module.
-     - See https://www.npmjs.com/search?q=kmp-tor.resource-exec
-
-### Distribution
-
-<!-- TODO: Replace with Get Started (add note about npm dependencies for Node.js) -->
-
-New releases will be published to Maven Central and can be consumed as a Kotlin Multiplatform 
-dependency.
+<!-- TODO -->
 
 Currently, there is only a `SNAPSHOT` publication in order to work on [kmp-tor][url-kmp-tor] `2.0.0`. 
 Once that work is complete a Release will be made for `kmp-tor-resource`.
@@ -158,7 +120,7 @@ Once that work is complete a Release will be made for `kmp-tor-resource`.
 <!-- TAG_DEPENDENCIES -->
 [badge-kotlin]: https://img.shields.io/badge/kotlin-1.9.24-blue.svg?logo=kotlin
 [badge-build-env]: https://img.shields.io/badge/build--env-0.1.3-blue.svg?logo=docker
-[badge-kmp-tor-core]: https://img.shields.io/badge/kmp--tor--core-2.1.0-blue.svg?style=flat
+[badge-kmp-tor-common]: https://img.shields.io/badge/kmp--tor--common-2.1.0--SNAPSHOT-blue.svg?style=flat
 
 <!-- TAG_PLATFORMS -->
 [badge-platform-android]: http://img.shields.io/badge/-android-6EDB8D.svg?style=flat
@@ -183,6 +145,5 @@ Once that work is complete a Release will be made for `kmp-tor-resource`.
 [url-license]: https://www.apache.org/licenses/LICENSE-2.0
 [url-kotlin]: https://kotlinlang.org
 [url-kmp-tor]: https://github.com/05nelsonm/kmp-tor
-[url-kmp-tor-core]: https://github.com/05nelsonm/kmp-tor-core
+[url-kmp-tor-common]: https://github.com/05nelsonm/kmp-tor-common
 [url-core-lib-locator]: https://github.com/05nelsonm/kmp-tor-core/tree/master/library/core-lib-locator
-[url-task-image]: https://private-user-images.githubusercontent.com/44778092/368467580-f6d1b4dd-e13b-4dcf-ab95-514f85339ee9.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjY2NDU0NDYsIm5iZiI6MTcyNjY0NTE0NiwicGF0aCI6Ii80NDc3ODA5Mi8zNjg0Njc1ODAtZjZkMWI0ZGQtZTEzYi00ZGNmLWFiOTUtNTE0Zjg1MzM5ZWU5LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNDA5MTglMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjQwOTE4VDA3MzkwNlomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPWViNTUxZmU5NmYwZDczMmNmZjk1NjdkNjBjMTRkYzI2ZTc5NDY4MmQyMWM0ODU0ZDE2MGNlZTZiNjIxNjlkYTImWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.BA3-UAWJVNtK47Xpu7-1Y7PdVkRYIrTLdX_SH8S0p6Y

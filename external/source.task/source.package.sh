@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Sourced by external/task.sh
+# Sourced by external/task.sh for all 'package:*' tasks
 
 # Dependency
 . "$DIR_TASK/source.task/source.docker.sh"
