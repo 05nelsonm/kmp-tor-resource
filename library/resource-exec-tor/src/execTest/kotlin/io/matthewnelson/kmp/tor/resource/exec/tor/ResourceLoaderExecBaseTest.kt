@@ -28,7 +28,7 @@ import kotlin.test.*
 @OptIn(InternalKmpTorApi::class)
 actual abstract class ResourceLoaderExecBaseTest {
 
-    protected open val testDir: File = TEST_DIR.toFile()
+    protected open val testDir: File by lazy { TEST_DIR.toFile() }
 
     @Test
     fun givenResourceLoaderExec_whenExtracted_thenIsSuccessful() {

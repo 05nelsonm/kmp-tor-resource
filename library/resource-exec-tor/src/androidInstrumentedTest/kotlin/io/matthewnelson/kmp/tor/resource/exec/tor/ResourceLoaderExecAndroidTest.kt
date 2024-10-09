@@ -21,8 +21,8 @@ import kotlin.test.Test
 
 class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
 
-    override val testDir: File = SysTempDir.resolve("exec-tor")
-    override val ctrlPortArgument: String = testDir.resolve("ctrl.sock").let { "unix:\"$it\"" }
+    override val testDir: File by lazy { SysTempDir.resolve("exec-tor") }
+    override val ctrlPortArgument: String by lazy { testDir.resolve("ctrl.sock").let { "unix:\"$it\"" } }
 
     @Test
     fun stub() {}

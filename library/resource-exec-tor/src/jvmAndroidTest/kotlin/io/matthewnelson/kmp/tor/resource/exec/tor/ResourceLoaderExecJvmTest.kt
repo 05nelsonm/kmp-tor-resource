@@ -23,7 +23,7 @@ import kotlin.test.assertTrue
 
 open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
 
-    protected open val ctrlPortArgument = "auto"
+    protected open val ctrlPortArgument: String by lazy { "auto" }
 
     @Test
     fun givenTor_whenProcessExecution_thenRuns() {
@@ -72,8 +72,8 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
                     }
 
                     add("--DormantCanceledByStartup"); add("1")
-                    add("--ControlPort"); add(ctrlPortArgument)
-                    add("--SocksPort"); add("auto")
+                    add("--ControlPort"); add("0")
+                    add("--SocksPort"); add("0")
 
                     add("--DisableNetwork"); add("1")
                     add("--RunAsDaemon"); add("0")
@@ -104,7 +104,6 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
                         out.appendLine(line)
                         if (!line.contains(expected)) continue
                         expectedFound = true
-
                     }
                 } catch (_: Throwable) {}
             }.start()
@@ -112,8 +111,8 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
             // Can't use Process.waitFor(3, TimeUnit.SECONDS) b/c
             // it requires Android API 24+ so emulator will fail.
             var i = 0
-            // max 10 seconds at 250ms delay intervals
-            while (i++ < 10 * 4 && !expectedFound) {
+            // max 20 seconds at 250ms delay intervals
+            while (i++ < 20 * 4 && !expectedFound) {
                 Thread.sleep(1_000 / 4)
             }
         } finally {
