@@ -20,6 +20,6 @@ import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun installUnixSignalHandlerOrNull(
+internal actual fun sigactionOrNull(
     handler: CPointer<CFunction<(sig: Int) -> Unit>>,
 ): Unit? = null

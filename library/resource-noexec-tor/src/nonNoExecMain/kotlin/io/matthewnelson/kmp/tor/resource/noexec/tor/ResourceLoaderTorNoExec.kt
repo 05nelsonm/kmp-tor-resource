@@ -19,7 +19,7 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 
-// nonLoadableMain
+// nonNoExecMain
 public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
 //    @Throws(IllegalStateException::class)

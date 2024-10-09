@@ -35,5 +35,5 @@ protected actual constructor(): TorApi() {
         argc: Int,
         argv: CArrayPointer<CPointerVar<ByteVar>>,
     ): Int = tor_main_configuration_set_command_line(cfg.reinterpret(), argc, argv)
-    protected actual fun run(cfg: CPointer<*>): Int = tor_run_main(cfg.reinterpret())
+    protected actual fun runMain(cfg: CPointer<*>): Int = tor_run_main(cfg.reinterpret())
 }

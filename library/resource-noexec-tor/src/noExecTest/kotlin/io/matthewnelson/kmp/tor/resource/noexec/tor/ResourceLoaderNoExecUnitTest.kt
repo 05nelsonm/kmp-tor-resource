@@ -82,7 +82,7 @@ open class ResourceLoaderNoExecUnitTest {
     }
 
     @Test
-    fun givenResourceLoaderNoExec_whenRunInvalidConfig_thenThrowsIllegalArgumentException() {
+    fun givenResourceLoaderNoExec_whenRunInvalidConfig_thenReturnsNon0() {
         val loader = loader
         assertIs<ResourceLoader.Tor.NoExec>(loader)
 
