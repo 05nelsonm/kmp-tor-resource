@@ -24,26 +24,26 @@ import kotlinx.cinterop.cValue
 import kotlinx.cinterop.reinterpret
 import platform.posix.NULL
 import platform.posix.SIGABRT
-import platform.posix.SIGALRM
 import platform.posix.SIGBUS
 import platform.posix.SIGFPE
 import platform.posix.SIGHUP
+import platform.posix.SIGILL
 import platform.posix.SIGINT
 import platform.posix.SIGTERM
 import platform.posix.SIGQUIT
 import platform.posix.sigaction
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun installUnixSignalHandlerOrNull(
+internal actual fun sigactionOrNull(
     handler: CPointer<CFunction<(sig: Int) -> Unit>>,
 ): Unit? {
-    // TODO: See Issue #72
-    val sa = cValue<sigaction> {
-        sa_flags = 0
-        configure(handler)
-    }
+    // https://www.man7.org/linux/man-pages/man7/signal.7.html
+    arrayOf(SIGABRT, SIGBUS, SIGFPE, SIGHUP, SIGILL, SIGINT, SIGTERM, SIGQUIT).forEach { signal ->
+        val sa = cValue<sigaction> {
+            sa_flags = 0
+            configure(handler)
+        }
 
-    arrayOf(SIGABRT, SIGALRM, SIGBUS, SIGFPE, SIGHUP, SIGINT, SIGTERM, SIGQUIT).forEach { signal ->
         sigaction(signal, sa, NULL?.reinterpret())
     }
 

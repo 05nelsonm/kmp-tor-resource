@@ -33,14 +33,13 @@ private val FILES = ArrayList<File>(4)
 
 @OptIn(ExperimentalForeignApi::class)
 private val INIT by lazy {
-    atexit(staticCFunction(::execute))
+    atexit(staticCFunction(::deleteFiles))
 
+    val signalHandler = staticCFunction(::deleteFilesOnSignal)
+    if (sigactionOrNull(signalHandler) != null) return@lazy
+
+    // Windows...
     // TODO: Install signal handlers. See #72
-//
-//    val ptrExecuteOnSignal = staticCFunction(::executeOnSignal)
-//    if (installUnixSignalHandlerOrNull(ptrExecuteOnSignal) != null) return@lazy
-//
-//    // windows...
 }
 
 /**
@@ -60,7 +59,7 @@ internal fun File.deleteOnExit() {
     INIT
 }
 
-private fun execute() {
+private fun deleteFiles() {
     @OptIn(InternalKmpTorApi::class)
     synchronized(LOCK) {
         while (FILES.isNotEmpty()) {
@@ -69,12 +68,12 @@ private fun execute() {
     }
 }
 
-private fun executeOnSignal(sig: Int) {
+private fun deleteFilesOnSignal(sig: Int) {
     println("Caught signal $sig. Executing File.deleteOnExit hooks.")
-    execute()
+    deleteFiles()
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal expect fun installUnixSignalHandlerOrNull(
+internal expect fun sigactionOrNull(
     handler: CPointer<CFunction<(sig: Int) -> Unit>>,
 ): Unit?
