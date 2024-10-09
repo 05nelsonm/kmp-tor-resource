@@ -15,7 +15,6 @@
 
 # Sourced by external/source.task/source.build.sh & external/source.task/source.package.sh
 
-# NOTE: If changing, also change versions in docker/Dockerfile.*
 # See https://github.com/05nelsonm/build-env
 readonly TAG_DOCKER_BUILD_ENV="0.1.3"
 
@@ -29,7 +28,7 @@ function __docker:build {
   __util:require:var_set "$2" "[2] build-env image (without tag)"
   __util:require:var_set "$3" "[3] docker directory"
 
-  local cmd_build="$DOCKER build -f $1 -t $2:$TAG_DOCKER_BUILD_ENV $3"
+  local cmd_build="$DOCKER build -f $1 --build-arg TAG_BUILD_ENV=$TAG_DOCKER_BUILD_ENV -t $2:$TAG_DOCKER_BUILD_ENV $3"
 
   if $DRY_RUN; then
     echo "

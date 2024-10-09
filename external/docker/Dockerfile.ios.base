@@ -1,4 +1,5 @@
-FROM 05nelsonm/build-env.darwin.base:0.1.3
+ARG TAG_BUILD_ENV=latest
+FROM 05nelsonm/build-env.darwin.base:$TAG_BUILD_ENV
 
 ENV VERSION_DARWIN=23 \
     VERSION_SDK=17.0 \
