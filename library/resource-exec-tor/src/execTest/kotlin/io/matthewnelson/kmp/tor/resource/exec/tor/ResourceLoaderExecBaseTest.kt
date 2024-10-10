@@ -23,23 +23,29 @@ import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.ALIAS_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.ALIAS_TOR
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.RESOURCE_CONFIG_TOR
+import kotlin.jvm.JvmStatic
 import kotlin.test.*
 
 @OptIn(InternalKmpTorApi::class)
 actual abstract class ResourceLoaderExecBaseTest {
 
-    protected val testDir: File by lazy {
-        if (TEST_DIR.isBlank()) {
-            val suffix = if (IS_GPL) "-gpl" else ""
-            SysTempDir.resolve("kmp-tor-exec$suffix")
-        } else {
-            TEST_DIR.toFile()
+    protected companion object {
+
+        @JvmStatic
+        protected val TEST_RESOURCE_DIR: File by lazy {
+            if (TEST_DIR.isBlank()) {
+                // Android
+                SysTempDir.resolve("kmp-tor-exec" + if (IS_GPL) "-gpl" else "")
+            } else {
+                // build/test-resources/{sourceSet.name}
+                TEST_DIR.toFile()
+            }
         }
     }
 
     @Test
-    fun givenResourceLoaderExec_whenExtracted_thenIsSuccessful() {
-        val loader = ResourceLoaderTorExec.getOrCreate(resourceDir = testDir)
+    fun givenResourceLoaderExec_whenAllResourcesExtracted_thenAreConfiguredAsExpected() {
+        val loader = ResourceLoaderTorExec.getOrCreate(resourceDir = TEST_RESOURCE_DIR)
         assertIs<ResourceLoader.Tor.Exec>(loader)
         println(loader)
 
@@ -67,12 +73,16 @@ actual abstract class ResourceLoaderExecBaseTest {
         val geoips = loader.extract()
         println(geoips)
 
-        val tor = loader.process(TestRuntimeBinder) { tor, _ -> tor }
+        val tor = loader.process(TestRuntimeBinder) { torExecutable, _ -> torExecutable }
 
-        // Ensures that it was extracted alongside the tor executable
+        // Ensures that it was extracted alongside the tor executable.
+        // Have to use tor's parent file b/c android runtime it will
+        // not be in the declared resource directory, it is in the
+        // nativeLibraryDir.
         val sharedLib = tor.parentFile!!.resolve(libTorName)
 
-        // Ensure that only windows extracts a .local file for DLL redirect.
+        // Ensure that only windows extracts a .local file for DLL redirect
+        // alongside tor.exe.
         val local = tor.parentFile!!.resolve("tor.exe.local")
 
         assertTrue(tor.readBytes().isNotEmpty())
@@ -96,7 +106,9 @@ actual abstract class ResourceLoaderExecBaseTest {
             assertTrue(local.exists())
         } else {
             assertFalse(local.exists())
+
             assertTrue(tor.isExecutable())
+            assertTrue(sharedLib.isExecutable())
             assertFalse(geoips.geoip.isExecutable())
             assertFalse(geoips.geoip6.isExecutable())
         }

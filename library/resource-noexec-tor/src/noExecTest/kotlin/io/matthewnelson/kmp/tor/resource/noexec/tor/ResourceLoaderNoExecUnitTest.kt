@@ -15,38 +15,25 @@
  **/
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
-import io.matthewnelson.encoding.base16.Base16
-import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
-import io.matthewnelson.kmp.file.SysTempDir
 import io.matthewnelson.kmp.file.readBytes
-import io.matthewnelson.kmp.file.resolve
-import io.matthewnelson.kmp.tor.common.api.ResourceLoader
-import kotlin.random.Random
+import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.LOADER
+import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.TEST_DIR
+import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.WORK_DIR
 import kotlin.test.*
 
 open class ResourceLoaderNoExecUnitTest {
 
-    private object TestBinder: ResourceLoader.RuntimeBinder
-
-    private companion object {
-        val random = Random.Default.nextBytes(8).encodeToString(Base16)
-        val testDir = SysTempDir.resolve("kmp_tor_resource_noexec_test")
-        val workDir = testDir.resolve(random)
-
-        private val loader by lazy { ResourceLoaderTorNoExec.getOrCreate(resourceDir = workDir) }
-    }
-
     @AfterTest
     fun cleanUp() {
-        workDir.delete()
-        testDir.delete()
+        WORK_DIR.delete()
+        TEST_DIR.delete()
     }
 
     @Test
     fun givenResourceLoaderNoExec_whenExtractGeoipFiles_thenIsSuccessful() {
-        println(loader)
+        println(LOADER)
 
-        val geoips = loader.extract()
+        val geoips = LOADER.extract()
         println(geoips)
 
         try {
@@ -60,16 +47,13 @@ open class ResourceLoaderNoExecUnitTest {
 
     @Test
     fun givenResourceLoaderNoExec_whenWithApi_thenLoadsSuccessfully() {
-        val loader = loader
-        assertIs<ResourceLoader.Tor.NoExec>(loader)
-
         if (!CAN_RUN_FULL_TESTS) {
             println("Skipping...")
             return
         }
 
         val result = try {
-            loader.withApi(TestBinder) {
+            LOADER.withApi(TestRuntimeBinder) {
                 torRunMain(listOf("--version"))
             }
         } catch (e: NotImplementedError) {
@@ -83,16 +67,13 @@ open class ResourceLoaderNoExecUnitTest {
 
     @Test
     fun givenResourceLoaderNoExec_whenRunInvalidConfig_thenReturnsNon0() {
-        val loader = loader
-        assertIs<ResourceLoader.Tor.NoExec>(loader)
-
         if (!CAN_RUN_FULL_TESTS) {
             println("Skipping...")
             return
         }
 
         val result = try {
-            loader.withApi(TestBinder) {
+            LOADER.withApi(TestRuntimeBinder) {
                 torRunMain(listOf(
                     "--SocksPort", "-1",
                     "--verify-config",
