@@ -167,7 +167,14 @@ fun KmpConfigurationExtension.configureNoExecTor(
                         val textRunFullTests = if (isErrReportEmptyResult == null) {
                             "internal expect val CAN_RUN_FULL_TESTS: Boolean"
                         } else {
-                            "internal actual val CAN_RUN_FULL_TESTS: Boolean = $isErrReportEmptyResult"
+                            // TODO: Fix
+                            //   Running `./gradlew build` fails because android has release
+                            //   & debug variants, but the `File.deleteOnExit` for the platform
+                            //   libs provided by `resource-android-unit-test-tor` causes one
+                            //   or the other to fail because JNI and how that all works.
+                            val value = if (name == "androidUnitTest") false else isErrReportEmptyResult
+
+                            "internal actual val CAN_RUN_FULL_TESTS: Boolean = $value"
                         }
 
                         dir.resolve("BuildConfig${this.name.capitalized()}.kt").writeText("""
