@@ -579,6 +579,8 @@ function __build:configure:target:finalize:output:shared {
   # NOTE: Android API 23 and below will still need LD_LIBRARY_PATH set
   local exec_ldflags="-Wl,-rpath,'\$ORIGIN'"
 
+  local jni_java_version="java8"
+
   local shared_name="libtor.so"
   local shared_cflags="-shared"
   local shared_ldadd="-ldl -lm -pthread"
@@ -588,6 +590,7 @@ function __build:configure:target:finalize:output:shared {
   case "$os_name" in
     "android")
       exec_name="libtorexec.so"
+      jni_java_version="java6"
       shared_cflags+=" -I\$CROSS_ROOT/sysroot/usr/include -Wl,-soname,$shared_name"
       ;;
     "linux")
@@ -600,16 +603,21 @@ function __build:configure:target:finalize:output:shared {
       shared_cflags="-dynamiclib -install_name @executable_path/$shared_name"
       shared_ldadd=""
       strip_flags+="u"
+      if [ "$os_subtype" != "-lts" ]; then
+        unset jni_java_version
+      fi
       ;;
     "mingw")
       exec_name="tor.exe"
-      shared_name="tor.dll"
-      shared_ldadd="-lws2_32 -lcrypt32 -lshlwapi -liphlpapi"
-
       # So if tor.exe is clicked on, it opens in console.
       # This is the same behavior as the tor.exe output by
       # tor-browser-build.
       exec_ldflags+=" -Wl,--subsystem,console"
+      # TODO: Fix... Including JNI bindings in the shared object
+      #  causes failure when compiling executable
+      unset jni_java_version
+      shared_name="tor.dll"
+      shared_ldadd="-lws2_32 -lcrypt32 -lshlwapi -liphlpapi"
       ;;
     "ios"|"tvos"|"watchos")
       return 0
@@ -619,9 +627,9 @@ function __build:configure:target:finalize:output:shared {
       ;;
   esac
 
+  __util:require:var_set "$exec_name" "exec_name"
   __util:require:var_set "$shared_name" "shared_name"
   __util:require:var_set "$shared_cflags" "shared_cflags"
-  __util:require:var_set "$exec_name" "exec_name"
   __util:require:var_set "$strip_flags" "strip_flags"
 
   __build:SCRIPT 'compile_shared() {'
@@ -631,13 +639,26 @@ function __build:configure:target:finalize:output:shared {
   __build:SCRIPT "  rm -rf \"\$DIR_EXTERNAL/build/out/\$1/$DIR_OUT_SUFFIX\""
   __build:SCRIPT '  mkdir "$DIR_TMP/shared-$1"'
   __build:SCRIPT '  mkdir -p "$DIR_SCRIPT/shared-$1/bin"'
+  __build:SCRIPT '  cd "$DIR_TMP/shared-$1"'
   __build:SCRIPT ''
   __build:SCRIPT '  cp -a "$DIR_EXTERNAL/tor/src/app/main/tor_main.c" "$DIR_TMP/shared-$1"'
   __build:SCRIPT '  cp -a "$DIR_SCRIPT/$1/include/orconfig.h" "$DIR_TMP/shared-$1"'
-  __build:SCRIPT '  cd "$DIR_TMP/shared-$1"'
   __build:SCRIPT ''
+
+  if [ -n "$jni_java_version" ]; then
+    __build:SCRIPT '  cp -a "$DIR_EXTERNAL/jni/tor_api-jni.c" "$DIR_TMP/shared-$1"'
+    __build:SCRIPT '  cp -a "$DIR_EXTERNAL/jni/tor_api-jni.h" "$DIR_TMP/shared-$1"'
+    __build:SCRIPT "  \$CC -I\${JNI_H}/$jni_java_version/include -I\$DIR_SCRIPT/\$1/include \$CFLAGS \\"
+    __build:SCRIPT '    -c tor_api-jni.c'
+    __build:SCRIPT ''
+  fi
+
   __build:SCRIPT "  \$CC \$CFLAGS $shared_cflags \\"
   __build:SCRIPT "    -o $shared_name \\"
+
+  if [ -n "$jni_java_version" ]; then
+    __build:SCRIPT '    tor_api-jni.o \'
+  fi
 
   if $is_apple; then
     __build:SCRIPT '    $LDFLAGS -Wl,-force_load \'
@@ -703,7 +724,7 @@ fi
     __build:SCRIPT "  cp -a \"\$_out/$exec_name\" \"\$_out_linux/tor\""
     __build:SCRIPT '  cp -aR "$_out/include" "$_out_linux"'
     __build:SCRIPT '  unset _out_linux'
-    __build:SCRIPT '  sleep 0.5'
+    __build:SCRIPT '  sleep 1'
     __build:SCRIPT ''
   fi
 

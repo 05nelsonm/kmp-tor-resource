@@ -58,19 +58,19 @@ open class ExecTorResourceValidationExtension private constructor(
     private val jvmLinuxLibcX86: String = "954b20e4e255ff8a8f1a3095fbf5d1cfaf9fd9e1efe880fc82820562b4347b39"
     private val jvmLinuxLibcX86_64: String = "77ce55660baf7eb2157ce820fbb061692343075bab1141a9413f6551b03cf7b6"
 
-    protected open val jvmMacosAarch64: String = "499f1ec70bed6e1e7599f2017c515b76b4e5e9385fc620031e7dff80a8573318"
-    protected open val jvmMacosX86_64: String = "ea9defea633193f2d932c3843cf63391ca22e43b6e4ea5dcb42201a0e937f2b1"
+    protected open val jvmMacosAarch64: String = "772558fbecc170d69bc818a277daa474bca5e94cda853cc9ef78f38381bca316"
+    protected open val jvmMacosX86_64: String = "4e75e9e761d431d7d31a9ff7e26cc3d7ee32409c4d034089d8038249f955258c"
 
-    protected open val jvmMingwX86: String = "3087e5f3585117c60489ad0687c857a4df1006732f5f8ee3ba4022a60f09d37a"
-    protected open val jvmMingwX86_64: String = "377bd07d1ba0a693a5c661eb47f0b50198f0d7b6d7d6db631d47591a7ddc0380"
+    protected open val jvmMingwX86: String = "d716655cbb48958efc4a51755a870bbf41ea4050059b3da627508e130f776fb1"
+    protected open val jvmMingwX86_64: String = "99e4bc8019823ccf488adaa51974dca749ab7b2e236da89561a9ee3d7cdf57da"
 
-    private val nativeLinuxArm64: String = "f6c74665fddd77fd0fad795e382820928d70bfa0c6701e1cf1c4441b4c3af8aa"
-    private val nativeLinuxX64: String = "77ce55660baf7eb2157ce820fbb061692343075bab1141a9413f6551b03cf7b6"
+    private val nativeLinuxArm64: String = jvmLinuxLibcAarch64
+    private val nativeLinuxX64: String = jvmLinuxLibcX86_64
 
-    protected open val nativeMacosArm64: String = "7e3934a14cb1677790605e9519111e89d32413674355bd6279e6c936518fb66a"
-    protected open val nativeMacosX64: String = "8b7a930b983627513e161cb3221e95fdeca606699e106980ef25a387ed8ff938"
+    protected open val nativeMacosArm64: String = "085452bbe1f21c409257334b731967f367faf8ea64f3545656b49dec9b87a788"
+    protected open val nativeMacosX64: String = "27e7b1bc78381902e2e67457355af36e27551388bdae18f62f615a32f9fe0419"
 
-    protected open val nativeMingwX64: String = "377bd07d1ba0a693a5c661eb47f0b50198f0d7b6d7d6db631d47591a7ddc0380"
+    private val nativeMingwX64: String by lazy { jvmMingwX86_64 }
 
     /**
      * Resource validation and configuration for module `:library:resource-exec-tor-gpl`,
@@ -80,16 +80,14 @@ open class ExecTorResourceValidationExtension private constructor(
         project: Project,
     ): ExecTorResourceValidationExtension(project, isGpl = true) {
 
-        override val jvmMacosAarch64: String = "48579f25c7cdc8eb944e3bc58397a11af7b40daf1aa6d0aff65ff174b1080d93"
-        override val jvmMacosX86_64: String = "8fd0d3d96daf7d814105e4fa2ce54cdf3d3df1c07e9a801d3af6322696731bc8"
+        override val jvmMacosAarch64: String = "f010830c03c9f0dc9f2ae7a66f6b73e6d518e33e559085a20bd7bfcc02998ec9"
+        override val jvmMacosX86_64: String = "2a5cd3e233f5f9ca2e957eedef534b2b506f26ecde6f61bbd0d01888004f9b53"
 
-        override val jvmMingwX86: String = "5b753a63431a3d47b9c251f4f52c9fe28cc5134e4401ffc3083218dda77c955d"
-        override val jvmMingwX86_64: String = "4849aed4333ffcdc8e28b624848ce46c10a45f6b8bee62a2b73e6fb27c59d534"
+        override val jvmMingwX86: String = "4048020c8043842fcd6b13fc2ed182a27e76cacbbf2c5440283f0f02991d3116"
+        override val jvmMingwX86_64: String = "daf1354cab1d97910d6ad5c0b2ea06ace0bc7ea05c17a70622278754cb3f9e1f"
 
-        override val nativeMacosArm64: String = "6f563f807bc21c570b91dbe60eca47c4ce29f72dbb4cbb2f6e77849e160f122d"
-        override val nativeMacosX64: String = "5236e10b2ded05040fb8aaf8239d7ad2013bbcb11103579e4ab7bf198760d85c"
-
-        override val nativeMingwX64: String = "4849aed4333ffcdc8e28b624848ce46c10a45f6b8bee62a2b73e6fb27c59d534"
+        override val nativeMacosArm64: String = "2835e75b92ad5de80106c094bca350d7e897b351c783f58b52960c4cdca9348d"
+        override val nativeMacosX64: String = "3137fd907c75429a81d76fd3092286aace430c1e1cd11b1eb7b07f9eaeb4bb5d"
 
         internal companion object {
             internal const val NAME = "execTorGPLResourceValidation"
