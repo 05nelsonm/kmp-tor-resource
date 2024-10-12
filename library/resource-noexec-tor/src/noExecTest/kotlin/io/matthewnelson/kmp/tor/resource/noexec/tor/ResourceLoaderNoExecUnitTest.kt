@@ -16,6 +16,7 @@
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.matthewnelson.kmp.file.readBytes
+import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.LOADER
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.TEST_DIR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.WORK_DIR
@@ -52,14 +53,8 @@ open class ResourceLoaderNoExecUnitTest {
             return
         }
 
-        val result = try {
-            LOADER.withApi(TestRuntimeBinder) {
-                torRunMain(listOf("--version"))
-            }
-        } catch (e: NotImplementedError) {
-            // TODO: Remove. Issue #58
-            println("Skipping...")
-            return
+        val result = LOADER.withApi(TestRuntimeBinder) {
+            torRunMain(listOf("--version"), TorApi.Logger { println(it) })
         }
 
         assertEquals(0, result)
@@ -72,20 +67,19 @@ open class ResourceLoaderNoExecUnitTest {
             return
         }
 
-        val result = try {
-            LOADER.withApi(TestRuntimeBinder) {
-                torRunMain(listOf(
-                    "--SocksPort", "-1",
-                    "--verify-config",
-                    "--quiet",
-                ))
-            }
-        } catch (e: NotImplementedError) {
-            // TODO: Remove. Issue #58
-            println("Skipping...")
-            return
+        val result = LOADER.withApi(TestRuntimeBinder) {
+            assertFalse(isRunning)
+
+            val rv = torRunMain(listOf(
+                "--SocksPort", "-1",
+                "--verify-config",
+            ), TorApi.Logger { println(it) })
+
+            assertFalse(isRunning)
+
+            rv
         }
 
-        assertEquals(-1, result)
+        assertEquals(1, result)
     }
 }

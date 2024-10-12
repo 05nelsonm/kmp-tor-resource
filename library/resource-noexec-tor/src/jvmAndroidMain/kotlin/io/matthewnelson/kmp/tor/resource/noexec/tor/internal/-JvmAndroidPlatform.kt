@@ -31,10 +31,21 @@ internal actual fun loadTorApi(): TorApi = KmpTorApi()
 @OptIn(InternalKmpTorApi::class)
 private class KmpTorApi: TorApi() {
 
-    // TODO: tor_main JNI implementation. Issue #58.
+    private external fun kmpTorRunMain(args: Array<String>): Int
 
     override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
-        TODO("Not yet implemented")
+        val result = kmpTorRunMain(args)
+
+        when (result) {
+            -10 -> "JNI: Failed to acquire new tor_main_configuration_t"
+            -11 -> "JNI: Failed to determine args array size"
+            -12 -> "JNI: Failed to allocate memory for argv array"
+            -13 -> "JNI: Failed to populate argv array with arguments"
+            -14 -> "JNI: Failed to set tor_main_configuration_t arguments"
+            else -> null
+        }?.let { throw IllegalStateException(it) }
+
+        return result
     }
 
     init {
