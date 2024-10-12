@@ -119,7 +119,7 @@ Once that work is complete a Release will be made for `kmp-tor-resource`.
 
 <!-- TAG_DEPENDENCIES -->
 [badge-kotlin]: https://img.shields.io/badge/kotlin-1.9.24-blue.svg?logo=kotlin
-[badge-build-env]: https://img.shields.io/badge/build--env-0.1.3-blue.svg?logo=docker
+[badge-build-env]: https://img.shields.io/badge/build--env-0.2.0-blue.svg?logo=docker
 [badge-kmp-tor-common]: https://img.shields.io/badge/kmp--tor--common-2.1.0--SNAPSHOT-blue.svg?style=flat
 
 <!-- TAG_PLATFORMS -->
