@@ -573,8 +573,6 @@ function __build:configure:target:finalize:output:shared {
   __util:require:var_set "$os_name" "os_name"
   __util:require:var_set "$DIR_OUT_SUFFIX" "DIR_OUT_SUFFIX"
 
-  local is_apple=false
-
   local exec_name="tor"
   # NOTE: Android API 23 and below will still need LD_LIBRARY_PATH set
   local exec_ldflags="-Wl,-rpath,'\$ORIGIN'"
@@ -597,7 +595,6 @@ function __build:configure:target:finalize:output:shared {
       # Defaults
       ;;
     "macos")
-      is_apple=true
       exec_ldflags=""
       shared_name="libtor.dylib"
       shared_cflags="-dynamiclib -install_name @executable_path/$shared_name"
@@ -613,9 +610,6 @@ function __build:configure:target:finalize:output:shared {
       # This is the same behavior as the tor.exe output by
       # tor-browser-build.
       exec_ldflags+=" -Wl,--subsystem,console"
-      # TODO: Fix... Including JNI bindings in the shared object
-      #  causes failure when compiling executable
-      unset jni_java_version
       shared_name="tor.dll"
       shared_ldadd="-lws2_32 -lcrypt32 -lshlwapi -liphlpapi"
       ;;
@@ -657,10 +651,12 @@ function __build:configure:target:finalize:output:shared {
   __build:SCRIPT "    -o $shared_name \\"
 
   if [ -n "$jni_java_version" ]; then
-    __build:SCRIPT '    tor_api-jni.o \'
+    if [ "$os_name" != "mingw" ]; then
+      __build:SCRIPT '    tor_api-jni.o \'
+    fi
   fi
 
-  if $is_apple; then
+  if [ "$os_name" = "macos" ]; then
     __build:SCRIPT '    $LDFLAGS -Wl,-force_load \'
   else
     __build:SCRIPT '    $LDFLAGS -Wl,--whole-archive \'
@@ -674,7 +670,7 @@ function __build:configure:target:finalize:output:shared {
   __build:SCRIPT '    "$DIR_SCRIPT/openssl/lib/libcrypto.a" \'
   __build:SCRIPT '    "$DIR_SCRIPT/libevent/lib/libevent.a" \'
 
-  if $is_apple; then
+  if [ "$os_name" = "macos" ]; then
     __build:SCRIPT "    \$LDFLAGS $shared_ldadd"
   else
     __build:SCRIPT "    -Wl,--no-whole-archive \$LDFLAGS $shared_ldadd"
@@ -685,15 +681,32 @@ function __build:configure:target:finalize:output:shared {
   __build:SCRIPT "    -o $exec_name $exec_ldflags \\"
   __build:SCRIPT "    $shared_name"
   __build:SCRIPT ''
+
+  if [ "$os_name" = "mingw" ]; then
+    __build:SCRIPT "  \$CC $shared_cflags \$CFLAGS tor_api-jni.o \\"
+    __build:SCRIPT '    -o torjni.dll \'
+    __build:SCRIPT '    $LDFLAGS \'
+    __build:SCRIPT "    $shared_name"
+    __build:SCRIPT ''
+    __build:SCRIPT '  cp -a torjni.dll "$DIR_SCRIPT/shared-$1/bin"'
+  fi
+
   __build:SCRIPT "  cp -a $shared_name \"\$DIR_SCRIPT/shared-\$1/bin\""
   __build:SCRIPT "  cp -a $exec_name \"\$DIR_SCRIPT/shared-\$1/bin\""
   __build:SCRIPT '}'
 
+  local needs_execution_items="\"bin/$exec_name\""
+  needs_execution_items+=" \"bin/$shared_name\""
+
+  if [ "$os_name" = "mingw" ]; then
+    needs_execution_items+=' "bin/torjni.dll"'
+  fi
+
   __build:SCRIPT "
-if needs_execution \"\$DIR_SCRIPT\" \"shared-tor\" \"bin/$exec_name\" \"bin/$shared_name\"; then
+if needs_execution \"\$DIR_SCRIPT\" \"shared-tor\" $needs_execution_items; then
   compile_shared \"tor\"
 fi
-if needs_execution \"\$DIR_SCRIPT\" \"shared-tor-gpl\" \"bin/$exec_name\" \"bin/$shared_name\"; then
+if needs_execution \"\$DIR_SCRIPT\" \"shared-tor-gpl\" $needs_execution_items; then
   compile_shared \"tor-gpl\"
 fi
 "
@@ -711,7 +724,15 @@ fi
   __build:SCRIPT "  cp -a \"\$_bin/$shared_name\" \"\$_out\""
   __build:SCRIPT "  cp -a \"\$_bin/$exec_name\" \"\$_out\""
   __build:SCRIPT "  cp -aR \"stage/$DIR_OUT_SUFFIX/\$1/include\" \"\$_out\""
-  __build:SCRIPT ''
+
+  if [ "$os_name" = "mingw" ]; then
+    __build:SCRIPT '  cp -a "$_bin/torjni.dll" "$_out"'
+    __build:SCRIPT ''
+    __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/torjni.dll\" 2>/dev/null"
+  else
+    __build:SCRIPT ''
+  fi
+
   __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$shared_name\" 2>/dev/null"
   __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$exec_name\" 2>/dev/null"
   __build:SCRIPT ''
@@ -733,25 +754,40 @@ fi
   __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/$shared_name\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"$shared_name\")\""
   __build:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/$exec_name\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"$exec_name\")\""
   __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/$exec_name\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"$exec_name\")\""
+
+  if [ "$os_name" = "mingw" ]; then
+    __build:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/torjni.dll\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"torjni.dll\")\""
+    __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/torjni.dll\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"torjni.dll\")\""
+  fi
+
   __build:SCRIPT ''
   __build:SCRIPT '  unset _bin'
   __build:SCRIPT '  unset _out'
   __build:SCRIPT '}'
 
+  needs_execution_items="\"$shared_name\""
+
+  if [ "$os_name" = "mingw" ]; then
+    needs_execution_items+=' "torjni.dll"'
+  fi
+
+  needs_execution_items+=' "include/orconfig.h"'
+  needs_execution_items+=' "include/tor_api.h"'
+
   __build:SCRIPT "
-if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/$DIR_OUT_SUFFIX\" \"$exec_name\" \"$shared_name\" \"include/orconfig.h\" \"include/tor_api.h\"; then
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/$DIR_OUT_SUFFIX\" \"$exec_name\" $needs_execution_items; then
   install_shared \"tor\"
 fi
-if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/$DIR_OUT_SUFFIX\" \"$exec_name\" \"$shared_name\" \"include/orconfig.h\" \"include/tor_api.h\"; then
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/$DIR_OUT_SUFFIX\" \"$exec_name\" $needs_execution_items; then
   install_shared \"tor-gpl\"
 fi"
 
   if [ "$os_name" = "android" ]; then
     __build:SCRIPT "
-if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/linux-$os_name/$os_arch\" \"tor\" \"$shared_name\" \"include/orconfig.h\" \"include/tor_api.h\"; then
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/linux-$os_name/$os_arch\" \"tor\" $needs_execution_items; then
   install_shared \"tor\"
 fi
-if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/linux-$os_name/$os_arch\" \"tor\" \"$shared_name\" \"include/orconfig.h\" \"include/tor_api.h\"; then
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/linux-$os_name/$os_arch\" \"tor\" $needs_execution_items; then
   install_shared \"tor-gpl\"
 fi"
   fi
