@@ -651,6 +651,9 @@ function __build:configure:target:finalize:output:shared {
   __build:SCRIPT "    -o $shared_name \\"
 
   if [ -n "$jni_java_version" ]; then
+    # Cannot include in windows tor.dll because tor_api.h overrides
+    # tor_main and linking tor.exe against it will fail. Need to
+    # compile and load separately.
     if [ "$os_name" != "mingw" ]; then
       __build:SCRIPT '    tor_api-jni.o \'
     fi

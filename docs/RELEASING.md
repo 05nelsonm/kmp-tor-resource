@@ -146,6 +146,8 @@ cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exe
 cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/linuxArm64.err
 cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/linuxX64.err
 cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/mingwX64.err
+cat library/resource-noexec-tor/build/reports/resource-validation/resource-noexec-tor/jvm.err
+cat library/resource-noexec-tor-gpl/build/reports/resource-validation/resource-noexec-tor-gpl/jvm.err
 ```
 
 - Publish

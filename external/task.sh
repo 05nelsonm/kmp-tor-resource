@@ -652,17 +652,9 @@ function package:mingw { ## Packages all Windows build/out contents
   unset native_resource
   unset dirname_out
 
-  echo "# https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-redirection#how-to-redirect-dlls-for-unpackaged-apps" > "$DIR_TASK/build/torjni.dll.local"
-
   local permissions="664"
   local gzip="no"
-  dirname_final="resource-noexec-tor"
-  __package:file "build" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/noexec/tor/native/mingw" "torjni.dll.local"
-
-  dirname_final="resource-noexec-tor-gpl"
-  __package:file "build" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/noexec/tor/native/mingw" "torjni.dll.local"
-
-  mv "$DIR_TASK/build/torjni.dll.local" "$DIR_TASK/build/tor.exe.local"
+  echo "# https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-redirection#how-to-redirect-dlls-for-unpackaged-apps" > "$DIR_TASK/build/tor.exe.local"
 
   dirname_final="resource-exec-tor"
   __package:file "build" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/exec/tor/native/mingw" "tor.exe.local"

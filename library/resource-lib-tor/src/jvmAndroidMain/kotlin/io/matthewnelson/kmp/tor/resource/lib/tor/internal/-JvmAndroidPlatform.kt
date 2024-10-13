@@ -43,7 +43,7 @@ internal inline fun Resource.Config.Builder.configureTorResource(
     alias: String,
     loader: Class<*>,
 ) {
-    configureWindowsDLLRedirect(loader, resourceLib = "exec")
+    configureWindowsDLLRedirect(loader)
     configureExecutableResource(alias) { host, arch ->
         resourcePath = host.toTorResourcePath(arch, resourceLib = "exec")
         resourceClass = loader
@@ -68,8 +68,6 @@ internal inline fun Resource.Config.Builder.configureLibTorJniResource(
     alias: String,
     loader: Class<*>,
 ) {
-    configureWindowsDLLRedirect(loader, resourceLib = "noexec")
-
     when (OSInfo.INSTANCE.osHost) {
         is OSHost.Windows -> {}
         else -> return
@@ -83,22 +81,13 @@ internal inline fun Resource.Config.Builder.configureLibTorJniResource(
 
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
-private inline fun Resource.Config.Builder.configureWindowsDLLRedirect(
-    loader: Class<*>,
-    resourceLib: String,
-) {
-    val name = when (resourceLib) {
-        "exec" -> "tor.exe.local"
-        "noexec" -> "torjni.dll.local"
-        else -> throw IllegalArgumentException("Unknown resourceLib[$resourceLib]")
-    }
-
+private inline fun Resource.Config.Builder.configureWindowsDLLRedirect(loader: Class<*>) {
     if (OSInfo.INSTANCE.osHost !is OSHost.Windows) return
 
     resource("DLL redirect") {
         isExecutable = false
         platform {
-            resourcePath = "/io/matthewnelson/kmp/tor/resource/$resourceLib/tor/native/${OSHost.Windows}/$name"
+            resourcePath = "/io/matthewnelson/kmp/tor/resource/exec/tor/native/${OSHost.Windows}/tor.exe.local"
             resourceClass = loader
         }
     }
