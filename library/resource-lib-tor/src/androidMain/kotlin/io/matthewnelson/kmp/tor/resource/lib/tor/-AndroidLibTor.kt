@@ -18,18 +18,25 @@ package io.matthewnelson.kmp.tor.resource.lib.tor
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.common.core.Resource
-import io.matthewnelson.kmp.tor.resource.lib.tor.internal.configureExecutableResource
-import io.matthewnelson.kmp.tor.resource.lib.tor.internal.configureWindowsDLLRedirect
-import io.matthewnelson.kmp.tor.resource.lib.tor.internal.toTorResourcePath
+import io.matthewnelson.kmp.tor.resource.lib.tor.internal.*
+import io.matthewnelson.kmp.tor.resource.lib.tor.internal.configureTorResource
 
 @InternalKmpTorApi
+@Throws(IllegalArgumentException::class, IllegalStateException::class)
 public fun Resource.Config.Builder.tryConfigureTestTorResources(
     aliasLibTor: String,
+    aliasLibTorJni: String?,
     aliasTor: String?,
 ) {
-    if (OSInfo.INSTANCE.isAndroidRuntime()) {
-        error("Android runtime detected. Use lib locator to find 'libtor.so' & 'libtorexec.so' paths.")
-        return
+    if (aliasTor == null && aliasLibTorJni == null) {
+        throw IllegalArgumentException("aliasLibTorJni and aliasTor cannot both be null")
+    }
+    if (aliasTor != null && aliasLibTorJni != null) {
+        throw IllegalArgumentException("aliasLibTorJni and aliasTor cannot both be non-null")
+    }
+
+    check(!OSInfo.INSTANCE.isAndroidRuntime()) {
+        "Android runtime detected. Cannot configure test resources."
     }
 
     val classpathLoader = "io.matthewnelson.kmp.tor.resource.android.unit.test.tor.Loader"
@@ -51,16 +58,13 @@ public fun Resource.Config.Builder.tryConfigureTestTorResources(
         return
     }
 
-    configureExecutableResource(aliasLibTor) { host, arch ->
-        resourcePath = host.toTorResourcePath(arch, isLib = true)
-        resourceClass = loader
+    configureLibTorResource(aliasLibTor, loader)
+
+    if (aliasLibTorJni != null) {
+        configureLibTorJniResource(aliasLibTorJni, loader)
     }
 
     if (aliasTor != null) {
-        configureWindowsDLLRedirect(loader)
-        configureExecutableResource(aliasTor) { host, arch ->
-            resourcePath = host.toTorResourcePath(arch, isLib = false)
-            resourceClass = loader
-        }
+        configureTorResource(aliasTor, loader)
     }
 }

@@ -18,30 +18,29 @@ package io.matthewnelson.kmp.tor.resource.lib.tor
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 import io.matthewnelson.kmp.tor.common.core.Resource
-import io.matthewnelson.kmp.tor.resource.lib.tor.internal.configureExecutableResource
-import io.matthewnelson.kmp.tor.resource.lib.tor.internal.configureWindowsDLLRedirect
-import io.matthewnelson.kmp.tor.resource.lib.tor.internal.toTorResourcePath
+import io.matthewnelson.kmp.tor.resource.lib.tor.internal.*
+import io.matthewnelson.kmp.tor.resource.lib.tor.internal.configureLibTorJniResource
 
 private class Loader private constructor() {
     init { throw IllegalStateException() }
 }
 
 @InternalKmpTorApi
-public fun Resource.Config.Builder.configureLibTorResource(alias: String) {
-    configureExecutableResource(alias) { host, arch ->
-        resourcePath = host.toTorResourcePath(arch, isLib = true)
-        resourceClass = Loader::class.java
-    }
+public fun <LoaderImpl: ResourceLoader.Tor.NoExec> Resource.Config.Builder.configureNoExecTorResource(
+    aliasLibTor: String,
+    aliasLibTorJni: String,
+    loaderClass: Class<LoaderImpl>,
+) {
+    configureLibTorResource(aliasLibTor, Loader::class.java)
+    configureLibTorJniResource(aliasLibTorJni, loaderClass)
 }
 
 @InternalKmpTorApi
 public fun <LoaderImpl: ResourceLoader.Tor.Exec> Resource.Config.Builder.configureExecTorResource(
-    alias: String,
-    execLoaderClass: Class<LoaderImpl>,
+    aliasLibTor: String,
+    aliasTor: String,
+    loaderClass: Class<LoaderImpl>,
 ) {
-    configureExecutableResource(alias) { host, arch ->
-        resourcePath = host.toTorResourcePath(arch, isLib = false)
-        resourceClass = execLoaderClass
-    }
-    configureWindowsDLLRedirect(execLoaderClass)
+    configureLibTorResource(aliasLibTor, Loader::class.java)
+    configureTorResource(aliasTor, loaderClass)
 }

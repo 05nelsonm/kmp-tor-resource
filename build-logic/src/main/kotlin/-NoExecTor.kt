@@ -63,6 +63,12 @@ fun KmpConfigurationExtension.configureNoExecTor(
             }
         }
 
+        jvm {
+            sourceSetMain {
+                resources.srcDir(noExecResourceValidation.jvmNativeLibResourcesSrcDir())
+            }
+        }
+
         // TODO: Fix cinterop for iosX64. Issue #64
         iosArm64()
         iosSimulatorArm64()

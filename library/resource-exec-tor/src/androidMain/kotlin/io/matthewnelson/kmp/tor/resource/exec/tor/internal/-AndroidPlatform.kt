@@ -67,7 +67,11 @@ internal actual inline fun Resource.Config.Builder.configureTorResources() {
     }
 
     // Not Android runtime. Try using unit test dependencies.
-    tryConfigureTestTorResources(aliasLibTor = ALIAS_LIB_TOR, aliasTor = ALIAS_TOR)
+    tryConfigureTestTorResources(
+        aliasLibTor = ALIAS_LIB_TOR,
+        aliasLibTorJni = null,
+        aliasTor = ALIAS_TOR,
+    )
 }
 
 @Suppress("NOTHING_TO_INLINE")
