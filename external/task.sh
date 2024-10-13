@@ -684,7 +684,7 @@ function sign:mingw { ## Codesign mingw binaries (see codesign/windows.pkcs11.sa
   local hsm_pin=
   __sign:input:hsm_pin
 
-  local file_names="tor.dll,tor.exe"
+  local file_names="tor.dll,tor.exe,torjni.dll"
   local dirname_out="tor"
 
   __sign:generate:detached:mingw "x86"
