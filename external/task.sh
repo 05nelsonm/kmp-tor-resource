@@ -608,6 +608,11 @@ function package:mingw { ## Packages all Windows build/out contents
   __package:jvm:codesign "x86" "tor.exe"
   __package:jvm:codesign "x86_64" "tor.exe"
 
+  dirname_final="resource-noexec-tor"
+  rpath_native="resource/noexec/tor"
+  __package:jvm:codesign "x86" "torjni.dll"
+  __package:jvm:codesign "x86_64" "torjni.dll"
+
   dirname_out="tor-gpl"
   dirname_final="resource-lib-tor-gpl"
   rpath_native="resource/lib/tor"
@@ -618,6 +623,11 @@ function package:mingw { ## Packages all Windows build/out contents
   rpath_native="resource/exec/tor"
   __package:jvm:codesign "x86" "tor.exe"
   __package:jvm:codesign "x86_64" "tor.exe"
+
+  dirname_final="resource-noexec-tor-gpl"
+  rpath_native="resource/noexec/tor"
+  __package:jvm:codesign "x86" "torjni.dll"
+  __package:jvm:codesign "x86_64" "torjni.dll"
 
   unset rpath_native
 
@@ -642,11 +652,19 @@ function package:mingw { ## Packages all Windows build/out contents
   unset native_resource
   unset dirname_out
 
-  echo "# https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-redirection#how-to-redirect-dlls-for-unpackaged-apps" > "$DIR_TASK/build/tor.exe.local"
+  echo "# https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-redirection#how-to-redirect-dlls-for-unpackaged-apps" > "$DIR_TASK/build/torjni.dll.local"
 
-  dirname_final="resource-exec-tor"
   local permissions="664"
   local gzip="no"
+  dirname_final="resource-noexec-tor"
+  __package:file "build" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/noexec/tor/native/mingw" "torjni.dll.local"
+
+  dirname_final="resource-noexec-tor-gpl"
+  __package:file "build" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/noexec/tor/native/mingw" "torjni.dll.local"
+
+  mv "$DIR_TASK/build/torjni.dll.local" "$DIR_TASK/build/tor.exe.local"
+
+  dirname_final="resource-exec-tor"
   __package:file "build" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/exec/tor/native/mingw" "tor.exe.local"
 
   dirname_final="resource-exec-tor-gpl"
