@@ -18,8 +18,10 @@ import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigur
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.tasks.testing.Test
 import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.the
+import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import resource.validation.extensions.NoExecTorResourceValidationExtension
 import java.io.File
@@ -41,6 +43,10 @@ fun KmpConfigurationExtension.configureNoExecTor(
             NoExecTorResourceValidationExtension::class.java
         }.let { project.extensions.getByType(it) }
     }
+
+    // Needed so that memory space is separated
+    // when jni libs are loaded for Jvm/Android.
+    project.tasks.withType<Test> { forkEvery = 1 }
 
     configureShared(
         androidNamespace = packageName,
@@ -173,14 +179,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
                         val textRunFullTests = if (isErrReportEmptyResult == null) {
                             "internal expect val CAN_RUN_FULL_TESTS: Boolean"
                         } else {
-                            // TODO: Fix
-                            //   Running `./gradlew build` fails because android has release
-                            //   & debug variants, but the `File.deleteOnExit` for the platform
-                            //   libs provided by `resource-android-unit-test-tor` causes one
-                            //   or the other to fail because JNI and how that all works.
-                            val value = if (name == "androidUnitTest") false else isErrReportEmptyResult
-
-                            "internal actual val CAN_RUN_FULL_TESTS: Boolean = $value"
+                            "internal actual val CAN_RUN_FULL_TESTS: Boolean = $isErrReportEmptyResult"
                         }
 
                         dir.resolve("BuildConfig${this.name.capitalized()}.kt").writeText("""
@@ -210,30 +209,35 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     .resolve(project.name)
 
                 listOf(
-                    Triple("android", "androidInstrumented", reportDirLibTor),
+                    Triple("android", "androidInstrumented", listOf(reportDirLibTor)),
 
                     // If no errors for JVM resources, then android-unit-test project
                     // dependency is not utilizing mock resources and can run tests.
-                    Triple("jvm", "androidUnit", reportDirLibTor),
+                    Triple("jvm", "androidUnit", listOf(reportDirLibTor)),
 
-                    Triple("jvm", null, reportDirLibTor),
-                    Triple("linuxArm64", null, reportDirLibTor),
-                    Triple("linuxX64", null, reportDirLibTor),
-                    Triple("macosArm64", null, reportDirLibTor),
-                    Triple("macosX64", null, reportDirLibTor),
-                    Triple("mingwX64", null, reportDirLibTor),
+                    Triple("jvm", null, listOf(reportDirLibTor, reportDirNoExec)),
+                    Triple("linuxArm64", null, listOf(reportDirLibTor)),
+                    Triple("linuxX64", null, listOf(reportDirLibTor)),
+                    Triple("macosArm64", null, listOf(reportDirLibTor)),
+                    Triple("macosX64", null, listOf(reportDirLibTor)),
+                    Triple("mingwX64", null, listOf(reportDirLibTor)),
 
-                    Triple("iosArm64", null, reportDirNoExec),
-                    Triple("iosSimulatorArm64", null, reportDirNoExec),
-                    Triple("iosX64", null, reportDirNoExec),
-                ).forEach { (reportName, srcSetName, reportDir) ->
+                    Triple("iosArm64", null, listOf(reportDirNoExec)),
+                    Triple("iosSimulatorArm64", null, listOf(reportDirNoExec)),
+                    Triple("iosX64", null, listOf(reportDirNoExec)),
+                ).forEach { (reportName, srcSetName, reportDirs) ->
                     val srcSetTest = findByName("${srcSetName ?: reportName}Test") ?: return@forEach
 
                     val isErrReportEmpty = {
-                        reportDir
-                            .resolve("${reportName}.err")
-                            .readText()
-                            .indexOfFirst { !it.isWhitespace() } == -1
+                        var hasError = false
+                        reportDirs.forEach readReport@{ dir ->
+                            if (hasError) return@readReport
+                            hasError = dir
+                                .resolve("${reportName}.err")
+                                .readText()
+                                .indexOfFirst { !it.isWhitespace() } == -1
+                        }
+                        hasError
                     }
 
                     srcSetTest.generateBuildConfig(isErrReportEmpty = isErrReportEmpty)

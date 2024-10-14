@@ -16,13 +16,19 @@
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.matthewnelson.kmp.file.readBytes
-import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.LOADER
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.TEST_DIR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.WORK_DIR
 import kotlin.test.*
 
-open class ResourceLoaderNoExecUnitTest {
+/**
+ * Implemented in given source sets such that tests do not run
+ * for AndroidDebugUnitTest, but do so for AndroidUnitTest. Even
+ * with `forkEvery = 1` for Android/Jvm `Test` tasks, it still seems
+ * to load libtor.so and pollute the memory space (resulting in a
+ * crash). So this is just to disable that source set...
+ * */
+abstract class ResourceLoaderNoExecBaseTest(private val runTorMain: Boolean = true) {
 
     @AfterTest
     fun cleanUp() {
@@ -48,13 +54,13 @@ open class ResourceLoaderNoExecUnitTest {
 
     @Test
     fun givenResourceLoaderNoExec_whenWithApi_thenLoadsSuccessfully() {
-        if (!CAN_RUN_FULL_TESTS) {
+        if (!runTorMain || !CAN_RUN_FULL_TESTS) {
             println("Skipping...")
             return
         }
 
         val result = LOADER.withApi(TestRuntimeBinder) {
-            torRunMain(listOf("--version"), TorApi.Logger { println(it) })
+            torRunMain(listOf("--version"))
         }
 
         assertEquals(0, result)
@@ -62,7 +68,7 @@ open class ResourceLoaderNoExecUnitTest {
 
     @Test
     fun givenResourceLoaderNoExec_whenRunInvalidConfig_thenReturnsNon0() {
-        if (!CAN_RUN_FULL_TESTS) {
+        if (!runTorMain || !CAN_RUN_FULL_TESTS) {
             println("Skipping...")
             return
         }
@@ -73,7 +79,7 @@ open class ResourceLoaderNoExecUnitTest {
             val rv = torRunMain(listOf(
                 "--SocksPort", "-1",
                 "--verify-config",
-            ), TorApi.Logger { println(it) })
+            ))
 
             assertFalse(isRunning)
 
