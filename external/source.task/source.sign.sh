@@ -32,6 +32,7 @@ function __sign:generate:detached:macos {
   __util:require:var_set "$1" "arch"
   __util:require:var_set "$smartcard_slot" "smartcard_slot"
   __util:require:file_exists "$path_apikey" "App Store Connect API key"
+  __util:require:var_set "$lib_names" "lib_names"
 
   # CSV
   local arches_remove=
@@ -46,6 +47,7 @@ function __sign:generate:detached:macos {
       __util:error "Unknown architecture $1"
       ;;
   esac
+
   __util:require:var_set "$arches_remove" "arches_remove"
 
   DIR_TMP="$(mktemp -d)"
@@ -58,31 +60,30 @@ function __sign:generate:detached:macos {
   local dir_bundle="$DIR_TMP/KmpTor.app"
   local dir_bundle_macos="$dir_bundle/Contents/MacOS"
 
-  local targets="tor,tor-gpl"
-  local locations="macos,macos-lts"
-  local file_names="libtor.dylib,tor"
+  local out_dirnames="tor,tor-gpl"
+  local macos_out_dirnames="macos,macos-lts"
   local diff_ext=".signature"
 
   local cmd_sign="$RCODESIGN sign"
-  cmd_sign="$cmd_sign --smartcard-slot $smartcard_slot"
-  cmd_sign="$cmd_sign --smartcard-pin $hsm_pin"
-  cmd_sign="$cmd_sign --code-signature-flags runtime"
+  cmd_sign+=" --smartcard-slot $smartcard_slot"
+  cmd_sign+=" --smartcard-pin $hsm_pin"
+  cmd_sign+=" --code-signature-flags runtime"
 
 
-  local target=
-  local location=
-  local file_name=
-  local program_file=
-  for target in $(echo "$targets" | tr "," " "); do
-    mkdir -p "$dir_bundle_macos/$target"
+  local dirname_out=
+  local macos_out_dirname=
+  local lib_name=
+  local bundle_program_file=
+  for dirname_out in $(echo "$out_dirnames" | tr "," " "); do
+    mkdir -p "$dir_bundle_macos/$dirname_out"
 
-    for location in $(echo "$locations" | tr "," " "); do
-      if [ ! -d "$DIR_TASK/build/out/$target/$location/$1" ]; then
-        echo "$1 not found for $target/$location Skipping..."
+    for macos_out_dirname in $(echo "$macos_out_dirnames" | tr "," " "); do
+      if [ ! -d "$DIR_TASK/build/out/$dirname_out/$macos_out_dirname/$1" ]; then
+        echo "$1 not found for $dirname_out/$macos_out_dirname Skipping..."
         continue
       fi
 
-      cp -aR "$DIR_TASK/build/out/$target/$location" "$dir_bundle_macos/$target"
+      cp -aR "$DIR_TASK/build/out/$dirname_out/$macos_out_dirname" "$dir_bundle_macos/$dirname_out"
 
       local remove_arch=
       for remove_arch in $(echo "$arches_remove" | tr "," " "); do
@@ -90,30 +91,34 @@ function __sign:generate:detached:macos {
           continue
         fi
 
-        rm -rf "$dir_bundle_macos/$target/$location/$remove_arch"
+        rm -rf "$dir_bundle_macos/$dirname_out/$macos_out_dirname/$remove_arch"
       done
       unset remove_arch
 
-      for file_name in $(echo "$file_names" | tr "," " "); do
-        cmd_sign="$cmd_sign --code-signature-flags Contents/MacOS/$target/$location/$1/$file_name:runtime"
+      for lib_name in $(echo "$lib_names" | tr "," " "); do
+        cmd_sign+=" --code-signature-flags Contents/MacOS/$dirname_out/$macos_out_dirname/$1/$lib_name:runtime"
       done
-      unset file_name
+      unset lib_name
 
-      program_file="$dir_bundle_macos/$target/$location/$1/tor"
+      local _file="$dir_bundle_macos/$dirname_out/$macos_out_dirname/$1/tor"
+      if [ -f "$_file" ]; then
+        bundle_program_file="$_file"
+      fi
+      unset _file
 
-      rm -rf "$dir_bundle_macos/$target/$location/$1/include"
+      rm -rf "$dir_bundle_macos/$dirname_out/$macos_out_dirname/$1/include"
     done
-    unset location
+    unset macos_out_dirname
 
   done
-  unset target
+  unset dirname_out
 
-  if [ ! -f "$program_file" ]; then
+  if [ -z "$bundle_program_file" ]; then
     echo "No files to sign. Skipping..."
     return 0
   fi
 
-  cp -a "$program_file" "$dir_bundle_macos/tor.program"
+  cp -a "$bundle_program_file" "$dir_bundle_macos/tor.program"
 
   echo '<?xml version="1.0" encoding="UTF-8"?>
 <plist version="1.0">
@@ -139,22 +144,22 @@ function __sign:generate:detached:macos {
     --staple \
     "$dir_bundle"
 
-  for target in $(echo "$targets" | tr "," " "); do
-    for location in $(echo "$locations" | tr "," " "); do
-      if [ ! -d "$dir_bundle_macos/$target/$location/$1" ]; then
+  for dirname_out in $(echo "$out_dirnames" | tr "," " "); do
+    for macos_out_dirname in $(echo "$macos_out_dirnames" | tr "," " "); do
+      if [ ! -d "$dir_bundle_macos/$dirname_out/$macos_out_dirname/$1" ]; then
         continue
       fi
 
-      mkdir -p "$DIR_TASK/codesign/$target/$location/$1"
+      mkdir -p "$DIR_TASK/codesign/$dirname_out/$macos_out_dirname/$1"
 
-      for file_name in $(echo "$file_names" | tr "," " "); do
-        rm -rf "$DIR_TASK/codesign/$target/$location/$1/$file_name$diff_ext"
+      for lib_name in $(echo "$lib_names" | tr "," " "); do
+        rm -rf "$DIR_TASK/codesign/$dirname_out/$macos_out_dirname/$1/$lib_name$diff_ext"
 
         ../tooling diff-cli create \
           --diff-ext-name "$diff_ext" \
-          "$DIR_TASK/build/out/$target/$location/$1/$file_name" \
-          "$dir_bundle_macos/$target/$location/$1/$file_name" \
-          "$DIR_TASK/codesign/$target/$location/$1"
+          "$DIR_TASK/build/out/$dirname_out/$macos_out_dirname/$1/$lib_name" \
+          "$dir_bundle_macos/$dirname_out/$macos_out_dirname/$1/$lib_name" \
+          "$DIR_TASK/codesign/$dirname_out/$macos_out_dirname/$1"
       done
     done
   done
@@ -169,7 +174,7 @@ function __sign:generate:detached:mingw {
   __util:require:var_set "$hsm_pin" "HSM PIN"
   __util:require:var_set "$1" "arch"
   __util:require:var_set "$dirname_out" "dirname_out"
-  __util:require:var_set "$file_names" "file_names"
+  __util:require:var_set "$lib_names" "lib_names"
 
   __util:require:file_exists "$gen_pkcs11engine_path" "windows.pkcs11[gen_pkcs11engine_path]"
   __util:require:file_exists "$gen_pkcs11module_path" "windows.pkcs11[gen_pkcs11module_path]"
@@ -185,14 +190,14 @@ function __sign:generate:detached:mingw {
   DIR_TMP="$(mktemp -d)"
   trap 'rm -rf "$DIR_TMP"; unset DIR_TMP' SIGINT ERR
 
-  local file_name=
-  for file_name in $(echo "$file_names" | tr "," " "); do
-    if [ ! -f "$DIR_TASK/build/out/$dirname_out/mingw/$1/$file_name" ]; then
-      echo "$file_name not found for mingw/$1. Skipping..."
+  local lib_name=
+  for lib_name in $(echo "$lib_names" | tr "," " "); do
+    if [ ! -f "$DIR_TASK/build/out/$dirname_out/mingw/$1/$lib_name" ]; then
+      echo "$lib_name not found for mingw/$1. Skipping..."
       continue
     fi
 
-    echo "Creating detached signature for build/out/$dirname_out/mingw/$1/$file_name"
+    echo "Creating detached signature for build/out/$dirname_out/mingw/$1/$lib_name"
     if $DRY_RUN; then continue; fi
 
     ${OSSLSIGNCODE} sign \
@@ -203,16 +208,16 @@ function __sign:generate:detached:mingw {
       -ts "$gen_ts" \
       -h "sha256" \
       -pass "$hsm_pin" \
-      -in "$DIR_TASK/build/out/$dirname_out/mingw/$1/$file_name" \
-      -out "$DIR_TMP/$file_name"
+      -in "$DIR_TASK/build/out/$dirname_out/mingw/$1/$lib_name" \
+      -out "$DIR_TMP/$lib_name"
 
     mkdir -p "$DIR_TASK/codesign/$dirname_out/mingw/$1"
-    rm -rf "$DIR_TASK/codesign/$dirname_out/mingw/$1/$file_name.signature"
+    rm -rf "$DIR_TASK/codesign/$dirname_out/mingw/$1/$lib_name.signature"
 
     ../tooling diff-cli create \
       --diff-ext-name ".signature" \
-      "$DIR_TASK/build/out/$dirname_out/mingw/$1/$file_name" \
-      "$DIR_TMP/$file_name" \
+      "$DIR_TASK/build/out/$dirname_out/mingw/$1/$lib_name" \
+      "$DIR_TMP/$lib_name" \
       "$DIR_TASK/codesign/$dirname_out/mingw/$1"
 
     echo ""

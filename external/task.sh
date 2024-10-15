@@ -681,6 +681,7 @@ function sign:macos { ## 2 ARGS - [1]: smartcard-slot (e.g. 9c)  [2]: /path/to/a
   __sign:input:hsm_pin
   local smartcard_slot="$1"
   local path_apikey="$2"
+  local lib_names="libtor.dylib,tor"
 
   __sign:generate:detached:macos "aarch64"
   __sign:generate:detached:macos "x86_64"
@@ -694,7 +695,7 @@ function sign:mingw { ## Codesign mingw binaries (see codesign/windows.pkcs11.sa
   local hsm_pin=
   __sign:input:hsm_pin
 
-  local file_names="tor.dll,tor.exe,torjni.dll"
+  local lib_names="tor.dll,tor.exe,torjni.dll"
   local dirname_out="tor"
 
   __sign:generate:detached:mingw "x86"
