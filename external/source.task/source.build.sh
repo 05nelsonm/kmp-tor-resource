@@ -580,7 +580,7 @@ function __build:configure:target:finalize:output:shared {
   local jni_java_version="java8"
 
   local shared_name="libtor.so"
-  local shared_cflags="-shared"
+  local shared_cflags="-shared -Wl,--version-script,tor_api.map"
   local shared_ldadd="-ldl -lm -pthread"
 
   local strip_flags="-D"
@@ -589,7 +589,8 @@ function __build:configure:target:finalize:output:shared {
     "android")
       exec_name="libtorexec.so"
       jni_java_version="java6"
-      shared_cflags+=" -I\$CROSS_ROOT/sysroot/usr/include -Wl,-soname,$shared_name"
+      shared_cflags+=' -I$CROSS_ROOT/sysroot/usr/include'
+      shared_cflags+=" -Wl,-soname,$shared_name"
       ;;
     "linux")
       # Defaults
@@ -597,12 +598,11 @@ function __build:configure:target:finalize:output:shared {
     "macos")
       exec_ldflags=""
       shared_name="libtor.dylib"
-      shared_cflags="-dynamiclib -install_name @executable_path/$shared_name"
+      shared_cflags="-dynamiclib"
+      shared_cflags+=" -install_name @executable_path/$shared_name"
+      shared_cflags+=" -exported_symbols_list tor_api.exp"
       shared_ldadd=""
       strip_flags+="u"
-      if [ "$os_subtype" != "-lts" ]; then
-        unset jni_java_version
-      fi
       ;;
     "mingw")
       exec_name="tor.exe"
@@ -637,26 +637,28 @@ function __build:configure:target:finalize:output:shared {
   __build:SCRIPT ''
   __build:SCRIPT '  cp -a "$DIR_EXTERNAL/tor/src/app/main/tor_main.c" "$DIR_TMP/shared-$1"'
   __build:SCRIPT '  cp -a "$DIR_SCRIPT/$1/include/orconfig.h" "$DIR_TMP/shared-$1"'
-  __build:SCRIPT ''
 
-  if [ -n "$jni_java_version" ]; then
-    __build:SCRIPT '  cp -a "$DIR_EXTERNAL/jni/tor_api-jni.c" "$DIR_TMP/shared-$1"'
-    __build:SCRIPT '  cp -a "$DIR_EXTERNAL/jni/tor_api-jni.h" "$DIR_TMP/shared-$1"'
-    __build:SCRIPT "  \$CC -I\${JNI_H}/$jni_java_version/include -I\$DIR_SCRIPT/\$1/include \$CFLAGS \\"
-    __build:SCRIPT '    -c tor_api-jni.c'
-    __build:SCRIPT ''
+  if [ "$os_name" = "macos" ]; then
+    __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/exports/tor_api.exp" "$DIR_TMP/shared-$1"'
+  else
+    __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/exports/tor_api.map" "$DIR_TMP/shared-$1"'
   fi
+
+  __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/jni/tor_api-jni.c" "$DIR_TMP/shared-$1"'
+  __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/jni/tor_api-jni.h" "$DIR_TMP/shared-$1"'
+  __build:SCRIPT ''
+  __build:SCRIPT "  \$CC -I\${JNI_H}/$jni_java_version/include -I\$DIR_SCRIPT/\$1/include \$CFLAGS \\"
+  __build:SCRIPT '    -c tor_api-jni.c'
+  __build:SCRIPT ''
 
   __build:SCRIPT "  \$CC \$CFLAGS $shared_cflags \\"
   __build:SCRIPT "    -o $shared_name \\"
 
-  if [ -n "$jni_java_version" ]; then
-    # Cannot include in windows tor.dll because tor_api.h overrides
-    # tor_main and linking tor.exe against it will fail. Need to
-    # compile and load separately.
-    if [ "$os_name" != "mingw" ]; then
-      __build:SCRIPT '    tor_api-jni.o \'
-    fi
+  # Cannot include in windows tor.dll because tor_api.h overrides
+  # tor_main and linking tor.exe against it will fail. Need to
+  # compile and load separately.
+  if [ "$os_name" != "mingw" ]; then
+    __build:SCRIPT '    tor_api-jni.o \'
   fi
 
   if [ "$os_name" = "macos" ]; then
