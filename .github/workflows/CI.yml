@@ -31,7 +31,7 @@ jobs:
           HASHES=""
           cd "build-logic/src/main/kotlin/resource/validation/extensions"
           for FILE in $(ls); do
-            if [ -d "$FILE" ]; then continue; fi
+            if [ ! -f "$FILE" ]; then continue; fi
             if [ "$FILE" = "AbstractResourceValidationExtension.kt" ]; then continue; fi
             HASHES+="$(sha256sum "$FILE" | cut -d ' ' -f 1)"
           done

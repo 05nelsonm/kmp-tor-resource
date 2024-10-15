@@ -737,6 +737,55 @@ function validate:all { ## Includes Android (which are implicitly checked in val
   validate
 }
 
+function validate:all:update_hashes { ## Updates gradle extensions with new hash values. Requires Java 17+ & Android Studio
+  local extension_kt_files="ExecTorResourceValidationExtension.kt"
+  extension_kt_files+=",GeoipResourceValidationExtension.kt"
+  extension_kt_files+=",LibTorResourceValidationExtension.kt"
+  extension_kt_files+=",NoExecTorResourceValidationExtension.kt"
+
+  local output=""
+  output="$(validate:all | grep "ERROR\[" | grep "did not match")"
+  local extension_kt_file=""
+  local new_hash=""
+  local old_hash=""
+  local print_next_line=""
+  local err_line=""
+
+  for err_line in echo $output; do
+    if [ -n "$print_next_line" ]; then
+      echo "$print_next_line $err_line"
+      print_next_line=""
+    fi
+
+    if echo "$err_line" | grep -q "hash\["; then
+      new_hash="$(echo "$err_line" | cut -d '[' -f 2 | cut -d ']' -f 1)"
+      old_hash=""
+      continue
+    fi
+
+    if echo "$err_line" | grep -q "expected\["; then
+      old_hash="$(echo "$err_line" | cut -d '[' -f 2 | cut -d ']' -f 1)"
+      if [ ${#old_hash} -ne 64 ]; then
+        # Next line will be the fs path
+        print_next_line="Unable to update hash value to $new_hash for"
+        old_hash=""
+        new_hash=""
+        continue
+      fi
+
+      for extension_kt_file in $(echo "$extension_kt_files" | tr "," " "); do
+        sed -i "s+$old_hash+$new_hash+g" \
+          "$DIR_TASK/../build-logic/src/main/kotlin/resource/validation/extensions/$extension_kt_file"
+      done
+
+      old_hash=""
+      new_hash=""
+    fi
+  done
+
+  validate:all
+}
+
 # Run
 if [ -z "$CMD_TASK" ] || [ "$CMD_TASK" = "help" ]; then
   help
