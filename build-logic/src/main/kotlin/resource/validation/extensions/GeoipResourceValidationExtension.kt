@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+@file:Suppress("SpellCheckingInspection")
+
 package resource.validation.extensions
 
 import org.gradle.api.Project
@@ -39,7 +41,7 @@ abstract class GeoipResourceValidationExtension @Inject internal constructor(
     fun jvmResourcesSrcDir(): File = jvmResourcesSrcDirProtected(reportName = "jvm-geoip")
     fun configureNativeResources(kmp: KotlinMultiplatformExtension) { configureNativeResourcesProtected(kmp) }
 
-    protected override val hashes: Set<ValidationHash> by lazy { setOf(
+    final override val hashes: Set<ValidationHash> by lazy { setOf(
         ValidationHash.ResourceJvm(
             fileName = "geoip.gz",
             hash = geoip,

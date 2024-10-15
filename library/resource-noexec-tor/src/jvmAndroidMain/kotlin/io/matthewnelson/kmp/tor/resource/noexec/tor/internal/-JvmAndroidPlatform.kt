@@ -24,6 +24,8 @@ import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import java.util.UUID
 
+internal const val ALIAS_LIB_TOR_JNI: String = "libtorjni"
+
 @JvmSynthetic
 @Throws(IllegalStateException::class, IOException::class)
 internal actual fun loadTorApi(): TorApi = KmpTorApi()
@@ -31,10 +33,21 @@ internal actual fun loadTorApi(): TorApi = KmpTorApi()
 @OptIn(InternalKmpTorApi::class)
 private class KmpTorApi: TorApi() {
 
-    // TODO: tor_main JNI implementation. Issue #58.
+    private external fun kmpTorRunMain(args: Array<String>): Int
 
     override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
-        TODO("Not yet implemented")
+        val result = kmpTorRunMain(args)
+
+        when (result) {
+            -10 -> "JNI: Failed to acquire new tor_main_configuration_t"
+            -11 -> "JNI: Failed to determine args array size"
+            -12 -> "JNI: Failed to allocate memory for argv array"
+            -13 -> "JNI: Failed to populate argv array with arguments"
+            -14 -> "JNI: Failed to set tor_main_configuration_t arguments"
+            else -> null
+        }?.let { throw IllegalStateException(it) }
+
+        return result
     }
 
     init {
@@ -45,11 +58,14 @@ private class KmpTorApi: TorApi() {
                 // Android Runtime. libtor.so
                 System.loadLibrary("tor")
             } else {
-                val libTor: File = RESOURCE_CONFIG_LIB_TOR
+                val map: Map<String, File> = RESOURCE_CONFIG_LIB_TOR
                     .extractTo(tempDir, onlyIfDoesNotExist = false)
-                    .getValue(ALIAS_LIB_TOR)
 
-                System.load(libTor.absolutePath)
+                System.load(map.getValue(ALIAS_LIB_TOR).path)
+
+                // Windows compilations package separate torjni.dll lib that
+                // is linked against tor.dll. Must load after if it is present.
+                map[ALIAS_LIB_TOR_JNI]?.let { jniLib -> System.load(jniLib.path) }
             }
         } catch (t: Throwable) {
             if (t is IOException) throw t
@@ -64,16 +80,10 @@ private class KmpTorApi: TorApi() {
 
             val tempDir = SysTempDir.resolve("kmp-tor_${UUID.randomUUID()}")
 
-            val libTor = try {
-                tempDir.resolve(RESOURCE_CONFIG_LIB_TOR[ALIAS_LIB_TOR].platform.fsFileName)
-            } catch (_: NoSuchElementException) {
-                // Is possible with android unit tests if the dependency is not present.
-                // Will result in an error upon extraction attempt. Ignore it here.
-                null
-            }
-
             tempDir.deleteOnExit()
-            libTor?.deleteOnExit()
+            RESOURCE_CONFIG_LIB_TOR.resources.forEach { resource ->
+                tempDir.resolve(resource.platform.fsFileName).deleteOnExit()
+            }
 
             tempDir
         }

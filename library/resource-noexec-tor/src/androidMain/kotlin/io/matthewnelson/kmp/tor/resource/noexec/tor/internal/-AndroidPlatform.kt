@@ -26,5 +26,10 @@ import io.matthewnelson.kmp.tor.resource.lib.tor.tryConfigureTestTorResources
 @OptIn(InternalKmpTorApi::class)
 internal actual inline fun Resource.Config.Builder.configureLibTorResources() {
     if (OSInfo.INSTANCE.isAndroidRuntime()) return
-    tryConfigureTestTorResources(aliasLibTor = ALIAS_LIB_TOR, aliasTor = null)
+
+    tryConfigureTestTorResources(
+        aliasLibTor = ALIAS_LIB_TOR,
+        aliasLibTorJni = ALIAS_LIB_TOR_JNI,
+        aliasTor = null,
+    )
 }

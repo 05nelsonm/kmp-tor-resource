@@ -59,7 +59,7 @@ sealed class ValidationHash private constructor() {
 
                 val actualHash = lib.sha256()
                 if (hash != actualHash) {
-                    errors.add("Lib hash[$actualHash] did not match expected[$hash]: $rPath".toERROR())
+                    errors.add("Lib ${formatHashMismatch(actualHash, hash, rPath)}".toERROR())
                     return@forEach
                 }
             }
@@ -92,7 +92,7 @@ sealed class ValidationHash private constructor() {
 
             val actualHash = lib.sha256()
             if (hash != actualHash) {
-                return "Lib hash[$actualHash] did not match expected[$hash]: $rPath".toERROR()
+                return "Lib ${formatHashMismatch(actualHash, hash, rPath)}".toERROR()
             }
 
             return null
@@ -167,7 +167,7 @@ sealed class ValidationHash private constructor() {
 
                 val actualHash = file.sha256()
                 if (input.hash != actualHash) {
-                    errors.add("File hash[$actualHash] did not match expected[${input.hash}]: $rPath".toERROR())
+                    errors.add("File ${formatHashMismatch(actualHash, input.hash, rPath)}".toERROR())
                     return@forEach
                 }
             }
@@ -199,7 +199,7 @@ sealed class ValidationHash private constructor() {
 
             val actualHash = file.sha256()
             if (hash != actualHash) {
-                return "Resource hash[$actualHash] did not match expected[$hash]: $rPath".toERROR()
+                return "Resource ${formatHashMismatch(actualHash, hash, rPath)}".toERROR()
             }
 
             return null
@@ -243,7 +243,7 @@ sealed class ValidationHash private constructor() {
                             // No error
                             null
                         } else {
-                            "Resource hash[$actualHash] did not match expected[$hash]: $rPath".toERROR()
+                            "Resource ${formatHashMismatch(actualHash, hash, rPath)}".toERROR()
                         }
                     }
                 }
@@ -251,5 +251,16 @@ sealed class ValidationHash private constructor() {
 
             return "Failed to find the sha256 value for NativeResource: $rPath".toERROR()
         }
+    }
+
+    private companion object {
+
+        // If modifying, update 'validate:all:update_hashes' task in 'task.sh'
+        @JvmStatic
+        private fun formatHashMismatch(
+            actual: String,
+            expected: String,
+            path: String,
+        ): String = "hash[$actual] did not match expected[$expected]: $path"
     }
 }

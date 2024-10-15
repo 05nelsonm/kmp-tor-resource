@@ -18,8 +18,10 @@ import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigur
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
 import org.gradle.api.Project
+import org.gradle.api.tasks.testing.Test
 import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.the
+import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import resource.validation.extensions.NoExecTorResourceValidationExtension
 import java.io.File
@@ -42,6 +44,10 @@ fun KmpConfigurationExtension.configureNoExecTor(
         }.let { project.extensions.getByType(it) }
     }
 
+    // Needed so that memory space is separated
+    // when jni libs are loaded for Jvm/Android.
+    project.tasks.withType<Test> { forkEvery = 1 }
+
     configureShared(
         androidNamespace = packageName,
         java9ModuleName = packageName,
@@ -60,6 +66,12 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     implementation(libs.androidx.test.core)
                     implementation(libs.androidx.test.runner)
                 }
+            }
+        }
+
+        jvm {
+            sourceSetMain {
+                resources.srcDir(noExecResourceValidation.jvmNativeLibResourcesSrcDir())
             }
         }
 
@@ -197,30 +209,35 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     .resolve(project.name)
 
                 listOf(
-                    Triple("android", "androidInstrumented", reportDirLibTor),
+                    Triple("android", "androidInstrumented", listOf(reportDirLibTor)),
 
                     // If no errors for JVM resources, then android-unit-test project
                     // dependency is not utilizing mock resources and can run tests.
-                    Triple("jvm", "androidUnit", reportDirLibTor),
+                    Triple("jvm", "androidUnit", listOf(reportDirLibTor)),
 
-                    Triple("jvm", null, reportDirLibTor),
-                    Triple("linuxArm64", null, reportDirLibTor),
-                    Triple("linuxX64", null, reportDirLibTor),
-                    Triple("macosArm64", null, reportDirLibTor),
-                    Triple("macosX64", null, reportDirLibTor),
-                    Triple("mingwX64", null, reportDirLibTor),
+                    Triple("jvm", null, listOf(reportDirLibTor, reportDirNoExec)),
+                    Triple("linuxArm64", null, listOf(reportDirLibTor)),
+                    Triple("linuxX64", null, listOf(reportDirLibTor)),
+                    Triple("macosArm64", null, listOf(reportDirLibTor)),
+                    Triple("macosX64", null, listOf(reportDirLibTor)),
+                    Triple("mingwX64", null, listOf(reportDirLibTor)),
 
-                    Triple("iosArm64", null, reportDirNoExec),
-                    Triple("iosSimulatorArm64", null, reportDirNoExec),
-                    Triple("iosX64", null, reportDirNoExec),
-                ).forEach { (reportName, srcSetName, reportDir) ->
+                    Triple("iosArm64", null, listOf(reportDirNoExec)),
+                    Triple("iosSimulatorArm64", null, listOf(reportDirNoExec)),
+                    Triple("iosX64", null, listOf(reportDirNoExec)),
+                ).forEach { (reportName, srcSetName, reportDirs) ->
                     val srcSetTest = findByName("${srcSetName ?: reportName}Test") ?: return@forEach
 
                     val isErrReportEmpty = {
-                        reportDir
-                            .resolve("${reportName}.err")
-                            .readText()
-                            .indexOfFirst { !it.isWhitespace() } == -1
+                        var hasError = false
+                        reportDirs.forEach readReport@{ dir ->
+                            if (hasError) return@readReport
+                            hasError = dir
+                                .resolve("${reportName}.err")
+                                .readText()
+                                .indexOfFirst { !it.isWhitespace() } == -1
+                        }
+                        hasError
                     }
 
                     srcSetTest.generateBuildConfig(isErrReportEmpty = isErrReportEmpty)

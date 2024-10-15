@@ -17,23 +17,16 @@
 
 5) Generate code signatures
    ```shell
-   ./external/task.sh sign:macos
+   ./external/task.sh sign:macos "<yubikey slot>" "</path/to/api_key.json>"
    ./external/task.sh sign:mingw
    ```
 
-6) Package binaries
+6) Package compilations
    ```shell
-   ./external/task.sh package
+   ./external/task.sh package:all
    ```
 
-7) Run verification to output new expected hash values
+7) Update `ResourceValidation` extension hash values
    ```shell
-   ./external/task.sh verify:all
-   ```
-
-8) Update expected hash values in `build-logic/src/main/kotlin/io/matthewnelson/kmp/tor/resource/validation`
-
-9) Re-run verification to ensure updated values are correct
-   ```shell
-   ./external/task.sh verify:all
+   ./external/task.sh validate:all:update_hashes
    ```

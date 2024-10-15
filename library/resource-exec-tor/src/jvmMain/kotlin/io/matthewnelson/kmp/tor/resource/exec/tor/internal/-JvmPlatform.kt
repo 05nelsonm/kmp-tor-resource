@@ -21,11 +21,13 @@ import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.exec.tor.ResourceLoaderTorExec
 import io.matthewnelson.kmp.tor.resource.lib.tor.configureExecTorResource
-import io.matthewnelson.kmp.tor.resource.lib.tor.configureLibTorResource
 
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
 internal actual inline fun Resource.Config.Builder.configureTorResources() {
-    configureLibTorResource(ALIAS_LIB_TOR)
-    configureExecTorResource(ALIAS_TOR, ResourceLoaderTorExec::class.java)
+    configureExecTorResource(
+        aliasLibTor = ALIAS_LIB_TOR,
+        aliasTor = ALIAS_TOR,
+        loaderClass = ResourceLoaderTorExec::class.java,
+    )
 }

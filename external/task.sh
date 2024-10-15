@@ -608,6 +608,11 @@ function package:mingw { ## Packages all Windows build/out contents
   __package:jvm:codesign "x86" "tor.exe"
   __package:jvm:codesign "x86_64" "tor.exe"
 
+  dirname_final="resource-noexec-tor"
+  rpath_native="resource/noexec/tor"
+  __package:jvm:codesign "x86" "torjni.dll"
+  __package:jvm:codesign "x86_64" "torjni.dll"
+
   dirname_out="tor-gpl"
   dirname_final="resource-lib-tor-gpl"
   rpath_native="resource/lib/tor"
@@ -618,6 +623,11 @@ function package:mingw { ## Packages all Windows build/out contents
   rpath_native="resource/exec/tor"
   __package:jvm:codesign "x86" "tor.exe"
   __package:jvm:codesign "x86_64" "tor.exe"
+
+  dirname_final="resource-noexec-tor-gpl"
+  rpath_native="resource/noexec/tor"
+  __package:jvm:codesign "x86" "torjni.dll"
+  __package:jvm:codesign "x86_64" "torjni.dll"
 
   unset rpath_native
 
@@ -642,11 +652,11 @@ function package:mingw { ## Packages all Windows build/out contents
   unset native_resource
   unset dirname_out
 
+  local permissions="664"
+  local gzip="no"
   echo "# https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-redirection#how-to-redirect-dlls-for-unpackaged-apps" > "$DIR_TASK/build/tor.exe.local"
 
   dirname_final="resource-exec-tor"
-  local permissions="664"
-  local gzip="no"
   __package:file "build" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/exec/tor/native/mingw" "tor.exe.local"
 
   dirname_final="resource-exec-tor-gpl"
@@ -671,6 +681,7 @@ function sign:macos { ## 2 ARGS - [1]: smartcard-slot (e.g. 9c)  [2]: /path/to/a
   __sign:input:hsm_pin
   local smartcard_slot="$1"
   local path_apikey="$2"
+  local lib_names="libtor.dylib,tor"
 
   __sign:generate:detached:macos "aarch64"
   __sign:generate:detached:macos "x86_64"
@@ -684,7 +695,7 @@ function sign:mingw { ## Codesign mingw binaries (see codesign/windows.pkcs11.sa
   local hsm_pin=
   __sign:input:hsm_pin
 
-  local file_names="tor.dll,tor.exe"
+  local lib_names="tor.dll,tor.exe,torjni.dll"
   local dirname_out="tor"
 
   __sign:generate:detached:mingw "x86"
@@ -724,6 +735,55 @@ function validate { ## Checks the build/package directory output against expecte
 function validate:all { ## Includes Android (which are implicitly checked in validate). Requires Java 17+ & Android Studio
   local include_android="yes"
   validate
+}
+
+function validate:all:update_hashes { ## Updates gradle extensions with new hash values. Requires Java 17+ & Android Studio
+  local extension_kt_files="ExecTorResourceValidationExtension.kt"
+  extension_kt_files+=",GeoipResourceValidationExtension.kt"
+  extension_kt_files+=",LibTorResourceValidationExtension.kt"
+  extension_kt_files+=",NoExecTorResourceValidationExtension.kt"
+
+  local output=""
+  output="$(validate:all | grep "ERROR\[" | grep "did not match")"
+  local extension_kt_file=""
+  local new_hash=""
+  local old_hash=""
+  local print_next_line=""
+  local err_line=""
+
+  for err_line in echo $output; do
+    if [ -n "$print_next_line" ]; then
+      echo "$print_next_line $err_line"
+      print_next_line=""
+    fi
+
+    if echo "$err_line" | grep -q "hash\["; then
+      new_hash="$(echo "$err_line" | cut -d '[' -f 2 | cut -d ']' -f 1)"
+      old_hash=""
+      continue
+    fi
+
+    if echo "$err_line" | grep -q "expected\["; then
+      old_hash="$(echo "$err_line" | cut -d '[' -f 2 | cut -d ']' -f 1)"
+      if [ ${#old_hash} -ne 64 ]; then
+        # Next line will be the fs path
+        print_next_line="Unable to update hash value to $new_hash for"
+        old_hash=""
+        new_hash=""
+        continue
+      fi
+
+      for extension_kt_file in $(echo "$extension_kt_files" | tr "," " "); do
+        sed -i "s+$old_hash+$new_hash+g" \
+          "$DIR_TASK/../build-logic/src/main/kotlin/resource/validation/extensions/$extension_kt_file"
+      done
+
+      old_hash=""
+      new_hash=""
+    fi
+  done
+
+  validate:all
 }
 
 # Run

@@ -47,31 +47,24 @@ constructor(): NativeTorApi() {
 
     override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
         val cfg = configurationNew()
-        if (cfg == null) {
-            log.notifyErr("failed to acquire a new configuration")
-            return -1
-        }
+            ?: throw IllegalStateException("Failed to acquire new tor_main_configuration_t")
 
-        @Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
-        var logger: Logger? = log
-        val result = memScoped {
+        val rv = memScoped {
             try {
-                configurationSetCmdLine(cfg, args.size, args.toCStringArray(autofreeScope = this)).let { result ->
-                    if (result == 0) return@let
-
-                    log.notifyErr("failed to set configuration cmd line options")
-                    return@memScoped result
+                check (configurationSetCmdLine(cfg, args.size, args.toCStringArray(this)) == 0) {
+                    "Failed to set tor_main_configuration_t arguments"
                 }
-
-                // TODO: Add logging
 
                 runMain(cfg)
             } finally {
                 configurationFree(cfg)
-                logger = null
             }
         }
 
-        return result
+        return if (rv < 0 || rv > 255) {
+            1
+        } else {
+            rv
+        }
     }
 }

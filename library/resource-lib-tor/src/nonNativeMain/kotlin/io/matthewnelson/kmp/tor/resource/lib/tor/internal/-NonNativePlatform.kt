@@ -37,6 +37,14 @@ internal inline val OSHost.resourceNameLibTor: String get() = when (this) {
 
 @OptIn(InternalKmpTorApi::class)
 @Suppress("NOTHING_TO_INLINE")
+internal inline val OSHost.resourceNameLibTorJni: String get() = when (this) {
+    is OSHost.Windows -> "torjni.dll.gz"
+    is OSHost.MacOS -> "libtorjni.dylib.gz"
+    else -> "libtorjni.so.gz"
+}
+
+@OptIn(InternalKmpTorApi::class)
+@Suppress("NOTHING_TO_INLINE")
 internal inline fun Resource.Config.Builder.configureExecutableResource(
     alias: String,
     crossinline block: PlatformResource.Builder.(host: OSHost, arch: OSArch) -> Unit,

@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import resource.validation.extensions.ExecTorResourceValidationExtension
 import resource.validation.extensions.LibTorResourceValidationExtension
+import resource.validation.extensions.NoExecTorResourceValidationExtension
 
 fun KmpConfigurationContainerDsl.androidLibrary(
     namespace: String,
@@ -73,6 +74,13 @@ fun KmpConfigurationExtension.configureAndroidUnitTestTor(
             ExecTorResourceValidationExtension::class.java
         }.let { project.extensions.getByType(it) }
     }
+    val noExecResourceValidation by lazy {
+        if (isGpl) {
+            NoExecTorResourceValidationExtension.GPL::class.java
+        } else {
+            NoExecTorResourceValidationExtension::class.java
+        }.let { project.extensions.getByType(it) }
+    }
 
     configure {
         options {
@@ -86,6 +94,7 @@ fun KmpConfigurationExtension.configureAndroidUnitTestTor(
                 sourceSets.getByName("main").resources {
                     srcDir(libResourceValidation.jvmNativeLibResourcesSrcDir())
                     srcDir(execResourceValidation.jvmNativeLibResourcesSrcDir())
+                    srcDir(noExecResourceValidation.jvmNativeLibResourcesSrcDir())
                 }
             }
         }

@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-@file:Suppress("SpellCheckingInspection")
+@file:Suppress("SpellCheckingInspection", "PropertyName")
 
 package resource.validation.extensions
 
 import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import resource.validation.extensions.internal.ValidationHash
+import java.io.File
 import javax.inject.Inject
 
 open class NoExecTorResourceValidationExtension private constructor(
@@ -35,25 +36,22 @@ open class NoExecTorResourceValidationExtension private constructor(
     @Suppress("unused")
     internal constructor(project: Project): this(project, isGpl = false)
 
+    protected open val jvmMingwX86: String = "5ae09bc475bd01239cfa4240e1b4766b583e5e91b800fbf0609ca62bc6deaf34"
+    protected open val jvmMingwX86_64: String = "ae6f3e29d2809c6d36bcda9931404beea8b3e8df69c0c58ee08620789b729340"
+
     private val headerTorApi: String = "c346e767d3e6dbad44d1802579e7e4a8cf1b1ff8595152ebd4679b05d2de6df3"
 
-    protected open val iosArm64LibTor: String = "59fb38fa1c6de14b96b0e7c3872d4cbba0c4311bc87772043e5a282917447f4f"
-    protected open val iosArm64Orconfig: String = "33018b29c3757493b37356f7a6e9bdd28553cd969c471afc9ed460aa97f47219"
-
-    protected open val iosSimulatorArm64LibTor: String = "78ad7682256f82aafecf9cbd42392768aad5cc52b0ce0074599509a5074d5650"
-    protected open val iosSimulatorArm64Orconfig: String = "32a216e02257ef4fc609f8907c1ebea7e9e25f45994700683a88b9bdfd29b58c"
-
-    protected open val iosX64LibTor: String = "7ba0abb60d45bf9a97e9b2f59bf51cfa295d05d1d08e01311b1b793f8377683c"
-    protected open val iosX64Orconfig: String = "1a341137c719e33563dff813855cdbee70dd0631eec8ee938a00e68c45740675"
+    protected open val iosArm64LibTor: String = "497093291b5d897c55ae1ef977fe12617d9283bcbd12398719036caffc7babf9"
+    protected open val iosArm64Orconfig: String = "aaed57d74fcd679a223d2620c84e859118050fa72a2e7e2ff32b287efa15fca5"
 
     private val iosArm64Libs: List<Pair<String, String>> by lazy {
         listOf(
-            "libcrypto.a" to "a694ccf8b77265761bffdd6f67af89d01ba9b3c2554ef6b03d736710090b5d08",
-            "libevent.a" to "f71ce25368d9b5be79a51f8f4308abcf1cf1bcd1d9d62afa8f7df04f46d894ca",
-            "liblzma.a" to "661f84f07aacfa45c1311ff4a3deebc8348fa01d1311aadb0d9a6ddfb96f61fb",
-            "libssl.a" to "f6f5095d9c0e06c18fb003ae555d48345f4e4c0c7832dfb4ff2f6168edfd5f9d",
+            "libz.a" to "05666663a43c33bfa61f2791a643ffcae4434f8b643a2d3deb04f327a6746663",
+            "liblzma.a" to "284a1bb452da5621fcca422128f45d1ad12e7a3455a92155145f465a8959debb",
+            "libcrypto.a" to "2b34eb2d7b4eb80b2999b79a3c732537828335f91015797ab15c45387f3748f2",
+            "libssl.a" to "1a7936975b333013bed051121327cffb68a1624c2b8df052caa2fe96177b9198",
+            "libevent.a" to "b3f29311cec007d570de011a203fc13bc0a61e7bdeebed6053bc22cf19efe6c4",
             "libtor.a" to iosArm64LibTor,
-            "libz.a" to "983d04947fb966eedf3e3ee519ef516a8ad0635f59fee7aea320d56f34a6f4f7",
         )
     }
     private val iosArm64Headers: List<Pair<String, String>> by lazy {
@@ -62,14 +60,18 @@ open class NoExecTorResourceValidationExtension private constructor(
             "tor_api.h" to headerTorApi,
         )
     }
+
+    protected open val iosSimulatorArm64LibTor: String = "86bab132334005ab3f77dd7f1764929de0cc646ef28f737234bf10380f3b8cfd"
+    protected open val iosSimulatorArm64Orconfig: String = "b9173bc967240e9755a3984e1774a4d7e691f3b5221c24029859959e9086cd3b"
+
     private val iosSimulatorArm64Libs: List<Pair<String, String>> by lazy {
         listOf(
-            "libcrypto.a" to "64e44ac7566ecdd01094fadc7452c6f17c018451beb70e34c3637ce5b75241d5",
-            "libevent.a" to "3ba9dcce7192c48cc3f6773344eaaa30aa28106ad28be81a353f62aa8358b393",
-            "liblzma.a" to "a71cc01fe1fa138de0996a5c0362d14974518b675d09e701736d679d1cc43d1c",
-            "libssl.a" to "87c13859039cf8606ac073971baa346709b1bd28bbf369619dd2d32ea55ca519",
+            "libz.a" to "f211bf9b7a3a48e9b2a8abd92d6c825973dc39b6f387120b3ec3159ebcd944da",
+            "liblzma.a" to "65b355d6e116367c3c2d9ce77764c9c548aba69c4fa5b9de92c087596116d988",
+            "libcrypto.a" to "51f11be25f93a663cb11b73121136e8fc70ccafad30660f1ce458679ab0dee59",
+            "libssl.a" to "559407a01914d6a3657230e4a39d4d998dc1ccad416ef54e58a3b18ad78afb4a",
+            "libevent.a" to "056acfc70a2a07b0863a7904a56cb97b7fddefe91c06bddb56f817365fa21253",
             "libtor.a" to iosSimulatorArm64LibTor,
-            "libz.a" to "4204937ae806276d3647ce510a64aa7737d5ead58b198bdf54f52d137f014f01",
         )
     }
     private val iosSimulatorArm64Headers: List<Pair<String, String>> by lazy {
@@ -78,14 +80,18 @@ open class NoExecTorResourceValidationExtension private constructor(
             "tor_api.h" to headerTorApi,
         )
     }
+
+    protected open val iosX64LibTor: String = "644f43c200e59e7fd071ee7fc94324da452f15ed295fb308738fce4e6672b151"
+    protected open val iosX64Orconfig: String = "a66c8eda726b24668e26e3f356e0c098bcd8cbc75ef742e49ef48fff1587cb68"
+
     private val iosX64Libs: List<Pair<String, String>> by lazy {
         listOf(
-            "libcrypto.a" to "6306b3586d87e3382e0760fa2493b4d1cb41739c3d99d83a9e6cc2e1017fca91",
-            "libevent.a" to "e5b69a15a9d2c1ca0d048b81eda3bf03a506a8c3c85844e865554e8f97b61f67",
-            "liblzma.a" to "814630d0933c8b852d24da9bf866d5ab8622a8f71f1875a1edfb2062eb8f55c3",
-            "libssl.a" to "a7d27001f86df3b035f46502386575514b9c923ce4512bfb3d39d91d52fa1287",
+            "libz.a" to "7a3b233b60ea0c976273fe66f0c32f4281aa5968c396bc853a0af21ed4c9650c",
+            "liblzma.a" to "96cf01a54696ee52bc1a80122ccbe22e3b286e700506114ebee301bcd05467a9",
+            "libcrypto.a" to "a9ec21506a7fdfda43156a65596c29c2e56bf3acb505ece068f19c1ad8b1b4e6",
+            "libssl.a" to "b3d67167c15ed9b2750634f8cc55db8f7a2df2b2668f91bfd55771080f9222e4",
+            "libevent.a" to "e8a3c697b96b579720dbeb10d132c431557e89f59e9c2828d416b6bf489e4cc7",
             "libtor.a" to iosX64LibTor,
-            "libz.a" to "71906c6823bd67d1196d50684bd0b9873674277651b868a8660581af6cc06298",
         )
     }
     private val iosX64Headers: List<Pair<String, String>> by lazy {
@@ -99,28 +105,38 @@ open class NoExecTorResourceValidationExtension private constructor(
         project: Project,
     ): NoExecTorResourceValidationExtension(project, isGpl = true) {
 
-        override val iosArm64LibTor: String = "f8f29eac977b1fb6e56b7b9e19a3dfb508e9c305c7f5c9e3151be7911782543f"
-        override val iosArm64Orconfig: String = "bca48d3339b9740583d1a7b8d650ca715d96e6f267d13a9293c3f63233289391"
+        override val jvmMingwX86: String = "dafb969379c2ecd059f5e30c96a8145e4b424e6e4598d9684a95ad13866cfb77"
+        override val jvmMingwX86_64: String = "290123ad5dfe57d9dbf0a0de861c0f2f480a426f68110b53539aac42b242d5f1"
 
-        override val iosSimulatorArm64LibTor: String = "30fe4104aa84d40a44f42b269395c073ff5af77086ab0c948ea7aa179f0ae14a"
-        override val iosSimulatorArm64Orconfig: String = "4e478c6090d7ba94d0616ab8700cc3c973b6dee62e590126161ed056ef90e03b"
+        override val iosArm64LibTor: String = "1e4c4b41dbeeae08d77655dbb1a267f27c6e3297631b1a9ce7199728db8fb4c0"
+        override val iosArm64Orconfig: String = "b968c615cad5b2ae02db58c4e722941d18b67e56d6ffab2afe3379a0ac0359f1"
 
-        override val iosX64LibTor: String = "ad72a01f295ab4bc1f26b419a718d28f946602a5cadff5ed4046553e4da6936e"
-        override val iosX64Orconfig: String = "45dda0dfd5a455321192f73245aff2c0d113b4785ab2a43c284cd99483953c8d"
+        override val iosSimulatorArm64LibTor: String = "7b9a300ac0b1db365981bc59afc253f358a6aa105107c375534dbdc73d64eff8"
+        override val iosSimulatorArm64Orconfig: String = "914828f9ae8a61f103575874d6e7bced84f0f02c8b8da089e8bf088ee05a5f0d"
+
+        override val iosX64LibTor: String = "429c23710ed3561270e49cae5fb79b96210adc7dd38acfbedfe845544667124a"
+        override val iosX64Orconfig: String = "576fcf9eab9a745d3bfc3f0e7b4e46fa310d9c7144d160f1f93f3d04810a2003"
 
         internal companion object {
             internal const val NAME = "noExecTorGPLResourceValidation"
         }
     }
 
+    fun jvmNativeLibResourcesSrcDir(): File = jvmNativeLibsResourcesSrcDirProtected()
     fun configureNativeInterop(kmp: KotlinMultiplatformExtension) { configureLibNativeInteropProtected(kmp) }
 
     final override val hashes: Set<ValidationHash> by lazy { setOf(
-        ValidationHash.LibNativeInterop(
-            defFileName = "tor",
-            targetName = "iosArm64",
-            staticLibs = iosArm64Libs,
-            headers = iosArm64Headers,
+        ValidationHash.LibJvm(
+            osName = "mingw",
+            arch = "x86",
+            libName = "torjni.dll.gz",
+            hash = jvmMingwX86,
+        ),
+        ValidationHash.LibJvm(
+            osName = "mingw",
+            arch = "x86_64",
+            libName = "torjni.dll.gz",
+            hash = jvmMingwX86_64,
         ),
         ValidationHash.LibNativeInterop(
             defFileName = "tor",
@@ -133,6 +149,12 @@ open class NoExecTorResourceValidationExtension private constructor(
             targetName = "iosX64",
             staticLibs = iosX64Libs,
             headers = iosX64Headers,
+        ),
+        ValidationHash.LibNativeInterop(
+            defFileName = "tor",
+            targetName = "iosArm64",
+            staticLibs = iosArm64Libs,
+            headers = iosArm64Headers,
         ),
     ) }
 

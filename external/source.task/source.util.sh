@@ -40,7 +40,7 @@ function __util:git:apply_patches {
       continue
     fi
 
-    echo "Applying git patch to $1 >> $patch_file"
+    echo "    Applying git patch to $1 >> $patch_file"
     ${GIT} apply "$patch_file"
     sleep 0.25
   done

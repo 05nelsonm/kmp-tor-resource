@@ -16,7 +16,7 @@
 # Sourced by external/source.task/source.build.sh & external/source.task/source.package.sh
 
 # See https://github.com/05nelsonm/build-env
-readonly TAG_DOCKER_BUILD_ENV="0.1.3"
+readonly TAG_DOCKER_BUILD_ENV="0.2.0"
 
 readonly DOCKER="$(which docker)"
 readonly U_ID="$(id -u)"

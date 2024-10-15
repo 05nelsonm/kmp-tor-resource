@@ -30,7 +30,7 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
             return
         }
 
-        val loader = ResourceLoaderTorExec.getOrCreate(testDir)
+        val loader = ResourceLoaderTorExec.getOrCreate(TEST_RESOURCE_DIR)
         assertIs<ResourceLoader.Tor.Exec>(loader)
 
         val geoipFiles = loader.extract().let { files ->
@@ -47,7 +47,7 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
         val b = loader.process(TestRuntimeBinder) { tor, configureEnv ->
             ProcessBuilder().apply {
                 val env = environment()
-                env["HOME"] = testDir.path
+                env["HOME"] = TEST_RESOURCE_DIR.path
                 env.configureEnv()
                 redirectErrorStream(true)
 
@@ -56,8 +56,8 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
                     add("-f"); add("-")
 
                     listOf(
-                        "--DataDirectory" to testDir.resolve("data"),
-                        "--CacheDirectory" to testDir.resolve("cache"),
+                        "--DataDirectory" to TEST_RESOURCE_DIR.resolve("data"),
+                        "--CacheDirectory" to TEST_RESOURCE_DIR.resolve("cache"),
                     ).forEach { (option, argument) ->
                         argument.deleteRecursively()
                         argument.mkdirs()
@@ -120,5 +120,11 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
 
         val outString = out.toString()
         assertTrue(outString.contains(expected), outString)
+
+        // TODO: Assert no warnings. Issue #49
+        //  Should show up if present on Android b/c redirecting stderr to stdout.
+        if (outString.contains("WARNING: linker:")) {
+            print(outString)
+        }
     }
 }
