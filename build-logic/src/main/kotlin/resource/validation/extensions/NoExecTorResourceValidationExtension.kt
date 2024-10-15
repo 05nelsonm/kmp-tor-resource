@@ -36,8 +36,8 @@ open class NoExecTorResourceValidationExtension private constructor(
     @Suppress("unused")
     internal constructor(project: Project): this(project, isGpl = false)
 
-    protected open val jvmMingwX86: String = "5ae09bc475bd01239cfa4240e1b4766b583e5e91b800fbf0609ca62bc6deaf34"
-    protected open val jvmMingwX86_64: String = "ae6f3e29d2809c6d36bcda9931404beea8b3e8df69c0c58ee08620789b729340"
+    protected open val jvmMingwX86: String = "b99063b42776e580e513342cbc6e54df6d3c23829acf6f0bdf2d904536a2df45"
+    protected open val jvmMingwX86_64: String = "4c67bddfd155e4859ec3ab2decc804f6b1b1f78d7fb45b5950c3ea8040b47943"
 
     private val headerTorApi: String = "c346e767d3e6dbad44d1802579e7e4a8cf1b1ff8595152ebd4679b05d2de6df3"
 
@@ -105,8 +105,8 @@ open class NoExecTorResourceValidationExtension private constructor(
         project: Project,
     ): NoExecTorResourceValidationExtension(project, isGpl = true) {
 
-        override val jvmMingwX86: String = "dafb969379c2ecd059f5e30c96a8145e4b424e6e4598d9684a95ad13866cfb77"
-        override val jvmMingwX86_64: String = "290123ad5dfe57d9dbf0a0de861c0f2f480a426f68110b53539aac42b242d5f1"
+        override val jvmMingwX86: String = "7f87464060edc0a58f918939a51d200479b5482283728f7430c8cda9e79d6ddd"
+        override val jvmMingwX86_64: String = "65d22aaff276a3d321f2b7034314bf46b94cd46efb951d6bf11abbd7fca42256"
 
         override val iosArm64LibTor: String = "1e4c4b41dbeeae08d77655dbb1a267f27c6e3297631b1a9ce7199728db8fb4c0"
         override val iosArm64Orconfig: String = "b968c615cad5b2ae02db58c4e722941d18b67e56d6ffab2afe3379a0ac0359f1"
