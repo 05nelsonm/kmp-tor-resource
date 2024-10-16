@@ -19,6 +19,7 @@ import io.matthewnelson.kmp.file.readBytes
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.LOADER
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.TEST_DIR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.WORK_DIR
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.AbstractTorApi
 import kotlin.test.*
 
 /**
@@ -60,6 +61,7 @@ abstract class ResourceLoaderNoExecBaseTest(private val runTorMain: Boolean = tr
         }
 
         val result = LOADER.withApi(TestRuntimeBinder) {
+            (this as AbstractTorApi).debug = true
             torRunMain(listOf("--version"))
         }
 
@@ -73,9 +75,10 @@ abstract class ResourceLoaderNoExecBaseTest(private val runTorMain: Boolean = tr
             return
         }
 
-        repeat(1000) { index ->
-            println("RUN[$index]")
+        repeat(1000) {
             val result = LOADER.withApi(TestRuntimeBinder) {
+                (this as AbstractTorApi).debug = false
+
                 assertFalse(isRunning)
 
                 val rv = torRunMain(

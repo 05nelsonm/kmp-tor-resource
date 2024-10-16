@@ -22,7 +22,7 @@
 /*
  * Class:     io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi
  * Method:    kmpTorRunMain
- * Signature: (String;[Ljava/lang/String;)I
+ * Signature: (I;String;[Ljava/lang/String;)I
  *
  * Returns the following integer value depending on case:
  *  -10    : dlopen failed
@@ -37,6 +37,6 @@
  */
 JNIEXPORT jint JNICALL
 Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMain
-(JNIEnv *, jobject, jstring, jobjectArray);
+(JNIEnv *, jobject, jint, jstring, jobjectArray);
 
 #endif /* !defined(TOR_API_JNI_H) */

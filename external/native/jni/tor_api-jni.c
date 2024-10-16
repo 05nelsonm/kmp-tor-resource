@@ -19,6 +19,7 @@
 #include <jni.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 /*
  * Class:     io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi
@@ -38,7 +39,7 @@
  */
 JNIEXPORT jint JNICALL
 Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMain
-(JNIEnv *env, jobject thiz, jstring libtor, jobjectArray args)
+(JNIEnv *env, jobject thiz, jint debug, jstring libtor, jobjectArray args)
 {
   void *handle = NULL;
   void* (*fn_cfg_new)(void) = NULL;
@@ -53,31 +54,27 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMa
     return -10;
   }
 
-  fn_cfg_new = lib_load_symbol(handle, "tor_main_configuration_new");
+  fn_cfg_new = lib_load_symbol(debug, handle, "tor_main_configuration_new");
   if (fn_cfg_new == NULL) {
-    // TODO: fprint(stderr, "%s\n", lib_load_error());
-    lib_load_close(handle);
+    lib_load_close(debug, handle);
     return -11;
   }
 
-  fn_cfg_set_command_line = lib_load_symbol(handle, "tor_main_configuration_set_command_line");
+  fn_cfg_set_command_line = lib_load_symbol(debug, handle, "tor_main_configuration_set_command_line");
   if (fn_cfg_set_command_line == NULL) {
-    // TODO: fprint(stderr, "%s\n", lib_load_error());
-    lib_load_close(handle);
+    lib_load_close(debug, handle);
     return -11;
   }
 
-  *(void **) (&fn_cfg_free) = lib_load_symbol(handle, "tor_main_configuration_free");
+  *(void **) (&fn_cfg_free) = lib_load_symbol(debug, handle, "tor_main_configuration_free");
   if (fn_cfg_free == NULL) {
-    // TODO: fprint(stderr, "%s\n", lib_load_error());
-    lib_load_close(handle);
+    lib_load_close(debug, handle);
     return -11;
   }
 
-  *(void **) (&fn_run_main) = lib_load_symbol(handle, "tor_run_main");
+  *(void **) (&fn_run_main) = lib_load_symbol(debug, handle, "tor_run_main");
   if (fn_run_main == NULL) {
-    // TODO: fprint(stderr, "%s\n", lib_load_error());
-    lib_load_close(handle);
+    lib_load_close(debug, handle);
     return -11;
   }
 
@@ -88,21 +85,21 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMa
 
   cfg = fn_cfg_new();
   if (cfg == NULL) {
-    lib_load_close(handle);
+    lib_load_close(debug, handle);
     return -12;
   }
 
   argc = (*env)->GetArrayLength(env, args);
   if (argc == -1) {
     fn_cfg_free(cfg);
-    lib_load_close(handle);
+    lib_load_close(debug, handle);
     return -13;
   }
 
   argv = (char **) malloc(argc * sizeof(char *));
   if (argv == NULL) {
     fn_cfg_set_command_line(cfg, argc, argv);
-    lib_load_close(handle);
+    lib_load_close(debug, handle);
     return -14;
   }
 
@@ -141,11 +138,14 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMa
     }
   }
   free(argv);
-  lib_load_close(handle);
 
   if (rv == -15 || rv == -16) {
+    lib_load_close(debug, handle);
     return rv;
   }
+
+  usleep((useconds_t) 10000);
+  lib_load_close(debug, handle);
 
   if (rv < 0 || rv > 255) {
     return 1;

@@ -16,6 +16,7 @@
 #include "lib_load.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <unistd.h>
 
 #ifdef _WIN32
@@ -27,6 +28,7 @@
 void *
 lib_load_open(const char *lib)
 {
+  void *ptr = NULL;
 #ifdef _WIN32
   wchar_t *w_lib = NULL;
 
@@ -50,24 +52,37 @@ lib_load_open(const char *lib)
     free(w_lib);
   }
 
-  return m;
+  ptr = m;
 #else
-  return dlopen(lib, RTLD_LAZY);
+  ptr = dlopen(lib, RTLD_LAZY);
 #endif
+  if (ptr == NULL) {
+    fprintf(stderr, "Failed to open lib %s: %s\n", lib, lib_load_error());
+  }
+  return ptr;
 }
 
 void *
-lib_load_symbol(void *handle, const char *symbol)
+lib_load_symbol(int debug, void *handle, const char *symbol)
 {
+  void *ptr = NULL;
 #ifdef _WIN32
-  return GetProcAddress((HMODULE) handle, symbol);
+  ptr = GetProcAddress((HMODULE) handle, symbol);
 #else
-  return dlsym(handle, symbol);
+  ptr = dlsym(handle, symbol);
 #endif
+  if (ptr == NULL) {
+    fprintf(stderr, "Failed to resolve symbol for %s: %s\n", symbol, lib_load_error());
+  } else {
+    if (debug == 1) {
+      fprintf(stdout, "Resolved symbol %s\n", symbol);
+    }
+  }
+  return ptr;
 }
 
 int
-lib_load_close(void *handle)
+lib_load_close(int debug, void *handle)
 {
   int result;
 #ifdef _WIN32
@@ -75,7 +90,15 @@ lib_load_close(void *handle)
 #else
   result = dlclose(handle);
 #endif
-  usleep((useconds_t) 5000);
+  if (result != 0) {
+    fprintf(stderr, "Failed to close lib: %s\n", lib_load_error());
+  } else {
+    if (debug == 1) {
+      fprintf(stdout, "Lib closed\n");
+    }
+  }
+
+  usleep((useconds_t) 10000);
   return result;
 }
 

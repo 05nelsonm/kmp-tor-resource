@@ -28,16 +28,16 @@ internal const val ALIAS_LIB_TOR_JNI: String = "libtorjni"
 
 @JvmSynthetic
 @Throws(IllegalStateException::class, IOException::class)
-internal actual fun loadTorApi(): TorApi = KmpTorApi()
+internal actual fun loadTorApi(): AbstractTorApi = KmpTorApi()
 
 @OptIn(InternalKmpTorApi::class)
-private class KmpTorApi: TorApi() {
+private class KmpTorApi: AbstractTorApi() {
 
-    private external fun kmpTorRunMain(libtor: String, args: Array<String>): Int
+    private external fun kmpTorRunMain(debug: Int, libtor: String, args: Array<String>): Int
 
     override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
         val libtor = extract(loadTorJni = false)
-        val result = kmpTorRunMain(libtor, args)
+        val result = kmpTorRunMain(debug = if (debug) 1 else 0, libtor = libtor, args = args)
 
         when (result) {
             -10 -> "JNI: dlopen failed to open libtor"
