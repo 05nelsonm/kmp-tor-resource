@@ -123,14 +123,14 @@ fun KmpConfigurationExtension.configureNoExecTor(
             ),
         )
         sourceSetConnect(
-            newName = "nativeStatic",
+            newName = "appleMobile",
             existingNames = listOf(
                 "ios",
             ),
             dependencyName = "native",
         )
         sourceSetConnect(
-            newName = "nativeDynamic",
+            newName = "nonAppleMobile",
             existingNames = listOf(
                 "linux",
                 "macos",
@@ -140,7 +140,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
         )
         kotlin {
             with(sourceSets) {
-                listOf("jvmAndroid", "nativeDynamic").forEach { name ->
+                listOf("jvmAndroid", "nonAppleMobile").forEach { name ->
                     findByName(name + "Main")?.dependencies {
                         implementation(project(":library:resource-lib-tor$suffix"))
                     }

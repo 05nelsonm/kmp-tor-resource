@@ -18,22 +18,22 @@
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
 import io.matthewnelson.kmp.file.IOException
-import io.matthewnelson.kmp.tor.common.api.TorApi
 import kotlinx.cinterop.*
 
-// nativeStaticMain
-@OptIn(ExperimentalForeignApi::class)
-internal actual sealed class NativeTorApi
+// appleMobileMain
+@OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
+internal actual sealed class LibTor
 @Throws(IllegalStateException::class, IOException::class)
-protected actual constructor(): TorApi() {
+protected actual constructor(): AutoCloseable {
 
-    protected actual fun getProviderVersion(): CPointer<ByteVar>? = tor_api_get_provider_version()
-    protected actual fun configurationNew(): CPointer<*>? = tor_main_configuration_new()
-    protected actual fun configurationFree(cfg: CPointer<*>) { tor_main_configuration_free(cfg.reinterpret()) }
-    protected actual fun configurationSetCmdLine(
+    protected actual open fun getProviderVersion(): CPointer<ByteVar>? = tor_api_get_provider_version()
+    protected actual open fun configurationNew(): CPointer<*>? = tor_main_configuration_new()
+    protected actual open fun configurationFree(cfg: CPointer<*>) { tor_main_configuration_free(cfg.reinterpret()) }
+    protected actual open fun configurationSetCmdLine(
         cfg: CPointer<*>,
         argc: Int,
         argv: CArrayPointer<CPointerVar<ByteVar>>,
     ): Int = tor_main_configuration_set_command_line(cfg.reinterpret(), argc, argv)
-    protected actual fun runMain(cfg: CPointer<*>): Int = tor_run_main(cfg.reinterpret())
+    protected actual open fun runMain(cfg: CPointer<*>): Int = tor_run_main(cfg.reinterpret())
+    actual final override fun close() { /* TODO */ }
 }

@@ -73,19 +73,25 @@ abstract class ResourceLoaderNoExecBaseTest(private val runTorMain: Boolean = tr
             return
         }
 
-        val result = LOADER.withApi(TestRuntimeBinder) {
-            assertFalse(isRunning)
+        repeat(1000) { index ->
+            println("RUN[$index]")
+            val result = LOADER.withApi(TestRuntimeBinder) {
+                assertFalse(isRunning)
 
-            val rv = torRunMain(listOf(
-                "--SocksPort", "-1",
-                "--verify-config",
-            ))
+                val rv = torRunMain(
+                    listOf(
+                        "--SocksPort", "-1",
+                        "--verify-config",
+                        "--quiet"
+                    )
+                )
 
-            assertFalse(isRunning)
+                assertFalse(isRunning)
 
-            rv
+                rv
+            }
+
+            assertEquals(1, result)
         }
-
-        assertEquals(1, result)
     }
 }

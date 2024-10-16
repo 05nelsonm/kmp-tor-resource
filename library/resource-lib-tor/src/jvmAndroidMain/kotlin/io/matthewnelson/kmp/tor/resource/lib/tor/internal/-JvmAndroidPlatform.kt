@@ -68,11 +68,6 @@ internal inline fun Resource.Config.Builder.configureLibTorJniResource(
     alias: String,
     loader: Class<*>,
 ) {
-    when (OSInfo.INSTANCE.osHost) {
-        is OSHost.Windows -> {}
-        else -> return
-    }
-
     configureExecutableResource(alias) { host, arch ->
         resourcePath = host.toTorResourcePath(arch, resourceLib = "noexec")
         resourceClass = loader

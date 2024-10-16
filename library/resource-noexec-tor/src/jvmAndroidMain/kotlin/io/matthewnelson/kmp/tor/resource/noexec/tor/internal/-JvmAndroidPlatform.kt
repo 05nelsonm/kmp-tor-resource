@@ -33,45 +33,52 @@ internal actual fun loadTorApi(): TorApi = KmpTorApi()
 @OptIn(InternalKmpTorApi::class)
 private class KmpTorApi: TorApi() {
 
-    private external fun kmpTorRunMain(args: Array<String>): Int
+    private external fun kmpTorRunMain(libtor: String, args: Array<String>): Int
 
     override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
-        val result = kmpTorRunMain(args)
+        val libtor = extract(loadTorJni = false)
+        val result = kmpTorRunMain(libtor, args)
 
         when (result) {
-            -10 -> "JNI: Failed to acquire new tor_main_configuration_t"
-            -11 -> "JNI: Failed to determine args array size"
-            -12 -> "JNI: Failed to allocate memory for argv array"
-            -13 -> "JNI: Failed to populate argv array with arguments"
-            -14 -> "JNI: Failed to set tor_main_configuration_t arguments"
+            -10 -> "JNI: dlopen failed to open libtor"
+            -11 -> "JNI: dlsym failed to resolve tor_api functions"
+            -12 -> "JNI: Failed to acquire new tor_main_configuration_t"
+            -13 -> "JNI: Failed to determine args array size"
+            -14 -> "JNI: Failed to allocate memory for argv array"
+            -15 -> "JNI: Failed to populate argv array with arguments"
+            -16 -> "JNI: Failed to set tor_main_configuration_t arguments"
             else -> null
         }?.let { throw IllegalStateException(it) }
 
         return result
     }
 
-    init {
+    private fun extract(loadTorJni: Boolean): String {
         val tempDir = TEMP_DIR
 
-        try {
+        return try {
             if (tempDir == null) {
-                // Android Runtime. libtor.so
-                System.loadLibrary("tor")
+                // Android Runtime >> libtorjni.so & libtor.so
+                if (loadTorJni) {
+                    System.loadLibrary("torjni")
+                }
+                "libtor.so"
             } else {
                 val map: Map<String, File> = RESOURCE_CONFIG_LIB_TOR
-                    .extractTo(tempDir, onlyIfDoesNotExist = false)
+                    .extractTo(tempDir, onlyIfDoesNotExist = true)
 
-                System.load(map.getValue(ALIAS_LIB_TOR).path)
-
-                // Windows compilations package separate torjni.dll lib that
-                // is linked against tor.dll. Must load after if it is present.
-                map[ALIAS_LIB_TOR_JNI]?.let { jniLib -> System.load(jniLib.path) }
+                if (loadTorJni) {
+                    System.load(map.getValue(ALIAS_LIB_TOR_JNI).path)
+                }
+                map.getValue(ALIAS_LIB_TOR).path
             }
         } catch (t: Throwable) {
             if (t is IOException) throw t
-            throw IllegalStateException("Failed to dynamically load tor library", t)
+            throw IllegalStateException("Failed to dynamically load torjni library", t)
         }
     }
+
+    init { extract(loadTorJni = true) }
 
     private companion object {
 

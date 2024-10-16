@@ -20,51 +20,84 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 import io.matthewnelson.kmp.file.IOException
 import io.matthewnelson.kmp.tor.common.api.TorApi
 import kotlinx.cinterop.*
+import platform.posix.usleep
+import kotlin.time.Duration.Companion.milliseconds
 
 @Throws(IllegalStateException::class, IOException::class)
 internal actual fun loadTorApi(): TorApi = KmpTorApi()
 
-@OptIn(ExperimentalForeignApi::class)
-internal expect sealed class NativeTorApi
-@Throws(IllegalStateException::class, IOException::class)
-protected constructor(): TorApi {
+private class KmpTorApi: TorApi() {
 
-    protected fun getProviderVersion(): CPointer<ByteVar>?
-    protected fun configurationNew(): CPointer<*>?
-    protected fun configurationFree(cfg: CPointer<*>)
-    protected fun configurationSetCmdLine(
+    //    @Throws(IllegalStateException::class, IOException::class)
+    @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
+    override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
+        val rv = try {
+            RealLibTor.open().use { libTor ->
+                val cfg = libTor.configurationNew()
+                    ?: throw IllegalStateException("Failed to acquire new tor_main_configuration_t")
+
+                memScoped {
+                    try {
+                        val argv = args.toCStringArray(autofreeScope = this)
+                        check(libTor.configurationSetCmdLine(cfg, args.size, argv) == 0) {
+                            "Failed to set tor_main_configuration_t arguments"
+                        }
+
+                        libTor.runMain(cfg)
+                    } finally {
+                        libTor.configurationFree(cfg)
+                    }
+                }
+            }
+        } finally {
+            usleep(5.milliseconds.inWholeMicroseconds.toUInt())
+        }
+
+        return if (rv < 0 || rv > 255) 1 else rv
+    }
+}
+
+@OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
+internal expect sealed class LibTor
+@Throws(IllegalStateException::class, IOException::class)
+protected constructor(): AutoCloseable {
+
+    protected open fun getProviderVersion(): CPointer<ByteVar>?
+    protected open fun configurationNew(): CPointer<*>?
+    protected open fun configurationFree(cfg: CPointer<*>)
+    protected open fun configurationSetCmdLine(
         cfg: CPointer<*>,
         argc: Int,
         argv: CArrayPointer<CPointerVar<ByteVar>>,
     ): Int
-    protected fun runMain(cfg: CPointer<*>): Int
+    protected open fun runMain(cfg: CPointer<*>): Int
+
+    final override fun close()
 }
 
-@OptIn(ExperimentalForeignApi::class)
-private class KmpTorApi
+@Suppress("RedundantVisibilityModifier")
+@OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
+private class RealLibTor
 @Throws(IllegalStateException::class, IOException::class)
-constructor(): NativeTorApi() {
+private constructor(): LibTor() {
 
-    override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
-        val cfg = configurationNew()
-            ?: throw IllegalStateException("Failed to acquire new tor_main_configuration_t")
+    private val delegate = Any()
 
-        val rv = memScoped {
-            try {
-                check (configurationSetCmdLine(cfg, args.size, args.toCStringArray(this)) == 0) {
-                    "Failed to set tor_main_configuration_t arguments"
-                }
+    public override fun getProviderVersion(): CPointer<ByteVar>? = super.getProviderVersion()
+    public override fun configurationNew(): CPointer<*>? = super.configurationNew()
+    public override fun configurationFree(cfg: CPointer<*>) { super.configurationFree(cfg) }
+    public override fun configurationSetCmdLine(
+        cfg: CPointer<*>,
+        argc: Int,
+        argv: CArrayPointer<CPointerVar<ByteVar>>,
+    ): Int = super.configurationSetCmdLine(cfg, argc, argv)
+    public override fun runMain(cfg: CPointer<*>): Int = super.runMain(cfg)
 
-                runMain(cfg)
-            } finally {
-                configurationFree(cfg)
-            }
-        }
+    public override fun equals(other: Any?): Boolean = delegate == other
+    public override fun hashCode(): Int = delegate.hashCode()
+    public override fun toString(): String = "RealLibTor@${delegate.hashCode()}"
 
-        return if (rv < 0 || rv > 255) {
-            1
-        } else {
-            rv
-        }
+    internal companion object {
+        internal fun open(): RealLibTor = RealLibTor()
     }
 }

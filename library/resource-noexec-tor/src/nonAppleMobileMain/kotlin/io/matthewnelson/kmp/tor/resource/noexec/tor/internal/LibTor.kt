@@ -28,37 +28,47 @@ import kotlinx.cinterop.*
 import kotlin.random.Random
 import kotlin.system.getTimeNanos
 
-// nativeDynamicMain
-@OptIn(ExperimentalForeignApi::class, InternalKmpTorApi::class)
-internal actual sealed class NativeTorApi
+// nonAppleMobileMain
+@OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class, InternalKmpTorApi::class)
+internal actual sealed class LibTor
 @Throws(IllegalStateException::class, IOException::class)
-protected actual constructor(): TorApi() {
+protected actual constructor(): AutoCloseable {
 
-    protected actual fun getProviderVersion(): CPointer<ByteVar>? = _ptrGetProviderVersion.invoke()
-    protected actual fun configurationNew(): CPointer<*>? = _ptrConfigurationNew.invoke()
-    protected actual fun configurationFree(cfg: CPointer<*>) { _ptrConfigurationFree.invoke(cfg) }
-    protected actual fun configurationSetCmdLine(
-        cfg: CPointer<*>,
-        argc: Int,
-        argv: CArrayPointer<CPointerVar<ByteVar>>,
-    ): Int = _ptrConfigurationSetCmdLine.invoke(cfg, argc, argv)
-    protected actual fun runMain(cfg: CPointer<*>): Int = _ptrRunMain.invoke(cfg)
-
+    private val handle: DlOpenHandle
     private val _ptrGetProviderVersion: CPointer<CFunction<() -> CPointer<ByteVar>?>>
     private val _ptrConfigurationNew: CPointer<CFunction<() -> CPointer<*>?>>
     private val _ptrConfigurationFree: CPointer<CFunction<(CPointer<*>?) -> Unit>>
     private val _ptrConfigurationSetCmdLine: CPointer<CFunction<(CPointer<*>?, Int, CArrayPointer<CPointerVar<ByteVar>>?) -> Int>>
     private val _ptrRunMain: CPointer<CFunction<(CPointer<*>?) -> Int>>
 
+    protected actual open fun getProviderVersion(): CPointer<ByteVar>? = _ptrGetProviderVersion.invoke()
+    protected actual open fun configurationNew(): CPointer<*>? = _ptrConfigurationNew.invoke()
+    protected actual open fun configurationFree(cfg: CPointer<*>) { _ptrConfigurationFree.invoke(cfg) }
+    protected actual open fun configurationSetCmdLine(
+        cfg: CPointer<*>,
+        argc: Int,
+        argv: CArrayPointer<CPointerVar<ByteVar>>,
+    ): Int = _ptrConfigurationSetCmdLine.invoke(cfg, argc, argv)
+    protected actual open fun runMain(cfg: CPointer<*>): Int = _ptrRunMain.invoke(cfg)
+
+    actual final override fun close() {
+        try {
+            handle.dlClose()
+        } catch (e: IllegalStateException) {
+            e.message?.let { println(it) }
+        }
+    }
+
     init {
         var handle: DlOpenHandle? = null
 
         try {
             val libTor = RESOURCE_CONFIG_LIB_TOR
-                .extractTo(TEMP_DIR, onlyIfDoesNotExist = false)
+                .extractTo(TEMP_DIR, onlyIfDoesNotExist = true)
                 .getValue(ALIAS_LIB_TOR)
 
             handle = libTor.dlOpen()
+            this.handle = handle
             _ptrGetProviderVersion = handle.fDlSym("tor_api_get_provider_version")
             _ptrConfigurationNew = handle.fDlSym("tor_main_configuration_new")
             _ptrConfigurationFree = handle.fDlSym("tor_main_configuration_free")
@@ -86,10 +96,10 @@ protected actual constructor(): TorApi() {
                 SysTempDir.resolve("kmp-tor_${bytes.toHexString(HexFormat.UpperCase)}")
             }
 
-            val libTor = tempDir.resolve(RESOURCE_CONFIG_LIB_TOR[ALIAS_LIB_TOR].platform.fsFileName)
-
             tempDir.deleteOnExit()
-            libTor.deleteOnExit()
+            RESOURCE_CONFIG_LIB_TOR.resources.forEach { resource ->
+                tempDir.resolve(resource.platform.fsFileName).deleteOnExit()
+            }
 
             tempDir
         }
