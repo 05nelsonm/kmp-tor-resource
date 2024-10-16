@@ -54,7 +54,7 @@ lib_load_open(const char *lib)
 
   ptr = m;
 #else
-  ptr = dlopen(lib, RTLD_LAZY);
+  ptr = dlopen(lib, RTLD_LAZY | RTLD_LOCAL);
 #endif
   if (ptr == NULL) {
     fprintf(stderr, "Failed to open lib %s: %s\n", lib, lib_load_error());
