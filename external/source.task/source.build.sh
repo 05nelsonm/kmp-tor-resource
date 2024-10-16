@@ -578,6 +578,9 @@ function __build:configure:target:finalize:output:shared {
   local exec_ldflags="-Wl,-rpath,'\$ORIGIN'"
 
   local jni_java_version="java8"
+  local jni_name="libtorjni.so"
+  local jni_cflags="-shared -Wl,--version-script,tor_api-jni.map"
+  local jni_ldadd="-ldl"
 
   local shared_name="libtor.so"
   local shared_cflags="-shared -Wl,--version-script,tor_api.map"
@@ -589,7 +592,7 @@ function __build:configure:target:finalize:output:shared {
     "android")
       exec_name="libtorexec.so"
       jni_java_version="java6"
-      shared_cflags+=' -I$CROSS_ROOT/sysroot/usr/include'
+      jni_cflags+=" -Wl,-soname,$jni_name"
       shared_cflags+=" -Wl,-soname,$shared_name"
       ;;
     "linux")
@@ -597,6 +600,11 @@ function __build:configure:target:finalize:output:shared {
       ;;
     "macos")
       exec_ldflags=""
+      jni_name="libtorjni.dylib"
+      jni_cflags="-dynamiclib"
+      jni_cflags+=" -install_name @executable_path/$jni_name"
+      jni_cflags+=" -exported_symbols_list tor_api-jni.exp"
+      jni_ldadd=""
       shared_name="libtor.dylib"
       shared_cflags="-dynamiclib"
       shared_cflags+=" -install_name @executable_path/$shared_name"
@@ -610,6 +618,8 @@ function __build:configure:target:finalize:output:shared {
       # This is the same behavior as the tor.exe output by
       # tor-browser-build.
       exec_ldflags+=" -Wl,--subsystem,console"
+      jni_name="torjni.dll"
+      jni_ldadd=""
       shared_name="tor.dll"
       shared_ldadd="-lws2_32 -lcrypt32 -lshlwapi -liphlpapi"
       ;;
@@ -622,6 +632,8 @@ function __build:configure:target:finalize:output:shared {
   esac
 
   __util:require:var_set "$exec_name" "exec_name"
+  __util:require:var_set "$jni_java_version" "jni_java_version"
+  __util:require:var_set "$jni_name" "jni_name"
   __util:require:var_set "$shared_name" "shared_name"
   __util:require:var_set "$shared_cflags" "shared_cflags"
   __util:require:var_set "$strip_flags" "strip_flags"
@@ -637,29 +649,22 @@ function __build:configure:target:finalize:output:shared {
   __build:SCRIPT ''
   __build:SCRIPT '  cp -a "$DIR_EXTERNAL/tor/src/app/main/tor_main.c" "$DIR_TMP/shared-$1"'
   __build:SCRIPT '  cp -a "$DIR_SCRIPT/$1/include/orconfig.h" "$DIR_TMP/shared-$1"'
+  __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/jni/lib_load.c" "$DIR_TMP/shared-$1"'
+  __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/jni/lib_load.h" "$DIR_TMP/shared-$1"'
+  __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/jni/tor_api-jni.c" "$DIR_TMP/shared-$1"'
+  __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/jni/tor_api-jni.h" "$DIR_TMP/shared-$1"'
 
   if [ "$os_name" = "macos" ]; then
     __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/exports/tor_api.exp" "$DIR_TMP/shared-$1"'
+    __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/exports/tor_api-jni.exp" "$DIR_TMP/shared-$1"'
   else
     __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/exports/tor_api.map" "$DIR_TMP/shared-$1"'
+    __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/exports/tor_api-jni.map" "$DIR_TMP/shared-$1"'
   fi
 
-  __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/jni/tor_api-jni.c" "$DIR_TMP/shared-$1"'
-  __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/jni/tor_api-jni.h" "$DIR_TMP/shared-$1"'
   __build:SCRIPT ''
-  __build:SCRIPT "  \$CC -I\${JNI_H}/$jni_java_version/include -I\$DIR_SCRIPT/\$1/include \$CFLAGS \\"
-  __build:SCRIPT '    -c tor_api-jni.c'
-  __build:SCRIPT ''
-
   __build:SCRIPT "  \$CC \$CFLAGS $shared_cflags \\"
   __build:SCRIPT "    -o $shared_name \\"
-
-  # Cannot include in windows tor.dll because tor_api.h overrides
-  # tor_main and linking tor.exe against it will fail. Need to
-  # compile and load separately.
-  if [ "$os_name" != "mingw" ]; then
-    __build:SCRIPT '    tor_api-jni.o \'
-  fi
 
   if [ "$os_name" = "macos" ]; then
     __build:SCRIPT '    $LDFLAGS -Wl,-force_load \'
@@ -686,26 +691,21 @@ function __build:configure:target:finalize:output:shared {
   __build:SCRIPT "    -o $exec_name $exec_ldflags \\"
   __build:SCRIPT "    $shared_name"
   __build:SCRIPT ''
-
-  if [ "$os_name" = "mingw" ]; then
-    __build:SCRIPT "  \$CC $shared_cflags \$CFLAGS tor_api-jni.o \\"
-    __build:SCRIPT '    -o torjni.dll \'
-    __build:SCRIPT '    $LDFLAGS \'
-    __build:SCRIPT "    $shared_name"
-    __build:SCRIPT ''
-    __build:SCRIPT '  cp -a torjni.dll "$DIR_SCRIPT/shared-$1/bin"'
-  fi
-
+  __build:SCRIPT '  $CC $CFLAGS -c lib_load.c'
+  __build:SCRIPT "  \$CC -I\${JNI_H}/$jni_java_version/include \$CFLAGS -c tor_api-jni.c"
+  __build:SCRIPT ''
+  __build:SCRIPT "  \$CC $jni_cflags \$CFLAGS tor_api-jni.o lib_load.o \\"
+  __build:SCRIPT "    -o $jni_name \\"
+  __build:SCRIPT "    \$LDFLAGS $jni_ldadd"
+  __build:SCRIPT ''
   __build:SCRIPT "  cp -a $shared_name \"\$DIR_SCRIPT/shared-\$1/bin\""
   __build:SCRIPT "  cp -a $exec_name \"\$DIR_SCRIPT/shared-\$1/bin\""
+  __build:SCRIPT "  cp -a $jni_name \"\$DIR_SCRIPT/shared-\$1/bin\""
   __build:SCRIPT '}'
 
-  local needs_execution_items="\"bin/$exec_name\""
-  needs_execution_items+=" \"bin/$shared_name\""
-
-  if [ "$os_name" = "mingw" ]; then
-    needs_execution_items+=' "bin/torjni.dll"'
-  fi
+  local needs_execution_items="\"bin/$shared_name\""
+  needs_execution_items+=" \"bin/$exec_name\""
+  needs_execution_items+=" \"bin/$jni_name\""
 
   __build:SCRIPT "
 if needs_execution \"\$DIR_SCRIPT\" \"shared-tor\" $needs_execution_items; then
@@ -728,18 +728,12 @@ fi
   __build:SCRIPT ''
   __build:SCRIPT "  cp -a \"\$_bin/$shared_name\" \"\$_out\""
   __build:SCRIPT "  cp -a \"\$_bin/$exec_name\" \"\$_out\""
+  __build:SCRIPT "  cp -a \"\$_bin/$jni_name\" \"\$_out\""
   __build:SCRIPT "  cp -aR \"stage/$DIR_OUT_SUFFIX/\$1/include\" \"\$_out\""
-
-  if [ "$os_name" = "mingw" ]; then
-    __build:SCRIPT '  cp -a "$_bin/torjni.dll" "$_out"'
-    __build:SCRIPT ''
-    __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/torjni.dll\" 2>/dev/null"
-  else
-    __build:SCRIPT ''
-  fi
-
+  __build:SCRIPT ''
   __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$shared_name\" 2>/dev/null"
   __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$exec_name\" 2>/dev/null"
+  __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$jni_name\" 2>/dev/null"
   __build:SCRIPT ''
 
   if [ "$os_name" = "android" ]; then
@@ -748,6 +742,7 @@ fi
     __build:SCRIPT '  mkdir -p "$_out_linux"'
     __build:SCRIPT "  cp -a \"\$_out/$shared_name\" \"\$_out_linux\""
     __build:SCRIPT "  cp -a \"\$_out/$exec_name\" \"\$_out_linux/tor\""
+    __build:SCRIPT "  cp -a \"\$_out/$jni_name\" \"\$_out_linux\""
     __build:SCRIPT '  cp -aR "$_out/include" "$_out_linux"'
     __build:SCRIPT '  unset _out_linux'
     __build:SCRIPT '  sleep 1'
@@ -759,11 +754,8 @@ fi
   __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/$shared_name\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"$shared_name\")\""
   __build:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/$exec_name\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"$exec_name\")\""
   __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/$exec_name\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"$exec_name\")\""
-
-  if [ "$os_name" = "mingw" ]; then
-    __build:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/torjni.dll\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"torjni.dll\")\""
-    __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/torjni.dll\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"torjni.dll\")\""
-  fi
+  __build:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/$jni_name\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"$jni_name\")\""
+  __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/$jni_name\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"$jni_name\")\""
 
   __build:SCRIPT ''
   __build:SCRIPT '  unset _bin'
@@ -771,11 +763,7 @@ fi
   __build:SCRIPT '}'
 
   needs_execution_items="\"$shared_name\""
-
-  if [ "$os_name" = "mingw" ]; then
-    needs_execution_items+=' "torjni.dll"'
-  fi
-
+  needs_execution_items+=" \"$jni_name\""
   needs_execution_items+=' "include/orconfig.h"'
   needs_execution_items+=' "include/tor_api.h"'
 
