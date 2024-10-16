@@ -22,8 +22,6 @@ import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.geoip.configureGeoipResources
-import kotlin.concurrent.Volatile
-import kotlin.jvm.JvmField
 import kotlin.jvm.JvmSynthetic
 
 internal const val ALIAS_LIB_TOR: String = "libtor"
@@ -45,11 +43,4 @@ internal val RESOURCE_CONFIG_LIB_TOR: Resource.Config by lazy {
 internal expect inline fun Resource.Config.Builder.configureLibTorResources()
 
 @Throws(IllegalStateException::class, IOException::class)
-internal expect fun loadTorApi(): AbstractTorApi
-
-internal abstract class AbstractTorApi: TorApi() {
-
-    @Volatile
-    @JvmField
-    internal var debug: Boolean = false
-}
+internal expect fun loadTorApi(): TorApi

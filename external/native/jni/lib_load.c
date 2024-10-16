@@ -17,7 +17,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -63,7 +62,7 @@ lib_load_open(const char *lib)
 }
 
 void *
-lib_load_symbol(int debug, void *handle, const char *symbol)
+lib_load_symbol(void *handle, const char *symbol)
 {
   void *ptr = NULL;
 #ifdef _WIN32
@@ -73,17 +72,14 @@ lib_load_symbol(int debug, void *handle, const char *symbol)
 #endif
   if (ptr == NULL) {
     fprintf(stderr, "Failed to resolve symbol for %s: %s\n", symbol, lib_load_error());
-  } else {
-    if (debug == 1) {
-      fprintf(stdout, "Resolved symbol %s\n", symbol);
-    }
   }
   return ptr;
 }
 
 int
-lib_load_close(int debug, void *handle)
+lib_load_close(void *handle)
 {
+  // TODO: Retries
   int result;
 #ifdef _WIN32
   result = FreeLibrary((HMODULE) handle);
@@ -92,13 +88,7 @@ lib_load_close(int debug, void *handle)
 #endif
   if (result != 0) {
     fprintf(stderr, "Failed to close lib: %s\n", lib_load_error());
-  } else {
-    if (debug == 1) {
-      fprintf(stdout, "Lib closed\n");
-    }
   }
-
-  usleep((useconds_t) 10000);
   return result;
 }
 

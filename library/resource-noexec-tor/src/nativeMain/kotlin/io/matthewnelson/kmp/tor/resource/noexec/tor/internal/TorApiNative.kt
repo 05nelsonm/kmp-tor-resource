@@ -18,14 +18,15 @@
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
 import io.matthewnelson.kmp.file.IOException
+import io.matthewnelson.kmp.tor.common.api.TorApi
 import kotlinx.cinterop.*
 import platform.posix.usleep
 import kotlin.time.Duration.Companion.milliseconds
 
 @Throws(IllegalStateException::class, IOException::class)
-internal actual fun loadTorApi(): AbstractTorApi = KmpTorApi()
+internal actual fun loadTorApi(): TorApi = KmpTorApi()
 
-private class KmpTorApi: AbstractTorApi() {
+private class KmpTorApi: TorApi() {
 
     //    @Throws(IllegalStateException::class, IOException::class)
     @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)

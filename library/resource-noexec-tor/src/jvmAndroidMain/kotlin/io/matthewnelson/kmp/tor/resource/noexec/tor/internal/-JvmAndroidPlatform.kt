@@ -21,6 +21,7 @@ import io.matthewnelson.kmp.file.SysTempDir
 import io.matthewnelson.kmp.file.resolve
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
+import io.matthewnelson.kmp.tor.common.core.OSHost
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import java.util.UUID
 
@@ -28,16 +29,21 @@ internal const val ALIAS_LIB_TOR_JNI: String = "libtorjni"
 
 @JvmSynthetic
 @Throws(IllegalStateException::class, IOException::class)
-internal actual fun loadTorApi(): AbstractTorApi = KmpTorApi()
+internal actual fun loadTorApi(): TorApi = KmpTorApi()
 
 @OptIn(InternalKmpTorApi::class)
-private class KmpTorApi: AbstractTorApi() {
+private class KmpTorApi: TorApi() {
 
-    private external fun kmpTorRunMain(debug: Int, libtor: String, args: Array<String>): Int
+    private external fun kmpTorRunMain(usleepMillis: Int, libtor: String, args: Array<String>): Int
 
     override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
         val libtor = extract(loadTorJni = false)
-        val result = kmpTorRunMain(debug = if (debug) 1 else 0, libtor = libtor, args = args)
+        val millis = when (OSInfo.INSTANCE.osHost) {
+            is OSHost.Linux.Android,
+            is OSHost.Linux.Libc -> 0
+            else -> 250
+        }
+        val result = kmpTorRunMain(usleepMillis = millis, libtor = libtor, args = args)
 
         when (result) {
             -10 -> "JNI: dlopen failed to open libtor"

@@ -19,9 +19,9 @@
 
 void *lib_load_open(const char *lib);
 
-void *lib_load_symbol(int debug, void *handle, const char *symbol);
+void *lib_load_symbol(void *handle, const char *symbol);
 
-int lib_load_close(int debug, void *handle);
+int lib_load_close(void *handle);
 
 char *lib_load_error(void);
 
