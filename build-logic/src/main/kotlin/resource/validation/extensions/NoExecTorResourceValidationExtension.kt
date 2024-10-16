@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-@file:Suppress("SpellCheckingInspection", "PropertyName")
+@file:Suppress("SpellCheckingInspection", "PropertyName", "PrivatePropertyName")
 
 package resource.validation.extensions
 
@@ -36,8 +36,27 @@ open class NoExecTorResourceValidationExtension private constructor(
     @Suppress("unused")
     internal constructor(project: Project): this(project, isGpl = false)
 
-    protected open val jvmMingwX86: String = "b99063b42776e580e513342cbc6e54df6d3c23829acf6f0bdf2d904536a2df45"
-    protected open val jvmMingwX86_64: String = "4c67bddfd155e4859ec3ab2decc804f6b1b1f78d7fb45b5950c3ea8040b47943"
+    private val androidAarch64: String = "6447804f5a690f54f7ff47f21b61d8847b146095d708411ed2be67976028d729"
+    private val androidArmv7: String = "79f636106b33def027335f4091c65ffc938cf0a548bd12519ec5ce8c77fc1a9c"
+    private val androidX86: String = "fa744801c380a9ccb05e6ed2135a0ec021004c7f2b8faa15abcd05b31b248539"
+    private val androidX86_64: String = "c4d992dda3df041b2fe596b611c83bd15fd7da60818befa03f34c44b5dafa3bf"
+
+    private val jvmLinuxAndroidAarch64: String = "602eb3cbc0483059b8010ac8b4a5a31b05fe3dc74189ea3a0a93254af41820fb"
+    private val jvmLinuxAndroidArmv7: String = "15ddd37bd539395c8f3c120a117b0ed1e9ac8d0f60dcd27808d6857e99feaac2"
+    private val jvmLinuxAndroidX86: String = "8a6781dd5704fad89215b8f661c9044c5f9200d01315156ffc15fb2c76dde3d7"
+    private val jvmLinuxAndroidX86_64: String = "0785525c9e6071f5712ee3b14d0bc50795f647bc83bbacbe5a2ae97e96af60b4"
+
+    private val jvmLinuxLibcAarch64: String = "ee9c602ff6303b6d8836955c8928651864ad951847c5f0bf73609b441f4885d0"
+    private val jvmLinuxLibcArmv7: String = "41ad77575dc59e4ca5e314df81dd7309507836da551acb850e891b02b0a8fc2f"
+    private val jvmLinuxLibcPpc64: String = "9469c536fa53b899e2b01984b7e8e168215ae558bb24647d45dfa0ee50419ed2"
+    private val jvmLinuxLibcX86: String = "4e41edaaec4eee14dc6f3daca2f1db13549926c177c252aa87655b770b2bc730"
+    private val jvmLinuxLibcX86_64: String = "5a0f3e88b97a8ec2613ba16a5b349dacb261bef69f16aff747ef684a123bbc8b"
+
+    protected open val jvmMacosAarch64: String = "3d80e2abca32c91bb5f08342f8278c9dc2a3a3200d9f3a6e37ec0912a58f17cb"
+    protected open val jvmMacosX86_64: String = "9e8c5be63536da6245b517f2ab4e3e7476dddb558b725123b2072252548c47aa"
+
+    protected open val jvmMingwX86: String = "7fdb9c9f67aed45db2fee90a49adc17f0a25d770bad4ede86555fca5ba5b3ac0"
+    protected open val jvmMingwX86_64: String = "f8944b7d0edf2c0d78f11852f5c30c6624d22b09af4ffd024e36b520b7479228"
 
     private val headerTorApi: String = "c346e767d3e6dbad44d1802579e7e4a8cf1b1ff8595152ebd4679b05d2de6df3"
 
@@ -105,8 +124,11 @@ open class NoExecTorResourceValidationExtension private constructor(
         project: Project,
     ): NoExecTorResourceValidationExtension(project, isGpl = true) {
 
-        override val jvmMingwX86: String = "7f87464060edc0a58f918939a51d200479b5482283728f7430c8cda9e79d6ddd"
-        override val jvmMingwX86_64: String = "65d22aaff276a3d321f2b7034314bf46b94cd46efb951d6bf11abbd7fca42256"
+        override val jvmMacosAarch64: String = "174e81eec2dfb6bdcf7900122fc4c45e3790ed42dccc1b5babf47da529828a62"
+        override val jvmMacosX86_64: String = "97ea7938387107cb2dbef73b2de115f9636af2e8495c9c8543458165b5940687"
+
+        override val jvmMingwX86: String = "8ff496f87b48a3dd1aebd64c37f482422918c0ebd444ab407e22c9afd244f8d2"
+        override val jvmMingwX86_64: String = "4a0c3730394cc377c89aa180588cda79a0627d34c485f421f1a2692d92d845c4"
 
         override val iosArm64LibTor: String = "1e4c4b41dbeeae08d77655dbb1a267f27c6e3297631b1a9ce7199728db8fb4c0"
         override val iosArm64Orconfig: String = "b968c615cad5b2ae02db58c4e722941d18b67e56d6ffab2afe3379a0ac0359f1"
@@ -122,10 +144,102 @@ open class NoExecTorResourceValidationExtension private constructor(
         }
     }
 
+    fun configureAndroidJniResources() { configureLibAndroidProtected() }
     fun jvmNativeLibResourcesSrcDir(): File = jvmNativeLibsResourcesSrcDirProtected()
     fun configureNativeInterop(kmp: KotlinMultiplatformExtension) { configureLibNativeInteropProtected(kmp) }
 
     final override val hashes: Set<ValidationHash> by lazy { setOf(
+        // android
+        ValidationHash.LibAndroid(
+            libname = "libtorjni.so",
+            hashArm64 = androidAarch64,
+            hashArmv7 = androidArmv7,
+            hashX86 = androidX86,
+            hashX86_64 = androidX86_64,
+        ),
+
+        // jvm linux-android
+        ValidationHash.LibJvm(
+            osName = "linux",
+            osSubtype = "android",
+            arch = "aarch64",
+            libName = "libtorjni.so.gz",
+            hash = jvmLinuxAndroidAarch64,
+        ),
+        ValidationHash.LibJvm(
+            osName = "linux",
+            osSubtype = "android",
+            arch = "armv7",
+            libName = "libtorjni.so.gz",
+            hash = jvmLinuxAndroidArmv7,
+        ),
+        ValidationHash.LibJvm(
+            osName = "linux",
+            osSubtype = "android",
+            arch = "x86",
+            libName = "libtorjni.so.gz",
+            hash = jvmLinuxAndroidX86,
+        ),
+        ValidationHash.LibJvm(
+            osName = "linux",
+            osSubtype = "android",
+            arch = "x86_64",
+            libName = "libtorjni.so.gz",
+            hash = jvmLinuxAndroidX86_64,
+        ),
+
+        // jvm linux-libc
+        ValidationHash.LibJvm(
+            osName = "linux",
+            osSubtype = "libc",
+            arch = "aarch64",
+            libName = "libtorjni.so.gz",
+            hash = jvmLinuxLibcAarch64,
+        ),
+        ValidationHash.LibJvm(
+            osName = "linux",
+            osSubtype = "libc",
+            arch = "armv7",
+            libName = "libtorjni.so.gz",
+            hash = jvmLinuxLibcArmv7,
+        ),
+        ValidationHash.LibJvm(
+            osName = "linux",
+            osSubtype = "libc",
+            arch = "ppc64",
+            libName = "libtorjni.so.gz",
+            hash = jvmLinuxLibcPpc64,
+        ),
+        ValidationHash.LibJvm(
+            osName = "linux",
+            osSubtype = "libc",
+            arch = "x86",
+            libName = "libtorjni.so.gz",
+            hash = jvmLinuxLibcX86,
+        ),
+        ValidationHash.LibJvm(
+            osName = "linux",
+            osSubtype = "libc",
+            arch = "x86_64",
+            libName = "libtorjni.so.gz",
+            hash = jvmLinuxLibcX86_64,
+        ),
+
+        // jvm macos
+        ValidationHash.LibJvm(
+            osName = "macos",
+            arch = "aarch64",
+            libName = "libtorjni.dylib.gz",
+            hash = jvmMacosAarch64,
+        ),
+        ValidationHash.LibJvm(
+            osName = "macos",
+            arch = "x86_64",
+            libName = "libtorjni.dylib.gz",
+            hash = jvmMacosX86_64,
+        ),
+
+        // jvm mingw
         ValidationHash.LibJvm(
             osName = "mingw",
             arch = "x86",
@@ -138,6 +252,7 @@ open class NoExecTorResourceValidationExtension private constructor(
             libName = "torjni.dll.gz",
             hash = jvmMingwX86_64,
         ),
+
         ValidationHash.LibNativeInterop(
             defFileName = "tor",
             targetName = "iosSimulatorArm64",

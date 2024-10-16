@@ -55,6 +55,10 @@ fun KmpConfigurationExtension.configureNoExecTor(
         publish = true,
     ) {
         androidLibrary {
+            android {
+                noExecResourceValidation.configureAndroidJniResources()
+            }
+
             sourceSetTest {
                 dependencies {
                     implementation(project(":library:resource-android-unit-test-tor$suffix"))
@@ -209,11 +213,11 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     .resolve(project.name)
 
                 listOf(
-                    Triple("android", "androidInstrumented", listOf(reportDirLibTor)),
+                    Triple("android", "androidInstrumented", listOf(reportDirLibTor, reportDirNoExec)),
 
                     // If no errors for JVM resources, then android-unit-test project
                     // dependency is not utilizing mock resources and can run tests.
-                    Triple("jvm", "androidUnit", listOf(reportDirLibTor)),
+                    Triple("jvm", "androidUnit", listOf(reportDirLibTor, reportDirNoExec)),
 
                     Triple("jvm", null, listOf(reportDirLibTor, reportDirNoExec)),
                     Triple("linuxArm64", null, listOf(reportDirLibTor)),
