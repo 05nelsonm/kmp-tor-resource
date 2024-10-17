@@ -98,7 +98,7 @@ lib_load_symbol(void *handle, const char *symbol)
 }
 
 int
-lib_load_close(void *handle)
+lib_load_close_handle(const char *lib, void *handle)
 {
   assert(handle != NULL);
 
@@ -123,8 +123,28 @@ lib_load_close(void *handle)
   }
 
   if (result != 0) {
-    fprintf(stderr, "KmpTor: Failed to close lib: error[%s]\n", err);
+    fprintf(stderr, "KmpTor: Failed to close handle[%s]: error[%s]\n", lib, err);
   }
+
+  return result;
+}
+
+int
+lib_load_close(const char *lib, void *handle)
+{
+  int result;
+  result = lib_load_close_handle(lib, handle);
+
+#ifndef _WIN32
+  int i = 0;
+  void *nl_handle = NULL;
+  nl_handle = dlopen(lib, RTLD_NOLOAD);
+  while (nl_handle != NULL) {
+    assert(i++ < 100);
+    result = lib_load_close_handle(lib, nl_handle);
+    nl_handle = dlopen(lib, RTLD_NOLOAD);
+  }
+#endif
 
   return result;
 }

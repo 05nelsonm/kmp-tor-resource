@@ -15,7 +15,11 @@
  **/
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
-import io.matthewnelson.kmp.file.*
+import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.file.IOException
+import io.matthewnelson.kmp.file.SysTempDir
+import io.matthewnelson.kmp.file.resolve
+import io.matthewnelson.kmp.file.toFile
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.common.core.OSInfo
@@ -30,57 +34,15 @@ internal actual fun loadTorApi(): TorApi = KmpTorApi()
 @OptIn(InternalKmpTorApi::class)
 private class KmpTorApi: TorApi() {
 
-    @Volatile
-    private var count: UInt = 0u
-
     private external fun kmpTorRunMain(usleepMillis: Int, libtor: String, args: Array<String>): Int
 
     override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
-        val (libtor, deleteOnExitDisposable) = extract(loadTorJni = false).let { root ->
-            val parentDir = root.parentFile
-                // Android Runtime (just the .so name with no directory)
-                ?: return@let root to null
-
-            val copy = parentDir.resolve(root.name + ".${count++}")
-            val disposable = Hook.deleteOnExit(copy)
-
-            try {
-                root.inputStream().buffered().use { iStream ->
-                    copy.outputStream().buffered().use { oStream ->
-                        val buf = ByteArray(4096)
-                        while (true) {
-                            val read = iStream.read(buf)
-                            if (read == -1) break
-                            oStream.write(buf, 0, read)
-                        }
-                        buf.fill(0)
-                    }
-                }
-            } catch (e: IOException) {
-                copy.delete()
-                disposable.invoke()
-                throw e
-            }
-
-            copy.setReadable(false, false)
-            copy.setWritable(false, false)
-            copy.setReadable(true, true)
-            copy.setExecutable(true, true)
-
-            copy to disposable
-        }
-
+        val libtor = extractLibTor()
         val result = kmpTorRunMain(usleepMillis = 100, libtor = libtor.path, args = args)
 
-        if (deleteOnExitDisposable != null) {
-            // Not Android Runtime
-            libtor.delete()
-            deleteOnExitDisposable.invoke()
-        }
-
         when (result) {
-            -10 -> "JNI: dlopen failed to open libtor"
-            -11 -> "JNI: dlsym failed to resolve tor_api functions"
+            -10 -> "JNI: dlopen failed to open ${libtor.name}"
+            -11 -> "JNI: dlsym failed to resolve tor_api function handles"
             -12 -> "JNI: Failed to acquire new tor_main_configuration_t"
             -13 -> "JNI: Failed to determine args array size"
             -14 -> "JNI: Failed to allocate memory for argv array"
@@ -92,7 +54,7 @@ private class KmpTorApi: TorApi() {
         return result
     }
 
-    private fun extract(loadTorJni: Boolean): File {
+    private fun extractLibTor(loadTorJni: Boolean = false): File {
         val tempDir = TEMP_DIR
 
         return try {
@@ -113,11 +75,14 @@ private class KmpTorApi: TorApi() {
             }
         } catch (t: Throwable) {
             if (t is IOException) throw t
-            throw IllegalStateException("Failed to dynamically load torjni library", t)
+            if (t is IllegalStateException) throw t
+
+            // UnsatisfiedLinkError
+            throw IllegalStateException("Failed to load torjni", t)
         }
     }
 
-    init { extract(loadTorJni = true) }
+    init { extractLibTor(loadTorJni = true) }
 
     private companion object {
 
@@ -126,55 +91,12 @@ private class KmpTorApi: TorApi() {
 
             val tempDir = SysTempDir.resolve("kmp-tor_${UUID.randomUUID()}")
 
-            Hook.deleteOnExit(tempDir)
+            tempDir.deleteOnExit()
             RESOURCE_CONFIG_LIB_TOR.resources.forEach { resource ->
-                val resourceFile = tempDir.resolve(resource.platform.fsFileName)
-                Hook.deleteOnExit(resourceFile)
+                tempDir.resolve(resource.platform.fsFileName).deleteOnExit()
             }
 
             tempDir
-        }
-    }
-
-    /**
-     * Alternative to `File.deleteOnExit` which allows for de-registration.
-     * */
-    private open class Hook private constructor() {
-
-        private val files = LinkedHashSet<File>(10, 1.0f)
-
-        fun deleteOnExit(file: File): () -> Unit = synchronized (LOCK) {
-            if (!files.add(file)) return@synchronized {}
-
-            var wasInvoked = false
-
-            return@synchronized handle@ {
-                if (wasInvoked) return@handle
-
-                synchronized(LOCK) {
-                    if (wasInvoked) return@handle
-                    wasInvoked = true
-                    files.remove(file)
-                }
-            }
-        }
-
-        init {
-            Runtime.getRuntime().addShutdownHook(Thread {
-                synchronized(LOCK) {
-                    var i = files.size - 1
-                    while (i >= 0) {
-                        val file = files.elementAt(i)
-                        files.remove(file)
-                        file.delete()
-                        i--
-                    }
-                }
-            })
-        }
-
-        companion object: Hook() {
-            private val LOCK = Any()
         }
     }
 }

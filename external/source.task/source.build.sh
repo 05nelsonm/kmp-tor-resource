@@ -579,13 +579,13 @@ function __build:configure:target:finalize:output:shared {
 
   local jni_java_version="java8"
   local jni_name="libtorjni.so"
-  local jni_cflags="-shared -Wl,--version-script,tor_api-jni.map"
+  local jni_cflags="-shared -Wl,--version-script,exports/kmp_tor-jni.map"
   local jni_ldadd="-ldl"
 
   local lib_load_cflags=""
 
   local shared_name="libtor.so"
-  local shared_cflags="-shared -Wl,--version-script,tor_api.map"
+  local shared_cflags="-shared -Wl,--version-script,exports/tor_api.map"
   local shared_ldadd="-ldl -lm -pthread"
 
   local strip_flags="-D"
@@ -607,12 +607,12 @@ function __build:configure:target:finalize:output:shared {
       jni_name="libtorjni.dylib"
       jni_cflags="-dynamiclib"
       jni_cflags+=" -install_name @executable_path/$jni_name"
-      jni_cflags+=" -exported_symbols_list tor_api-jni.exp"
+      jni_cflags+=" -exported_symbols_list exports/kmp_tor-jni.exp"
       jni_ldadd=""
       shared_name="libtor.dylib"
       shared_cflags="-dynamiclib"
       shared_cflags+=" -install_name @executable_path/$shared_name"
-      shared_cflags+=" -exported_symbols_list tor_api.exp"
+      shared_cflags+=" -exported_symbols_list exports/tor_api.exp"
       shared_ldadd=""
       strip_flags+="u"
       ;;
@@ -638,34 +638,21 @@ function __build:configure:target:finalize:output:shared {
   __util:require:var_set "$exec_name" "exec_name"
   __util:require:var_set "$jni_java_version" "jni_java_version"
   __util:require:var_set "$jni_name" "jni_name"
+  __util:require:var_set "$jni_cflags" "jni_cflags"
   __util:require:var_set "$shared_name" "shared_name"
   __util:require:var_set "$shared_cflags" "shared_cflags"
   __util:require:var_set "$strip_flags" "strip_flags"
 
   __build:SCRIPT 'compile_shared() {'
-  __build:SCRIPT '  echo "    * Compiling shared-$1 (shared library + linked executable)"'
+  __build:SCRIPT '  echo "    * Compiling shared-$1 (shared libraries & linked executable)"'
   __build:SCRIPT ''
   __build:SCRIPT '  rm -rf "$DIR_SCRIPT/shared-$1"'
   __build:SCRIPT "  rm -rf \"\$DIR_EXTERNAL/build/out/\$1/$DIR_OUT_SUFFIX\""
-  __build:SCRIPT '  mkdir "$DIR_TMP/shared-$1"'
   __build:SCRIPT '  mkdir -p "$DIR_SCRIPT/shared-$1/bin"'
-  __build:SCRIPT '  cd "$DIR_TMP/shared-$1"'
-  __build:SCRIPT ''
+  __build:SCRIPT '  cp -Ra "$DIR_EXTERNAL/native" "$DIR_TMP/shared-$1"'
   __build:SCRIPT '  cp -a "$DIR_EXTERNAL/tor/src/app/main/tor_main.c" "$DIR_TMP/shared-$1"'
   __build:SCRIPT '  cp -a "$DIR_SCRIPT/$1/include/orconfig.h" "$DIR_TMP/shared-$1"'
-  __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/jni/lib_load.c" "$DIR_TMP/shared-$1"'
-  __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/jni/lib_load.h" "$DIR_TMP/shared-$1"'
-  __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/jni/tor_api-jni.c" "$DIR_TMP/shared-$1"'
-  __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/jni/tor_api-jni.h" "$DIR_TMP/shared-$1"'
-
-  if [ "$os_name" = "macos" ]; then
-    __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/exports/tor_api.exp" "$DIR_TMP/shared-$1"'
-    __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/exports/tor_api-jni.exp" "$DIR_TMP/shared-$1"'
-  else
-    __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/exports/tor_api.map" "$DIR_TMP/shared-$1"'
-    __build:SCRIPT '  cp -a "$DIR_EXTERNAL/native/exports/tor_api-jni.map" "$DIR_TMP/shared-$1"'
-  fi
-
+  __build:SCRIPT '  cd "$DIR_TMP/shared-$1"'
   __build:SCRIPT ''
   __build:SCRIPT "  \$CC \$CFLAGS $shared_cflags \\"
   __build:SCRIPT "    -o $shared_name \\"
@@ -696,9 +683,13 @@ function __build:configure:target:finalize:output:shared {
   __build:SCRIPT "    $shared_name"
   __build:SCRIPT ''
   __build:SCRIPT "  \$CC \$CFLAGS $lib_load_cflags -c lib_load.c"
-  __build:SCRIPT "  \$CC -I\${JNI_H}/$jni_java_version/include \$CFLAGS -c tor_api-jni.c"
+  __build:SCRIPT "  \$CC \$CFLAGS -c kmp_tor.c"
+  __build:SCRIPT "  \$CC \$CFLAGS -I\"\${JNI_H}\"/$jni_java_version/include -c kmp_tor-jni.c"
   __build:SCRIPT ''
-  __build:SCRIPT "  \$CC $jni_cflags \$CFLAGS tor_api-jni.o lib_load.o \\"
+  __build:SCRIPT "  \$CC \$CFLAGS $jni_cflags \\"
+  __build:SCRIPT '    lib_load.o \'
+  __build:SCRIPT '    kmp_tor.o \'
+  __build:SCRIPT '    kmp_tor-jni.o \'
   __build:SCRIPT "    -o $jni_name \\"
   __build:SCRIPT "    \$LDFLAGS $jni_ldadd"
   __build:SCRIPT ''

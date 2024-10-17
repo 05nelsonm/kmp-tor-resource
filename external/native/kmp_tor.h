@@ -14,15 +14,18 @@
  * limitations under the License.
  **/
 
-#ifndef LIB_LOAD_H
-#define LIB_LOAD_H
+#ifndef KMP_TOR_H
+#define KMP_TOR_H
 
-void *lib_load_open(const char *lib);
+/*
+ * Returns the following integer value depending on case:
+ *  -10    : dlopen failed
+ *  -11    : dlsym failed
+ *  -12    : tor_main_configuration_new failed
+ *  -13    : tor_main_configuration_set_command_line failed
+ *  0      : tor_run_main success
+ *  1 - 255: tor_run_main failed
+ */
+int kmp_tor_run_main(int usleep_millis, const char *libtor, int argc, char *argv[]);
 
-void *lib_load_symbol(void *handle, const char *symbol);
-
-int lib_load_close(void *handle);
-
-char *lib_load_error(void);
-
-#endif /* !defined(LIB_LOAD_H) */
+#endif /* !defined(KMP_TOR_H) */
