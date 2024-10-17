@@ -64,11 +64,11 @@ lib_load_open(const char *lib)
   ptr = m;
 #else
   // RTLD_NOW:   kmp-tor compiles tor as shared lib and uses
-  //             expression maps to only expose what is in
-  //             tor_api.h (so only a few functions). No use
+  //             export maps to only expose what is available
+  //             in tor_api.h (so only a few functions). No use
   //             in specifying RTLD_LAZY because right after
   //             opening we'll be getting pointers to all
-  //             those functions
+  //             those functions.
   // RTLD_LOCAL: Even though this is documented as the default
   //             for Linux/Android when not expressed, it is
   //             NOT for macOS (RTLD_GLOBAL is).

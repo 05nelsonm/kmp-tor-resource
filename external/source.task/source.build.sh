@@ -595,6 +595,7 @@ function __build:configure:target:finalize:output:shared {
       exec_name="libtorexec.so"
       jni_java_version="java6"
       jni_cflags+=" -Wl,-soname,$jni_name"
+      jni_cflags+=" -llog"
       lib_load_cflags="-D__ANDROID__"
       shared_cflags+=" -Wl,-soname,$shared_name"
       ;;
