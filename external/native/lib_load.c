@@ -136,13 +136,22 @@ lib_load_close(const char *lib, void *handle)
   result = lib_load_close_handle(lib, handle);
 
 #ifndef _WIN32
-  int i = 0;
+  int i = 1;
   void *nl_handle = NULL;
-  nl_handle = dlopen(lib, RTLD_NOLOAD);
+  nl_handle = dlopen(lib, RTLD_NOLOAD | RTLD_LOCAL);
+
   while (nl_handle != NULL) {
-    assert(i++ < 100);
+    usleep((useconds_t) i * 100);
     result = lib_load_close_handle(lib, nl_handle);
-    nl_handle = dlopen(lib, RTLD_NOLOAD);
+    nl_handle = dlopen(lib, RTLD_NOLOAD | RTLD_LOCAL);
+    if (i++ > 10) {
+      break;
+    }
+  }
+
+  if (nl_handle != NULL) {
+    lib_load_close_handle(lib, nl_handle);
+    fprintf(stderr, "KmpTor: dlopen + RTLD_NOLOAD returned a handle that would not close after %i attempts for [%s]\n", i, lib);
   }
 #endif
 
