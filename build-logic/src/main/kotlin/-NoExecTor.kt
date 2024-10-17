@@ -46,7 +46,10 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
     // Needed so that memory space is separated
     // when jni libs are loaded for Jvm/Android.
-    project.tasks.withType<Test> { forkEvery = 1 }
+    project.tasks.withType<Test> {
+        forkEvery = 1
+//        environment["DYLD_PRINT_APIS"] = "1"
+    }
 
     configureShared(
         androidNamespace = packageName,

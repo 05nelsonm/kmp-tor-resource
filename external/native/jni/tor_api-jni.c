@@ -102,6 +102,7 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMa
   argc = (*env)->GetArrayLength(env, args);
   if (argc == -1) {
     fn_cfg_free(cfg);
+    cfg = NULL;
 
     fn_cfg_new = NULL;
     fn_cfg_set_command_line = NULL;
@@ -114,6 +115,7 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMa
   argv = (char **) malloc(argc * sizeof(char *));
   if (argv == NULL) {
     fn_cfg_free(cfg);
+    cfg = NULL;
 
     fn_cfg_new = NULL;
     fn_cfg_set_command_line = NULL;
@@ -154,6 +156,7 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMa
   }
 
   fn_cfg_free(cfg);
+  cfg = NULL;
 
   for (int i = 0; i < argc; i++) {
     char *arg = NULL;

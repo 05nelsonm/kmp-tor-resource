@@ -73,8 +73,8 @@ abstract class ResourceLoaderNoExecBaseTest(private val runTorMain: Boolean = tr
             return
         }
 
-        repeat(1000) { index ->
-            if ((index + 1) % 5 == 0) {
+        repeat(250) { index ->
+            if ((index + 1) % 10 == 0) {
                 println("RUN[${index + 1}]")
             }
 

@@ -15,8 +15,16 @@
  **/
 #include "lib_load.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
+
+#ifdef __ANDROID__
+#include <android/log.h>
+#define fprintf(ignored, ...) \
+  __android_log_print(ANDROID_LOG_ERROR, "torjni", ##__VA_ARGS__)
+#endif // __ANDROID__
 
 #ifdef _WIN32
 #include <windows.h>
@@ -27,19 +35,21 @@
 void *
 lib_load_open(const char *lib)
 {
+  if (lib == NULL) {
+    return NULL;
+  }
+
   void *ptr = NULL;
 #ifdef _WIN32
+  int len;
   wchar_t *w_lib = NULL;
 
-  if (lib != NULL) {
-    int len;
-    len = MultiByteToWideChar(CP_THREAD_ACP, 0, lib, -1, NULL, 0);
-    if (len == 0) {
-      return NULL;
-    }
-    w_lib = malloc(len * sizeof(*w_lib));
-    MultiByteToWideChar(CP_THREAD_ACP, 0, lib, -1, w_lib, len);
+  len = MultiByteToWideChar(CP_THREAD_ACP, 0, lib, -1, NULL, 0);
+  if (len == 0) {
+    return NULL;
   }
+  w_lib = malloc(len * sizeof(*w_lib));
+  MultiByteToWideChar(CP_THREAD_ACP, 0, lib, -1, w_lib, len);
 
   HMODULE m = NULL;
   m = LoadLibraryExW(w_lib, NULL, 0);
@@ -53,10 +63,19 @@ lib_load_open(const char *lib)
 
   ptr = m;
 #else
-  ptr = dlopen(lib, RTLD_LAZY | RTLD_LOCAL);
+  // RTLD_NOW:   kmp-tor compiles tor as shared lib and uses
+  //             expression maps to only expose what is in
+  //             tor_api.h (so only a few functions). No use
+  //             in specifying RTLD_LAZY because right after
+  //             opening we'll be getting pointers to all
+  //             those functions
+  // RTLD_LOCAL: Even though this is documented as the default
+  //             for Linux/Android when not expressed, it is
+  //             NOT for macOS (RTLD_GLOBAL is).
+  ptr = dlopen(lib, RTLD_NOW | RTLD_LOCAL);
 #endif
   if (ptr == NULL) {
-    fprintf(stderr, "Failed to open lib %s: %s\n", lib, lib_load_error());
+    fprintf(stderr, "KmpTor: Failed to open lib[%s]: error[%s]\n", lib, lib_load_error());
   }
   return ptr;
 }
@@ -64,6 +83,8 @@ lib_load_open(const char *lib)
 void *
 lib_load_symbol(void *handle, const char *symbol)
 {
+  assert(handle != NULL);
+
   void *ptr = NULL;
 #ifdef _WIN32
   ptr = GetProcAddress((HMODULE) handle, symbol);
@@ -71,7 +92,7 @@ lib_load_symbol(void *handle, const char *symbol)
   ptr = dlsym(handle, symbol);
 #endif
   if (ptr == NULL) {
-    fprintf(stderr, "Failed to resolve symbol for %s: %s\n", symbol, lib_load_error());
+    fprintf(stderr, "KmpTor: Failed to resolve symbol[%s]: error[%s]\n", symbol, lib_load_error());
   }
   return ptr;
 }
@@ -79,16 +100,32 @@ lib_load_symbol(void *handle, const char *symbol)
 int
 lib_load_close(void *handle)
 {
-  // TODO: Retries
-  int result;
+  assert(handle != NULL);
+
+  int result = -1;
+  char *err = NULL;
+
+  for (int i = 0; i < 5; i++) {
+    if (i > 0) {
+      // Exponential back off before trying again
+      usleep((useconds_t) i * 1000);
+    }
 #ifdef _WIN32
-  result = FreeLibrary((HMODULE) handle);
+    result = FreeLibrary((HMODULE) handle);
 #else
-  result = dlclose(handle);
+    result = dlclose(handle);
 #endif
-  if (result != 0) {
-    fprintf(stderr, "Failed to close lib: %s\n", lib_load_error());
+    if (result == 0) {
+      break;
+    } else {
+      err = lib_load_error();
+    }
   }
+
+  if (result != 0) {
+    fprintf(stderr, "KmpTor: Failed to close lib: error[%s]\n", err);
+  }
+
   return result;
 }
 
@@ -96,8 +133,7 @@ lib_load_close(void *handle)
 char *
 lib_load_last_error(void)
 {
-  // TODO
-  return NULL;
+  return "TODO";
 }
 #endif
 

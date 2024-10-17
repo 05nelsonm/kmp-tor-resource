@@ -582,6 +582,8 @@ function __build:configure:target:finalize:output:shared {
   local jni_cflags="-shared -Wl,--version-script,tor_api-jni.map"
   local jni_ldadd="-ldl"
 
+  local lib_load_cflags=""
+
   local shared_name="libtor.so"
   local shared_cflags="-shared -Wl,--version-script,tor_api.map"
   local shared_ldadd="-ldl -lm -pthread"
@@ -593,6 +595,7 @@ function __build:configure:target:finalize:output:shared {
       exec_name="libtorexec.so"
       jni_java_version="java6"
       jni_cflags+=" -Wl,-soname,$jni_name"
+      lib_load_cflags="-D__ANDROID__"
       shared_cflags+=" -Wl,-soname,$shared_name"
       ;;
     "linux")
@@ -691,7 +694,7 @@ function __build:configure:target:finalize:output:shared {
   __build:SCRIPT "    -o $exec_name $exec_ldflags \\"
   __build:SCRIPT "    $shared_name"
   __build:SCRIPT ''
-  __build:SCRIPT '  $CC $CFLAGS -c lib_load.c'
+  __build:SCRIPT "  \$CC \$CFLAGS $lib_load_cflags -c lib_load.c"
   __build:SCRIPT "  \$CC -I\${JNI_H}/$jni_java_version/include \$CFLAGS -c tor_api-jni.c"
   __build:SCRIPT ''
   __build:SCRIPT "  \$CC $jni_cflags \$CFLAGS tor_api-jni.o lib_load.o \\"
