@@ -17,12 +17,12 @@
 #ifndef LIB_LOAD_H
 #define LIB_LOAD_H
 
-void *lib_load_open(const char *lib);
+typedef struct lib_handle_t lib_handle_t;
 
-void *lib_load_symbol(void *handle, const char *symbol);
+lib_handle_t *lib_load_open(const char *lib);
 
-int lib_load_close(const char *lib, void *handle);
+void *lib_load_resolve(lib_handle_t *handle, const char *symbol);
 
-char *lib_load_error(void);
+int lib_load_close(lib_handle_t *handle);
 
 #endif /* !defined(LIB_LOAD_H) */

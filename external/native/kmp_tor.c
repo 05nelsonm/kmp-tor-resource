@@ -20,26 +20,6 @@
 #include <string.h>
 #include <unistd.h>
 
-void* (*fn_cfg_new)(void) = NULL;
-int (*fn_cfg_set_command_line)(void *cfg, int argc, char **argv) = NULL;
-void (*fn_cfg_free)(void *cfg) = NULL;
-int (*fn_run_main)(void *cfg) = NULL;
-
-int
-libtor_free(const char *libtor, void *handle)
-{
-  int result;
-
-  fn_cfg_new = NULL;
-  fn_cfg_set_command_line = NULL;
-  fn_cfg_free = NULL;
-  fn_run_main = NULL;
-
-  result = lib_load_close(libtor, handle);
-
-  return result;
-}
-
 /*
  * Returns the following integer value depending on case:
  *  -10    : dlopen failed
@@ -51,34 +31,38 @@ libtor_free(const char *libtor, void *handle)
  */
 int kmp_tor_run_main(int usleep_millis, const char *libtor, int argc, char *argv[])
 {
-  void *handle = NULL;
+  lib_handle_t *handle = NULL;
+  void* (*fn_cfg_new)(void) = NULL;
+  int (*fn_cfg_set_command_line)(void *cfg, int argc, char **argv) = NULL;
+  void (*fn_cfg_free)(void *cfg) = NULL;
+  int (*fn_run_main)(void *cfg) = NULL;
 
   handle = lib_load_open(libtor);
   if (handle == NULL) {
     return -10;
   }
 
-  fn_cfg_new = lib_load_symbol(handle, "tor_main_configuration_new");
+  *(void **) (&fn_cfg_new) = lib_load_resolve(handle, "tor_main_configuration_new");
   if (fn_cfg_new == NULL) {
-    libtor_free(libtor, handle);
+    lib_load_close(handle);
     return -11;
   }
 
-  fn_cfg_set_command_line = lib_load_symbol(handle, "tor_main_configuration_set_command_line");
+  *(void **) (&fn_cfg_set_command_line) = lib_load_resolve(handle, "tor_main_configuration_set_command_line");
   if (fn_cfg_set_command_line == NULL) {
-    libtor_free(libtor, handle);
+    lib_load_close(handle);
     return -11;
   }
 
-  *(void **) (&fn_cfg_free) = lib_load_symbol(handle, "tor_main_configuration_free");
+  *(void **) (&fn_cfg_free) = lib_load_resolve(handle, "tor_main_configuration_free");
   if (fn_cfg_free == NULL) {
-    libtor_free(libtor, handle);
+    lib_load_close(handle);
     return -11;
   }
 
-  *(void **) (&fn_run_main) = lib_load_symbol(handle, "tor_run_main");
+  *(void **) (&fn_run_main) = lib_load_resolve(handle, "tor_run_main");
   if (fn_run_main == NULL) {
-    libtor_free(libtor, handle);
+    lib_load_close(handle);
     return -11;
   }
 
@@ -87,7 +71,7 @@ int kmp_tor_run_main(int usleep_millis, const char *libtor, int argc, char *argv
 
   cfg = fn_cfg_new();
   if (cfg == NULL) {
-    libtor_free(libtor, handle);
+    lib_load_close(handle);
     return -12;
   }
 
@@ -98,14 +82,12 @@ int kmp_tor_run_main(int usleep_millis, const char *libtor, int argc, char *argv
   if (rv == -1) {
     rv = fn_run_main(cfg);
     if (usleep_millis > 0) {
-      useconds_t microsec = usleep_millis * 1000;
-      usleep(microsec);
+      usleep((useconds_t) usleep_millis * 1000);
     }
   }
 
   fn_cfg_free(cfg);
-  cfg = NULL;
-  libtor_free(libtor, handle);
+  lib_load_close(handle);
 
   if (rv == -13) {
     return rv;

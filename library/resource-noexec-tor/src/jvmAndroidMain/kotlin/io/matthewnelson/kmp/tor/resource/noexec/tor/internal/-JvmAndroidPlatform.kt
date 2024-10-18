@@ -41,13 +41,14 @@ private class KmpTorApi: TorApi() {
         val result = kmpTorRunMain(usleepMillis = 100, libtor = libtor.path, args = args)
 
         when (result) {
-            -10 -> "JNI: dlopen failed to open ${libtor.name}"
-            -11 -> "JNI: dlsym failed to resolve tor_api function handles"
+            -6  -> "JNI: Failed to allocate memory for libtor path cstring"
+            -7  -> "JNI: Failed to determine args array size"
+            -8  -> "JNI: Failed to allocate memory for argv array"
+            -9  -> "JNI: Failed to populate argv array with arguments"
+            -10 -> "JNI: Failed to load ${libtor.name}"
+            -11 -> "JNI: Failed to resolve tor_api function symbols"
             -12 -> "JNI: Failed to acquire new tor_main_configuration_t"
-            -13 -> "JNI: Failed to determine args array size"
-            -14 -> "JNI: Failed to allocate memory for argv array"
-            -15 -> "JNI: Failed to populate argv array with arguments"
-            -16 -> "JNI: Failed to set tor_main_configuration_t arguments"
+            -13 -> "JNI: Failed to set tor_main_configuration_t arguments"
             else -> null
         }?.let { throw IllegalStateException(it) }
 
