@@ -238,31 +238,35 @@ lib_load_close(lib_handle_t *handle)
 {
   int result;
   result = lib_handle_close(handle);
-  usleep((useconds_t) 1000);
-
-  // Verify it has been unloaded.
-#ifdef _WIN32
-  // TODO: If Failure - GetModuleHandle && UnmapViewOfFile
-#else
-  int i = 1;
-  int flags = (RTLD_NOLOAD | RTLD_LOCAL);
-
-  handle->ptr = dlopen(handle->lib, flags);
-
-  while (handle->ptr != NULL) {
-    result = lib_handle_close(handle);
-    usleep((useconds_t) i * 1000);
-    handle->ptr = dlopen(handle->lib, flags);
-    if (i++ > 10) {
-      break;
-    }
-  }
-
-  if (handle->ptr != NULL) {
-    result = lib_handle_close(handle);
-    fprintf(stderr, "KmpTor: dlclose failed to unload lib[%s] after %i attempts\n", handle->lib, i - 2);
-  }
-#endif
+//  usleep((useconds_t) 1000);
+//
+//#ifdef _WIN32
+//  // TODO: If Failure - GetModuleHandle && UnmapViewOfFile
+//#else
+//  int i = 1;
+//  int flags = (RTLD_NOLOAD | RTLD_LOCAL);
+//  void *nl_handle = NULL;
+//
+//  nl_handle = dlopen(handle->lib, flags);
+//
+//  while (nl_handle != NULL) {
+//    handle->ptr = nl_handle;
+//    lib_handle_close(handle);
+//    handle->ptr = nl_handle;
+//    lib_handle_close(handle);
+//    usleep((useconds_t) i * 1000);
+//    nl_handle = dlopen(handle->lib, flags);
+//    if (i++ > 10) {
+//      break;
+//    }
+//  }
+//
+//  if (nl_handle != NULL) {
+//    handle->ptr = nl_handle;
+//    result = lib_handle_close(handle);
+//    fprintf(stderr, "KmpTor: dlclose failed to unload lib[%s] after %i attempts\n", handle->lib, i - 2);
+//  }
+//#endif
 
   lib_handle_free(handle);
   return result;

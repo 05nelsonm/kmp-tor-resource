@@ -250,6 +250,7 @@ fi
   CONF_OPENSSL='./Configure no-shared \
     no-asm \
     no-comp \
+    no-dso \
     no-dtls \
     no-err \
     no-psk \
@@ -580,7 +581,7 @@ function __build:configure:target:finalize:output:shared {
   local jni_java_version="java8"
   local jni_name="libtorjni.so"
   local jni_cflags="-shared -Wl,--version-script,exports/kmp_tor-jni.map"
-  local jni_ldadd="-ldl"
+  local jni_ldadd="-ldl -pthread"
 
   local lib_load_cflags=""
 
@@ -623,7 +624,7 @@ function __build:configure:target:finalize:output:shared {
       # tor-browser-build.
       exec_ldflags+=" -Wl,--subsystem,console"
       jni_name="torjni.dll"
-      jni_ldadd=""
+      jni_ldadd="-lpthread"
       shared_name="tor.dll"
       shared_ldadd="-lws2_32 -lcrypt32 -lshlwapi -liphlpapi"
       ;;
