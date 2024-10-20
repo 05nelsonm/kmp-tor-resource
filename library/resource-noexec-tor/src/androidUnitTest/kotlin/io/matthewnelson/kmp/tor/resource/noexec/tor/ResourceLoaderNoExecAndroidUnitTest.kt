@@ -15,9 +15,18 @@
  **/
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
+import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
+import io.matthewnelson.kmp.tor.common.core.OSHost
+import io.matthewnelson.kmp.tor.common.core.OSInfo
 import kotlin.test.Test
 
-class ResourceLoaderNoExecAndroidUnitTest: ResourceLoaderNoExecBaseTest() {
+@OptIn(InternalKmpTorApi::class)
+class ResourceLoaderNoExecAndroidUnitTest: ResourceLoaderNoExecBaseTest(
+    runTorMainCount = when (OSInfo.INSTANCE.osHost) {
+        is OSHost.Windows -> RUN_TOR_MAIN_COUNT_WINDOWS
+        else -> RUN_TOR_MAIN_COUNT_UNIX
+    }
+) {
 
     @Test
     fun stub() {}

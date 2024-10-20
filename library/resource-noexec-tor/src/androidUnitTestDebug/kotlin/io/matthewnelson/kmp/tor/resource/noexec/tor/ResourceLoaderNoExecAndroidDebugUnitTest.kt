@@ -17,7 +17,7 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import kotlin.test.Test
 
-class ResourceLoaderNoExecAndroidDebugUnitTest: ResourceLoaderNoExecBaseTest(runTorMain = false) {
+class ResourceLoaderNoExecAndroidDebugUnitTest: ResourceLoaderNoExecBaseTest(runTorMainCount = 0) {
 
     @Test
     fun stub() {}
