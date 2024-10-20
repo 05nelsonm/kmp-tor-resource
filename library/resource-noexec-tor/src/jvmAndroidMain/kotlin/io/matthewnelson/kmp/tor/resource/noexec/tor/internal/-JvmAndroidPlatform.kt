@@ -38,7 +38,11 @@ private class KmpTorApi: TorApi() {
 
     override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
         val libtor = extractLibTor()
-        val result = kmpTorRunMain(shutdownDelayMillis = 100, libtor = libtor.path, args = args)
+        val result = kmpTorRunMain(
+            shutdownDelayMillis = 100,
+            libtor = libtor.path,
+            args = args,
+        )
 
         when (result) {
             -6  -> "JNI: Failed to convert args to C"

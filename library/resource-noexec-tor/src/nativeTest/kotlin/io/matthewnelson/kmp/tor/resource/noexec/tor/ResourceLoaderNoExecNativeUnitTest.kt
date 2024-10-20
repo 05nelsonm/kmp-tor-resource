@@ -20,14 +20,12 @@ import kotlin.test.Test
 
 @OptIn(ExperimentalNativeApi::class)
 class ResourceLoaderNoExecNativeUnitTest: ResourceLoaderNoExecBaseTest(
-    // TODO: CKLib compile external/native.
-    runTorMainCount = 0
-//    runTorMainCount = when (Platform.osFamily) {
-//        // TODO: Dynamic lib
-//        OsFamily.IOS -> 0
-//        OsFamily.WINDOWS -> RUN_TOR_MAIN_COUNT_WINDOWS
-//        else -> RUN_TOR_MAIN_COUNT_UNIX
-//    }
+    runTorMainCount = when (Platform.osFamily) {
+        // TODO: Dynamic lib
+        OsFamily.IOS -> 0
+        OsFamily.WINDOWS -> RUN_TOR_MAIN_COUNT_WINDOWS
+        else -> RUN_TOR_MAIN_COUNT_UNIX
+    }
 ) {
 
     @Test

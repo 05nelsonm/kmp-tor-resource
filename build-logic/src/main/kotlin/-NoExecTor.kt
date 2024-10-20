@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+import co.touchlab.cklib.gradle.CompileToBitcode
+import co.touchlab.cklib.gradle.CompileToBitcodeExtension
 import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import org.gradle.accessors.dm.LibrariesForLibs
@@ -20,9 +22,15 @@ import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test
 import org.gradle.configurationcache.extensions.capitalized
+import org.gradle.kotlin.dsl.get
+import org.gradle.kotlin.dsl.support.kotlinCompilerOptions
 import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.konan.target.Family
+import org.jetbrains.kotlin.konan.target.KonanTarget
 import resource.validation.extensions.NoExecTorResourceValidationExtension
 import java.io.File
 
@@ -90,7 +98,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
         mingwAll()
 
         common {
-            pluginIds("resource-validation")
+            pluginIds("resource-validation", libs.plugins.cklib.get().pluginId)
 
             sourceSetMain {
                 dependencies {
@@ -249,6 +257,61 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
                     srcSetTest.generateBuildConfig(isErrReportEmpty = isErrReportEmpty)
                 }
+            }
+        }
+
+        kotlin {
+            val externalNativeDir = project.rootDir
+                .resolve("external")
+                .resolve("native")
+
+            project.extensions.configure<CompileToBitcodeExtension>("cklib") {
+                config.kotlinVersion = libs.versions.gradle.kotlin.get()
+
+                create("kmp_tor") {
+                    language = CompileToBitcode.Language.C
+                    srcDirs = project.files(externalNativeDir)
+                    headersDirs = project.files(externalNativeDir)
+                    includeFiles = listOf("lib_load.c", "kmp_tor.c")
+
+                    when (KonanTarget.predefinedTargets[target]?.family) {
+                        Family.LINUX,
+//                        Family.IOS, // TODO
+                        Family.MINGW,
+                        Family.OSX -> {}
+                        else -> {
+                            // Target not supported. Disable cklib task
+                            isEnabled = false
+                        }
+                    }
+                }
+            }
+
+            targets.filterIsInstance<KotlinNativeTarget>().forEach target@ { target ->
+                val linkerOpts = when (target.konanTarget.family) {
+                    Family.LINUX,
+//                    Family.IOS, // TODO
+                    Family.OSX -> "-lpthread -ldl"
+                    Family.MINGW -> ""
+                    else -> null
+                } ?: return@target
+
+                target.compilations["main"].cinterops.create("kmp_tor") {
+                    definitionFile.set(
+                        project.projectDir
+                            .resolve("src")
+                            .resolve("nativeInterop")
+                            .resolve("cinterop")
+                            .resolve("kmp_tor.def")
+                    )
+
+                    includeDirs(externalNativeDir.path)
+                }
+
+                if (linkerOpts.isEmpty()) return@target
+
+                @OptIn(ExperimentalKotlinGradlePluginApi::class)
+                target.compilerOptions.freeCompilerArgs.addAll("-linker-options", linkerOpts)
             }
         }
 
