@@ -21,8 +21,8 @@ typedef struct lib_handle_t lib_handle_t;
 
 lib_handle_t *lib_load_open(const char *lib);
 
-void *lib_load_resolve(lib_handle_t *handle, const char *symbol);
+void *lib_load_resolve(lib_handle_t *handle_t, const char *symbol);
 
-int lib_load_close(lib_handle_t *handle);
+int lib_load_close(lib_handle_t *handle_t);
 
 #endif /* !defined(LIB_LOAD_H) */

@@ -18,16 +18,6 @@
 
 #include <jni.h>
 #include <stdlib.h>
-#include <string.h>
-
-char *
-jstring_dup(JNIEnv *env, jstring arg)
-{
-  const char *_arg = (*env)->GetStringUTFChars(env, arg, NULL);
-  char *dup = strdup(_arg);
-  (*env)->ReleaseStringUTFChars(env, arg, _arg);
-  return dup;
-}
 
 /*
  * Class:     io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi
@@ -35,70 +25,51 @@ jstring_dup(JNIEnv *env, jstring arg)
  * Signature: (I;String;[Ljava/lang/String;)I
  *
  * Returns the following integer value depending on case:
- *  -6     : strdup returned NULL when copying libtor
- *  -7     : JNI GetArrayLength for argc failed
- *  -8     : malloc for argv failed
- *  -9     : strdup returned NULL when copying args to argv
- *  -10    : dlopen failed
- *  -11    : dlsym failed
- *  -12    : tor_main_configuration_new failed
- *  -13    : tor_main_configuration_set_command_line failed
- *  0      : tor_run_main success
- *  1 - 255: tor_run_main failed
+ *  -6     : JNI to C conversion failure
+ *  -7     : invalid arguments
+ *  -8     : kmp_tor_run_thread_t configuration failure
+ *  -9     : pthread_attr_t configuration failure
+ *  -10    : dlopen/dlsym failure
+ *  -11    : pthread failure
+ *  -12    : tor_main_configuration_new failure
+ *  -13    : tor_main_configuration_set_command_line failure
+ *  0      : tor_run_main returned success
+ *  1 - 255: tor_run_main returned failure
  */
 JNIEXPORT jint JNICALL
 Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMain
-(JNIEnv *env, jobject thiz, jint usleep_millis, jstring libtor, jobjectArray args)
+(JNIEnv *env, jobject thiz, jint shutdown_delay_millis, jstring libtor, jobjectArray args)
 {
-  char *cstr_libtor = NULL;
-  char **argv = NULL;
+  int result = -1;
   int argc = -1;
-  int rv = -1;
+  char **argv = NULL;
+  const char *libtor_cstr = NULL;
 
-  cstr_libtor = jstring_dup(env, libtor);
-  if (cstr_libtor == NULL) {
+  argc = (*env)->GetArrayLength(env, args);
+  if (argc <= 0) {
     return -6;
   }
 
-  argc = (*env)->GetArrayLength(env, args);
-  if (argc == -1) {
-    free(cstr_libtor);
-    return -7;
-  }
-
-  argv = (char **) malloc(argc * sizeof(char *));
+  argv = malloc(argc * sizeof(char *));
   if (argv == NULL) {
-    free(cstr_libtor);
-    return -8;
+    return -6;
   }
 
-  for (jsize i = 0; i < argc; i++) {
-    if (rv != -1) {
-      argv[i] = NULL;
-      continue;
-    }
-
-    jstring arg = (jstring) (*env)->GetObjectArrayElement(env, args, i);
-    argv[i] = jstring_dup(env, arg);
-
-    if (argv[i] == NULL) {
-      rv = -9;
-    }
-  }
-
-  if (rv == -1) {
-    rv = kmp_tor_run_main(usleep_millis, cstr_libtor, argc, argv);
-  }
+  libtor_cstr = (*env)->GetStringUTFChars(env, libtor, NULL);
 
   for (int i = 0; i < argc; i++) {
-    char *arg = NULL;
-    arg = argv[i];
-    if (arg != NULL) {
-      free(arg);
-    }
+    jstring arg = (jstring) (*env)->GetObjectArrayElement(env, args, i);
+    argv[i] = (char *) (*env)->GetStringUTFChars(env, arg, NULL);
+  }
+
+  result = kmp_tor_run_main(shutdown_delay_millis, libtor_cstr, argc, argv);
+
+  (*env)->ReleaseStringUTFChars(env, libtor, libtor_cstr);
+  for (int i = 0; i < argc; i++) {
+    jstring arg = (jstring) (*env)->GetObjectArrayElement(env, args, i);
+    (*env)->ReleaseStringUTFChars(env, arg, argv[i]);
   }
   free(argv);
-  free(cstr_libtor);
 
-  return rv;
+  return result;
 }

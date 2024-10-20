@@ -25,16 +25,16 @@
  * Signature: (I;String;[Ljava/lang/String;)I
  *
  * Returns the following integer value depending on case:
- *  -6     : strdup returned NULL when copying libtor
- *  -7     : JNI GetArrayLength for argc failed
- *  -8     : malloc for argv failed
- *  -9     : strdup returned NULL when copying args to argv
- *  -10    : dlopen failed
- *  -11    : dlsym failed
- *  -12    : tor_main_configuration_new failed
- *  -13    : tor_main_configuration_set_command_line failed
- *  0      : tor_run_main success
- *  1 - 255: tor_run_main failed
+ *  -6     : JNI to C conversion failure
+ *  -7     : invalid arguments
+ *  -8     : kmp_tor_run_thread_t configuration failure
+ *  -9     : pthread_attr_t configuration failure
+ *  -10    : dlopen/dlsym failure
+ *  -11    : pthread failure
+ *  -12    : tor_main_configuration_new failure
+ *  -13    : tor_main_configuration_set_command_line failure
+ *  0      : tor_run_main returned success
+ *  1 - 255: tor_run_main returned failure
  */
 JNIEXPORT jint JNICALL
 Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMain

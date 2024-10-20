@@ -24,7 +24,7 @@
 #ifdef __ANDROID__
 #include <android/log.h>
 #define fprintf(ignored, ...) \
-  __android_log_print(ANDROID_LOG_ERROR, "torjni", ##__VA_ARGS__)
+  __android_log_print(ANDROID_LOG_ERROR, "lib_load", ##__VA_ARGS__)
 #endif // __ANDROID__
 
 #ifdef _WIN32
@@ -32,7 +32,7 @@
 
 struct lib_handle_t {
   char *lib;
-  HMODULE ptr;
+  HMODULE handle;
   char *err_buf;
 };
 #else
@@ -40,16 +40,29 @@ struct lib_handle_t {
 
 struct lib_handle_t {
   char *lib;
-  void *ptr;
+  void *handle;
 };
 #endif
 
-char *
-lib_load_error(lib_handle_t *handle)
+void
+lib_load_assert(lib_handle_t *handle_t)
 {
-  assert(handle != NULL);
+  assert(handle_t != NULL);
+  assert(handle_t->lib != NULL);
 #ifdef _WIN32
-  assert(handle->err_buf != NULL);
+  assert(handle_t->err_buf != NULL);
+#endif
+  assert(handle_t->handle != NULL);
+  return;
+}
+
+char *
+lib_load_error(lib_handle_t *handle_t)
+{
+  assert(handle_t != NULL);
+#ifdef _WIN32
+  assert(handle_t->err_buf != NULL);
+  handle_t->err_buf[0] = 0;
 
   DWORD result;
   result = FormatMessageA(
@@ -57,15 +70,15 @@ lib_load_error(lib_handle_t *handle)
     /* lpSource */      NULL,
     /* dwMessageId */   GetLastError(),
     /* dwLanguageId */  SUBLANG_DEFAULT * 1024 + LANG_NEUTRAL, // MAKELANGID macro
-    /* lpBuffer */      handle->err_buf,
-    /* nSize */         sizeof(handle->err_buf),
+    /* lpBuffer */      handle_t->err_buf,
+    /* nSize */         sizeof(handle_t->err_buf),
     /* va_list */       NULL
   );
   if (result == 0) {
     return "Error Not Known";
   }
 
-  return handle->err_buf;
+  return handle_t->err_buf;
 #else
 
   return dlerror();
@@ -73,72 +86,21 @@ lib_load_error(lib_handle_t *handle)
 }
 
 void
-lib_handle_assert(lib_handle_t *handle)
+lib_load_free(lib_handle_t *handle_t)
 {
-  assert(handle != NULL);
-  assert(handle->lib != NULL);
-#ifdef _WIN32
-  assert(handle->err_buf != NULL);
-#endif
-  assert(handle->ptr != NULL);
-  return;
-}
+  assert(handle_t != NULL);
+  assert(handle_t->handle == NULL);
 
-void
-lib_handle_free(lib_handle_t *handle)
-{
-  assert(handle != NULL);
-  assert(handle->ptr == NULL);
-
-  free(handle->lib);
-  handle->lib = NULL;
-#ifdef _WIN32
-  free(handle->err_buf);
-  handle->err_buf = NULL;
-#endif
-  free(handle);
-  return;
-}
-
-int
-lib_handle_close(lib_handle_t *handle)
-{
-  lib_handle_assert(handle);
-
-  int result = -1;
-  char *err = NULL;
-
-  for (int i = 0; i < 5; i++) {
-    if (i > 0) {
-      // Exponential back off before trying again
-      usleep((useconds_t) i * 1000);
-    }
-
-#ifdef _WIN32
-    // FreeLibrary returns 0 on failure
-    if (FreeLibrary(handle->ptr) == 0) {
-      result = -1;
-    } else {
-      result = 0;
-    }
-#else
-    result = dlclose(handle->ptr);
-#endif
-
-    if (result == 0) {
-      break;
-    } else {
-      err = lib_load_error(handle);
-    }
+  if (handle_t->lib != NULL) {
+    free(handle_t->lib);
   }
-
-  if (result != 0) {
-    fprintf(stderr, "KmpTor: Failed to close handle[%s] - error[%s]\n", handle->lib, err);
+#ifdef _WIN32
+  if (handle_t->err_buf != NULL) {
+    free(handle_t->err_buf);
   }
-
-  handle->ptr = NULL;
-
-  return result;
+#endif
+  free(handle_t);
+  return;
 }
 
 lib_handle_t *
@@ -148,44 +110,48 @@ lib_load_open(const char *lib)
     return NULL;
   }
 
-  lib_handle_t *handle = malloc(sizeof(lib_handle_t));
-  if (handle == NULL) {
+  lib_handle_t *handle_t = malloc(sizeof(lib_handle_t));
+  if (handle_t == NULL) {
     fprintf(stderr, "KmpTor: Failed to allocate memory to lib_handle_t for lib[%s]\n", lib);
     return NULL;
   }
-#ifdef _WIN32
 
-  handle->err_buf = malloc(2048 * sizeof(char *));
-  if (handle->err_buf == NULL) {
-    fprintf(stderr, "KmpTor: Failed to allocate memory to lib_handle_t.err_buf for lib[%s]\n", lib);
-    lib_handle_free(handle);
-    return NULL;
-  }
-  handle->err_buf[0] = 0;
-#endif
-
-  handle->lib = strdup(lib);
-  if (handle->lib == NULL) {
+  handle_t->lib = strdup(lib);
+  if (handle_t->lib == NULL) {
     fprintf(stderr, "KmpTor: Failed to allocate memory to lib_handle_t.lib for lib[%s]\n", lib);
-    lib_handle_free(handle);
+    lib_load_free(handle_t);
     return NULL;
   }
 #ifdef _WIN32
+
+  handle_t->err_buf = malloc(2048 * sizeof(char *));
+  if (handle_t->err_buf == NULL) {
+    fprintf(stderr, "KmpTor: Failed to allocate memory to lib_handle_t.err_buf for lib[%s]\n", lib);
+    lib_load_free(handle_t);
+    return NULL;
+  }
+  handle_t->err_buf[0] = 0;
 
   int len = 0;
   wchar_t *w_lib = NULL;
 
-  len = MultiByteToWideChar(CP_THREAD_ACP, 0, handle->lib, -1, NULL, 0);
+  len = MultiByteToWideChar(CP_THREAD_ACP, 0, handle_t->lib, -1, NULL, 0);
   if (len == 0) {
-    lib_handle_free(handle);
+    lib_load_free(handle_t);
     return NULL;
   }
-  w_lib = malloc(len * sizeof(*w_lib));
-  MultiByteToWideChar(CP_THREAD_ACP, 0, handle->lib, -1, w_lib, len);
 
-  handle->ptr = LoadLibraryExW(w_lib, NULL, 0);
-  if (handle->ptr == NULL) {
-    handle->ptr = LoadLibraryW(w_lib);
+  w_lib = malloc(len * sizeof(*w_lib));
+  if (w_lib == NULL) {
+    lib_load_free(handle_t);
+    return NULL;
+  }
+
+  MultiByteToWideChar(CP_THREAD_ACP, 0, handle_t->lib, -1, w_lib, len);
+
+  handle_t->handle = LoadLibraryExW(w_lib, NULL, 0);
+  if (handle_t->handle == NULL) {
+    handle_t->handle = LoadLibraryW(w_lib);
   }
 
   free(w_lib);
@@ -200,33 +166,33 @@ lib_load_open(const char *lib)
   // RTLD_LOCAL: Even though this is documented as the default
   //             for Linux/Android when not present, it is NOT
   //             the default for macOS (RTLD_GLOBAL is).
-  handle->ptr = dlopen(handle->lib, RTLD_NOW | RTLD_LOCAL);
+  handle_t->handle = dlopen(handle_t->lib, RTLD_NOW | RTLD_LOCAL);
 #endif
 
-  if (handle->ptr == NULL) {
-    char *err = lib_load_error(handle);
-    fprintf(stderr, "KmpTor: Failed to open lib[%s] - error[%s]\n", handle->lib, err);
-    lib_handle_free(handle);
+  if (handle_t->handle == NULL) {
+    char *err = lib_load_error(handle_t);
+    fprintf(stderr, "KmpTor: Failed to open lib[%s] - error[%s]\n", handle_t->lib, err);
+    lib_load_free(handle_t);
     return NULL;
   }
 
-  return handle;
+  return handle_t;
 }
 
 void *
-lib_load_resolve(lib_handle_t *handle, const char *symbol)
+lib_load_resolve(lib_handle_t *handle_t, const char *symbol)
 {
-  lib_handle_assert(handle);
+  lib_load_assert(handle_t);
   void *ptr = NULL;
 
 #ifdef _WIN32
-  ptr = GetProcAddress(handle->ptr, symbol);
+  ptr = GetProcAddress(handle_t->handle, symbol);
 #else
-  ptr = dlsym(handle->ptr, symbol);
+  ptr = dlsym(handle_t->handle, symbol);
 #endif
 
   if (ptr == NULL) {
-    char *err = lib_load_error(handle);
+    char *err = lib_load_error(handle_t);
     fprintf(stderr, "KmpTor: Failed to resolve symbol[%s] - error[%s]\n", symbol, err);
   }
 
@@ -234,40 +200,42 @@ lib_load_resolve(lib_handle_t *handle, const char *symbol)
 }
 
 int
-lib_load_close(lib_handle_t *handle)
+lib_load_close(lib_handle_t *handle_t)
 {
-  int result;
-  result = lib_handle_close(handle);
-//  usleep((useconds_t) 1000);
-//
-//#ifdef _WIN32
-//  // TODO: If Failure - GetModuleHandle && UnmapViewOfFile
-//#else
-//  int i = 1;
-//  int flags = (RTLD_NOLOAD | RTLD_LOCAL);
-//  void *nl_handle = NULL;
-//
-//  nl_handle = dlopen(handle->lib, flags);
-//
-//  while (nl_handle != NULL) {
-//    handle->ptr = nl_handle;
-//    lib_handle_close(handle);
-//    handle->ptr = nl_handle;
-//    lib_handle_close(handle);
-//    usleep((useconds_t) i * 1000);
-//    nl_handle = dlopen(handle->lib, flags);
-//    if (i++ > 10) {
-//      break;
-//    }
-//  }
-//
-//  if (nl_handle != NULL) {
-//    handle->ptr = nl_handle;
-//    result = lib_handle_close(handle);
-//    fprintf(stderr, "KmpTor: dlclose failed to unload lib[%s] after %i attempts\n", handle->lib, i - 2);
-//  }
-//#endif
+  lib_load_assert(handle_t);
 
-  lib_handle_free(handle);
+  int result = -1;
+  char *err = NULL;
+
+  for (int i = 0; i < 5; i++) {
+    if (i > 0) {
+      // Exponential back off before trying again
+      usleep((useconds_t) i * 1000);
+    }
+
+#ifdef _WIN32
+    // FreeLibrary returns 0 on failure
+    if (FreeLibrary(handle_t->handle) == 0) {
+      result = -1;
+    } else {
+      result = 0;
+    }
+#else
+    result = dlclose(handle_t->handle);
+#endif
+
+    if (result == 0) {
+      break;
+    } else {
+      err = lib_load_error(handle_t);
+    }
+  }
+
+  if (result != 0) {
+    fprintf(stderr, "KmpTor: Failed to close handle[%s] - error[%s]\n", handle_t->lib, err);
+  }
+
+  handle_t->handle = NULL;
+  lib_load_free(handle_t);
   return result;
 }

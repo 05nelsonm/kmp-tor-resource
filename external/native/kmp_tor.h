@@ -17,15 +17,20 @@
 #ifndef KMP_TOR_H
 #define KMP_TOR_H
 
+// TODO: Return handle to thread
+
 /*
  * Returns the following integer value depending on case:
- *  -10    : dlopen failed
- *  -11    : dlsym failed
- *  -12    : tor_main_configuration_new failed
- *  -13    : tor_main_configuration_set_command_line failed
- *  0      : tor_run_main success
- *  1 - 255: tor_run_main failed
+ *  -7     : invalid arguments
+ *  -8     : kmp_tor_run_thread_t configuration failure
+ *  -9     : pthread_attr_t configuration failure
+ *  -10    : dlopen/dlsym failure
+ *  -11    : pthread failure
+ *  -12    : tor_main_configuration_new failure
+ *  -13    : tor_main_configuration_set_command_line failure
+ *  0      : tor_run_main returned success
+ *  1 - 255: tor_run_main returned failure
  */
-int kmp_tor_run_main(int usleep_millis, const char *libtor, int argc, char *argv[]);
+int kmp_tor_run_main(int shutdown_delay_millis, const char *libtor, int argc, char *argv[]);
 
 #endif /* !defined(KMP_TOR_H) */

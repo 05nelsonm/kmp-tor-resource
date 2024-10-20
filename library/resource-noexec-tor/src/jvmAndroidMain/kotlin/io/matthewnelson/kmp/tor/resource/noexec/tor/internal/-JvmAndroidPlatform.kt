@@ -34,21 +34,21 @@ internal actual fun loadTorApi(): TorApi = KmpTorApi()
 @OptIn(InternalKmpTorApi::class)
 private class KmpTorApi: TorApi() {
 
-    private external fun kmpTorRunMain(usleepMillis: Int, libtor: String, args: Array<String>): Int
+    private external fun kmpTorRunMain(shutdownDelayMillis: Int, libtor: String, args: Array<String>): Int
 
     override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
         val libtor = extractLibTor()
-        val result = kmpTorRunMain(usleepMillis = 100, libtor = libtor.path, args = args)
+        val result = kmpTorRunMain(shutdownDelayMillis = 100, libtor = libtor.path, args = args)
 
         when (result) {
-            -6  -> "JNI: Failed to allocate memory for libtor path cstring"
-            -7  -> "JNI: Failed to determine args array size"
-            -8  -> "JNI: Failed to allocate memory for argv array"
-            -9  -> "JNI: Failed to populate argv array with arguments"
+            -6  -> "JNI: Failed to convert args to C"
+            -7  -> "JNI: kmp_tor_run_main invalid arguments"
+            -8  -> "JNI: kmp_tor_run_thread_t configuration failure"
+            -9  -> "JNI: pthread_attr_t configuration failure"
             -10 -> "JNI: Failed to load ${libtor.name}"
-            -11 -> "JNI: Failed to resolve tor_api function symbols"
-            -12 -> "JNI: Failed to acquire new tor_main_configuration_t"
-            -13 -> "JNI: Failed to set tor_main_configuration_t arguments"
+            -11 -> "JNI: pthread failure"
+            -12 -> "JNI: tor_main_configuration_new failure"
+            -13 -> "JNI: tor_main_configuration_set_command_line failure"
             else -> null
         }?.let { throw IllegalStateException(it) }
 
