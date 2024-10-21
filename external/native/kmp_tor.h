@@ -21,13 +21,11 @@
 
 /*
  * Returns the following integer value depending on case:
- *  -7     : invalid arguments
- *  -8     : kmp_tor_run_thread_t configuration failure
- *  -9     : pthread_attr_t configuration failure
- *  -10    : dlopen/dlsym failure
- *  -11    : pthread failure
- *  -12    : tor_main_configuration_new failure
- *  -13    : tor_main_configuration_set_command_line failure
+ *  -10    : invalid arguments
+ *  -11    : configuration failure
+ *  -12    : dlopen/dlsym failure
+ *  -13    : tor_main_configuration_new failure
+ *  -14    : tor_main_configuration_set_command_line failure
  *  0      : tor_run_main returned success
  *  1 - 255: tor_run_main returned failure
  */

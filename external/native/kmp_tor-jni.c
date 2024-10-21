@@ -18,6 +18,16 @@
 
 #include <jni.h>
 #include <stdlib.h>
+#include <string.h>
+
+char *
+jstring_dup(JNIEnv *env, jstring arg)
+{
+  const char *_arg = (*env)->GetStringUTFChars(env, arg, NULL);
+  char *dup = strdup(_arg);
+  (*env)->ReleaseStringUTFChars(env, arg, _arg);
+  return dup;
+}
 
 /*
  * Class:     io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi
@@ -25,14 +35,12 @@
  * Signature: (I;String;[Ljava/lang/String;)I
  *
  * Returns the following integer value depending on case:
- *  -6     : JNI to C conversion failure
- *  -7     : invalid arguments
- *  -8     : kmp_tor_run_thread_t configuration failure
- *  -9     : pthread_attr_t configuration failure
- *  -10    : dlopen/dlsym failure
- *  -11    : pthread failure
- *  -12    : tor_main_configuration_new failure
- *  -13    : tor_main_configuration_set_command_line failure
+ *  -9     : JNI to C conversion failure
+ *  -10    : invalid arguments
+ *  -11    : configuration failure
+ *  -12    : dlopen/dlsym failure
+ *  -13    : tor_main_configuration_new failure
+ *  -14    : tor_main_configuration_set_command_line failure
  *  0      : tor_run_main returned success
  *  1 - 255: tor_run_main returned failure
  */
@@ -43,33 +51,49 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMa
   int result = -1;
   int argc = -1;
   char **argv = NULL;
-  const char *libtor_cstr = NULL;
+  char *libtor_cstr = NULL;
 
   argc = (*env)->GetArrayLength(env, args);
   if (argc <= 0) {
-    return -6;
+    return -9;
+  }
+
+  libtor_cstr = jstring_dup(env, libtor);
+  if (libtor_cstr == NULL) {
+    return -9;
   }
 
   argv = malloc(argc * sizeof(char *));
   if (argv == NULL) {
-    return -6;
+    free(libtor_cstr);
+    return -9;
   }
 
-  libtor_cstr = (*env)->GetStringUTFChars(env, libtor, NULL);
-
   for (int i = 0; i < argc; i++) {
+    if (result != -1) {
+      argv[i] = NULL;
+      continue;
+    }
+
     jstring arg = (jstring) (*env)->GetObjectArrayElement(env, args, i);
-    argv[i] = (char *) (*env)->GetStringUTFChars(env, arg, NULL);
+    argv[i] = jstring_dup(env, arg);
+
+    if (argv[i] == NULL) {
+      result = -9;
+    }
   }
 
-  result = kmp_tor_run_main(shutdown_delay_millis, libtor_cstr, argc, argv);
+  if (result == -1) {
+    result = kmp_tor_run_main(shutdown_delay_millis, libtor_cstr, argc, argv);
+  }
 
-  (*env)->ReleaseStringUTFChars(env, libtor, libtor_cstr);
   for (int i = 0; i < argc; i++) {
-    jstring arg = (jstring) (*env)->GetObjectArrayElement(env, args, i);
-    (*env)->ReleaseStringUTFChars(env, arg, argv[i]);
+    if (argv[i] != NULL) {
+      free(argv[i]);
+    }
   }
   free(argv);
+  free(libtor_cstr);
 
   return result;
 }

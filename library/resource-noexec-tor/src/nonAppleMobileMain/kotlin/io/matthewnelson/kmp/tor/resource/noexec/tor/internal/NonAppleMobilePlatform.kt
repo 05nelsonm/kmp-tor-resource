@@ -42,13 +42,11 @@ private class KmpTorApi: TorApi() {
         }
 
         when (result) {
-            -7  -> "kmp_tor_run_main invalid arguments"
-            -8  -> "kmp_tor_run_thread_t configuration failure"
-            -9  -> "pthread_attr_t configuration failure"
-            -10 -> "Failed to load ${libtor.name}"
-            -11 -> "pthread failure"
-            -12 -> "tor_main_configuration_new failure"
-            -13 -> "tor_main_configuration_set_command_line failure"
+            -10 -> "kmp_tor_run_main invalid arguments"
+            -11 -> "kmp_tor_run_main configuration failure"
+            -12 -> "Failed to load ${libtor.name}"
+            -13 -> "tor_main_configuration_new failure"
+            -14 -> "tor_main_configuration_set_command_line failure"
             else -> null
         }?.let { throw IllegalStateException(it) }
 

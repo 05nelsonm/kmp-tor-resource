@@ -45,14 +45,12 @@ private class KmpTorApi: TorApi() {
         )
 
         when (result) {
-            -6  -> "JNI: Failed to convert args to C"
-            -7  -> "JNI: kmp_tor_run_main invalid arguments"
-            -8  -> "JNI: kmp_tor_run_thread_t configuration failure"
-            -9  -> "JNI: pthread_attr_t configuration failure"
-            -10 -> "JNI: Failed to load ${libtor.name}"
-            -11 -> "JNI: pthread failure"
-            -12 -> "JNI: tor_main_configuration_new failure"
-            -13 -> "JNI: tor_main_configuration_set_command_line failure"
+            -9  -> "JNI: Failed to convert args to C"
+            -10 -> "JNI: kmp_tor_run_main invalid arguments"
+            -11 -> "JNI: kmp_tor_run_main configuration failure"
+            -12 -> "JNI: Failed to load ${libtor.name}"
+            -13 -> "JNI: tor_main_configuration_new failure"
+            -14 -> "JNI: tor_main_configuration_set_command_line failure"
             else -> null
         }?.let { throw IllegalStateException(it) }
 
