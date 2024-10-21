@@ -273,37 +273,31 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     srcDirs = project.files(externalNativeDir)
                     headersDirs = project.files(externalNativeDir)
                     includeFiles = listOf("lib_load.c", "kmp_tor.c")
-
-                    when (KonanTarget.predefinedTargets[target]?.family) {
-                        Family.LINUX,
-//                        Family.IOS, // TODO
-                        Family.MINGW,
-                        Family.OSX -> {}
-                        else -> {
-                            // Target not supported. Disable cklib task
-                            isEnabled = false
-                        }
-                    }
                 }
             }
 
             targets.filterIsInstance<KotlinNativeTarget>().forEach target@ { target ->
                 val linkerOpts = when (target.konanTarget.family) {
                     Family.LINUX,
-//                    Family.IOS, // TODO
+                    Family.IOS,
                     Family.OSX -> "-lpthread -ldl"
                     Family.MINGW -> ""
                     else -> null
-                } ?: return@target
+                }
+
+                check(linkerOpts != null) { "Configuration needed for $target" }
 
                 target.compilations["main"].cinterops.create("kmp_tor") {
-                    definitionFile.set(
+                    if (isGpl) {
+                        // Windows does not like symbolic links. Always use the real path.
+                        project.projectDir.resolveSibling(project.name.substringBeforeLast("-gpl"))
+                    } else {
                         project.projectDir
-                            .resolve("src")
-                            .resolve("nativeInterop")
-                            .resolve("cinterop")
-                            .resolve("kmp_tor.def")
-                    )
+                    }.resolve("src")
+                        .resolve("nativeInterop")
+                        .resolve("cinterop")
+                        .resolve("kmp_tor.def")
+                        .let { definitionFile.set(it) }
 
                     includeDirs(externalNativeDir.path)
                 }

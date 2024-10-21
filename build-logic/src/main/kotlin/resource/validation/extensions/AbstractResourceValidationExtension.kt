@@ -216,13 +216,17 @@ sealed class AbstractResourceValidationExtension(
                     val cinterop = cinterops.create(interop.defFileName)
 
                     if (result.isNotEmpty()) {
-                        cinterop.definitionFile.set(
+                        if (moduleName.endsWith("-gpl")) {
+                            // Windows does not like symbolic links. Always use the real path.
+                            dirModuleMock.resolveSibling(moduleName.substringBeforeLast("-gpl"))
+                        } else {
                             dirModuleMock
-                                .resolve("src")
-                                .resolve("nativeInterop")
-                                .resolve("cinterop")
-                                .resolve(interop.defFileName + ".def")
-                        )
+                        }.resolve("src")
+                            .resolve("nativeInterop")
+                            .resolve("cinterop")
+                            .resolve(interop.defFileName + ".def")
+                            .let { cinterop.definitionFile.set(it) }
+
                         return@target
                     }
 
@@ -230,7 +234,7 @@ sealed class AbstractResourceValidationExtension(
                         definitionFile.set(
                             dirProjectRoot
                                 .resolve("library")
-                                .resolve(moduleName)
+                                .resolve(moduleName.substringBeforeLast("-gpl"))
                                 .resolve("src")
                                 .resolve("nativeInterop")
                                 .resolve("cinterop")
