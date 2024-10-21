@@ -1,3 +1,4 @@
+_OPENSSL_cleanup
 _tor_main_configuration_new
 _tor_main_configuration_set_command_line
 _tor_main_configuration_setup_control_socket

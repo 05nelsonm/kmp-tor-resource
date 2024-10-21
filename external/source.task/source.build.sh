@@ -249,6 +249,7 @@ fi
   # OPENSSL
   CONF_OPENSSL='./Configure no-shared \
     no-asm \
+    no-atexit \
     no-comp \
     no-dso \
     no-dtls \
