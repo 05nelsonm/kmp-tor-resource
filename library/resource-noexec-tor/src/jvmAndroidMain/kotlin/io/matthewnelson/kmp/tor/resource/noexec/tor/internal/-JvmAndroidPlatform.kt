@@ -19,6 +19,7 @@ import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.IOException
 import io.matthewnelson.kmp.file.SysTempDir
 import io.matthewnelson.kmp.file.resolve
+import io.matthewnelson.kmp.file.toFile
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.common.core.OSInfo
@@ -33,45 +34,58 @@ internal actual fun loadTorApi(): TorApi = KmpTorApi()
 @OptIn(InternalKmpTorApi::class)
 private class KmpTorApi: TorApi() {
 
-    private external fun kmpTorRunMain(args: Array<String>): Int
+    private external fun kmpTorRunMain(shutdownDelayMillis: Int, libtor: String, args: Array<String>): Int
 
     override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
-        val result = kmpTorRunMain(args)
+        val libtor = extractLibTor()
+        val result = kmpTorRunMain(
+            shutdownDelayMillis = 100,
+            libtor = libtor.path,
+            args = args,
+        )
 
         when (result) {
-            -10 -> "JNI: Failed to acquire new tor_main_configuration_t"
-            -11 -> "JNI: Failed to determine args array size"
-            -12 -> "JNI: Failed to allocate memory for argv array"
-            -13 -> "JNI: Failed to populate argv array with arguments"
-            -14 -> "JNI: Failed to set tor_main_configuration_t arguments"
+            -9  -> "JNI: Failed to convert args to C"
+            -10 -> "JNI: kmp_tor_run_main invalid arguments"
+            -11 -> "JNI: kmp_tor_run_main configuration failure"
+            -12 -> "JNI: Failed to load ${libtor.name}"
+            -13 -> "JNI: tor_main_configuration_new failure"
+            -14 -> "JNI: tor_main_configuration_set_command_line failure"
             else -> null
         }?.let { throw IllegalStateException(it) }
 
         return result
     }
 
-    init {
+    private fun extractLibTor(loadTorJni: Boolean = false): File {
         val tempDir = TEMP_DIR
 
-        try {
+        return try {
             if (tempDir == null) {
-                // Android Runtime. libtor.so
-                System.loadLibrary("tor")
+                // Android Runtime >> libtorjni.so & libtor.so
+                if (loadTorJni) {
+                    System.loadLibrary("torjni")
+                }
+                "libtor.so".toFile()
             } else {
                 val map: Map<String, File> = RESOURCE_CONFIG_LIB_TOR
-                    .extractTo(tempDir, onlyIfDoesNotExist = false)
+                    .extractTo(tempDir, onlyIfDoesNotExist = true)
 
-                System.load(map.getValue(ALIAS_LIB_TOR).path)
-
-                // Windows compilations package separate torjni.dll lib that
-                // is linked against tor.dll. Must load after if it is present.
-                map[ALIAS_LIB_TOR_JNI]?.let { jniLib -> System.load(jniLib.path) }
+                if (loadTorJni) {
+                    System.load(map.getValue(ALIAS_LIB_TOR_JNI).path)
+                }
+                map.getValue(ALIAS_LIB_TOR)
             }
         } catch (t: Throwable) {
             if (t is IOException) throw t
-            throw IllegalStateException("Failed to dynamically load tor library", t)
+            if (t is IllegalStateException) throw t
+
+            // UnsatisfiedLinkError
+            throw IllegalStateException("Failed to load torjni", t)
         }
     }
+
+    init { extractLibTor(loadTorJni = true) }
 
     private companion object {
 

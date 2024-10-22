@@ -15,9 +15,18 @@
  **/
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
+import kotlin.experimental.ExperimentalNativeApi
 import kotlin.test.Test
 
-class ResourceLoaderNoExecNativeUnitTest: ResourceLoaderNoExecBaseTest() {
+@OptIn(ExperimentalNativeApi::class)
+class ResourceLoaderNoExecNativeUnitTest: ResourceLoaderNoExecBaseTest(
+    runTorMainCount = when (Platform.osFamily) {
+        // TODO: Dynamic lib
+        OsFamily.IOS -> 0
+        OsFamily.WINDOWS -> RUN_TOR_MAIN_COUNT_WINDOWS
+        else -> RUN_TOR_MAIN_COUNT_UNIX
+    }
+) {
 
     @Test
     fun stub() {}

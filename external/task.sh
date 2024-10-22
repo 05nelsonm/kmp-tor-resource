@@ -359,6 +359,12 @@ function package:android { ## Packages all Android build/out contents
   __package:android "x86" "libtorexec.so"
   __package:android "x86_64" "libtorexec.so"
 
+  dirname_final="resource-noexec-tor"
+  __package:android "arm64-v8a" "libtorjni.so"
+  __package:android "armeabi-v7a" "libtorjni.so"
+  __package:android "x86" "libtorjni.so"
+  __package:android "x86_64" "libtorjni.so"
+
   dirname_out="tor-gpl"
   dirname_final="resource-lib-tor-gpl"
   __package:android "arm64-v8a" "libtor.so"
@@ -371,6 +377,12 @@ function package:android { ## Packages all Android build/out contents
   __package:android "armeabi-v7a" "libtorexec.so"
   __package:android "x86" "libtorexec.so"
   __package:android "x86_64" "libtorexec.so"
+
+  dirname_final="resource-noexec-tor-gpl"
+  __package:android "arm64-v8a" "libtorjni.so"
+  __package:android "armeabi-v7a" "libtorjni.so"
+  __package:android "x86" "libtorjni.so"
+  __package:android "x86_64" "libtorjni.so"
 
   dirname_out="tor"
   dirname_final="resource-lib-tor"
@@ -388,6 +400,13 @@ function package:android { ## Packages all Android build/out contents
   __package:jvm "x86" "tor"
   __package:jvm "x86_64" "tor"
 
+  dirname_final="resource-noexec-tor"
+  rpath_native="resource/noexec/tor"
+  __package:jvm "aarch64" "libtorjni.so"
+  __package:jvm "armv7" "libtorjni.so"
+  __package:jvm "x86" "libtorjni.so"
+  __package:jvm "x86_64" "libtorjni.so"
+
   dirname_out="tor-gpl"
   dirname_final="resource-lib-tor-gpl"
   rpath_native="resource/lib/tor"
@@ -402,6 +421,13 @@ function package:android { ## Packages all Android build/out contents
   __package:jvm "armv7" "tor"
   __package:jvm "x86" "tor"
   __package:jvm "x86_64" "tor"
+
+  dirname_final="resource-noexec-tor-gpl"
+  rpath_native="resource/noexec/tor"
+  __package:jvm "aarch64" "libtorjni.so"
+  __package:jvm "armv7" "libtorjni.so"
+  __package:jvm "x86" "libtorjni.so"
+  __package:jvm "x86_64" "libtorjni.so"
 }
 
 function package:ios { ## Packages all iOS & iOS Simulator build/out contents
@@ -499,6 +525,14 @@ function package:linux-libc { ## Packages all Linux Libc build/out contents
   __package:jvm "x86" "tor"
   __package:jvm "x86_64" "tor"
 
+  dirname_final="resource-noexec-tor"
+  rpath_native="resource/noexec/tor"
+  __package:jvm "aarch64" "libtorjni.so"
+  __package:jvm "armv7" "libtorjni.so"
+  __package:jvm "ppc64" "libtorjni.so"
+  __package:jvm "x86" "libtorjni.so"
+  __package:jvm "x86_64" "libtorjni.so"
+
   dirname_out="tor-gpl"
   dirname_final="resource-lib-tor-gpl"
   rpath_native="resource/lib/tor"
@@ -515,6 +549,14 @@ function package:linux-libc { ## Packages all Linux Libc build/out contents
   __package:jvm "ppc64" "tor"
   __package:jvm "x86" "tor"
   __package:jvm "x86_64" "tor"
+
+  dirname_final="resource-noexec-tor-gpl"
+  rpath_native="resource/noexec/tor"
+  __package:jvm "aarch64" "libtorjni.so"
+  __package:jvm "armv7" "libtorjni.so"
+  __package:jvm "ppc64" "libtorjni.so"
+  __package:jvm "x86" "libtorjni.so"
+  __package:jvm "x86_64" "libtorjni.so"
 
   unset rpath_native
 
@@ -556,6 +598,12 @@ function package:macos { ## Packages all macOS & macOS LTS build/out contents
   __package:jvm:codesign "x86_64" "tor"
   __package:jvm:move:macos-lts
 
+  dirname_final="resource-noexec-tor"
+  rpath_native="resource/noexec/tor"
+  __package:jvm:codesign "aarch64" "libtorjni.dylib"
+  __package:jvm:codesign "x86_64" "libtorjni.dylib"
+  __package:jvm:move:macos-lts
+
   dirname_out="tor-gpl"
   dirname_final="resource-lib-tor-gpl"
   rpath_native="resource/lib/tor"
@@ -567,6 +615,12 @@ function package:macos { ## Packages all macOS & macOS LTS build/out contents
   rpath_native="resource/exec/tor"
   __package:jvm:codesign "aarch64" "tor"
   __package:jvm:codesign "x86_64" "tor"
+  __package:jvm:move:macos-lts
+
+  dirname_final="resource-noexec-tor-gpl"
+  rpath_native="resource/noexec/tor"
+  __package:jvm:codesign "aarch64" "libtorjni.dylib"
+  __package:jvm:codesign "x86_64" "libtorjni.dylib"
   __package:jvm:move:macos-lts
 
   unset rpath_native
@@ -681,7 +735,7 @@ function sign:macos { ## 2 ARGS - [1]: smartcard-slot (e.g. 9c)  [2]: /path/to/a
   __sign:input:hsm_pin
   local smartcard_slot="$1"
   local path_apikey="$2"
-  local lib_names="libtor.dylib,tor"
+  local lib_names="libtor.dylib,tor,libtorjni.dylib"
 
   __sign:generate:detached:macos "aarch64"
   __sign:generate:detached:macos "x86_64"

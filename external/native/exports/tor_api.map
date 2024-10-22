@@ -1,6 +1,6 @@
 {
     global:
-        Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMain;
+        OPENSSL_cleanup;
         tor_main_configuration_new;
         tor_main_configuration_set_command_line;
         tor_main_configuration_setup_control_socket;

@@ -18,6 +18,7 @@ package resource.validation.extensions
 import com.android.build.gradle.LibraryExtension
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.getByName
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import resource.validation.extensions.internal.ERROR
@@ -208,30 +209,37 @@ sealed class AbstractResourceValidationExtension(
             targets.findByName(interop.targetName)?.let target@ { target ->
                 check(target is KotlinNativeTarget) { "${interop.targetName} must be a KotlinNativeTarget..." }
 
+                val packageInteropDir = interop.nativeInteropDir(dirModulePackage)
+
                 target.compilations.getByName("main").apply {
 
                     val cinterop = cinterops.create(interop.defFileName)
 
                     if (result.isNotEmpty()) {
-                        cinterop.defFile = dirModuleMock
-                            .resolve("src")
+                        if (moduleName.endsWith("-gpl")) {
+                            // Windows does not like symbolic links. Always use the real path.
+                            dirModuleMock.resolveSibling(moduleName.substringBeforeLast("-gpl"))
+                        } else {
+                            dirModuleMock
+                        }.resolve("src")
                             .resolve("nativeInterop")
                             .resolve("cinterop")
                             .resolve(interop.defFileName + ".def")
+                            .let { cinterop.definitionFile.set(it) }
 
                         return@target
                     }
 
-                    val packageInteropDir = interop.nativeInteropDir(dirModulePackage)
-
                     cinterop.apply {
-                        defFile = dirProjectRoot
-                            .resolve("library")
-                            .resolve(moduleName)
-                            .resolve("src")
-                            .resolve("nativeInterop")
-                            .resolve("cinterop")
-                            .resolve(interop.defFileName + ".def")
+                        definitionFile.set(
+                            dirProjectRoot
+                                .resolve("library")
+                                .resolve(moduleName.substringBeforeLast("-gpl"))
+                                .resolve("src")
+                                .resolve("nativeInterop")
+                                .resolve("cinterop")
+                                .resolve(interop.defFileName + ".def")
+                        )
 
                         val headersDir = packageInteropDir.resolve("include")
 
@@ -242,15 +250,16 @@ sealed class AbstractResourceValidationExtension(
                             header(headersDir.resolve(input.fileName).path)
                         }
                     }
+                }
 
-                    kotlinOptions {
-                        interop.inputs.forEach static@ { input ->
-                            if (!input.isStaticLib) return@static
-                            val libPath = packageInteropDir.resolve(input.fileName).path
+                @OptIn(ExperimentalKotlinGradlePluginApi::class)
+                target.compilerOptions {
+                    interop.inputs.forEach static@ { input ->
+                        if (!input.isStaticLib) return@static
+                        val libPath = packageInteropDir.resolve(input.fileName).path
 
-                            freeCompilerArgs += listOf("-include-binary", libPath)
-                            freeCompilerArgs += listOf("-linker-options", libPath)
-                        }
+                        freeCompilerArgs.addAll("-include-binary", libPath)
+                        freeCompilerArgs.addAll("-linker-options", libPath)
                     }
                 }
             }

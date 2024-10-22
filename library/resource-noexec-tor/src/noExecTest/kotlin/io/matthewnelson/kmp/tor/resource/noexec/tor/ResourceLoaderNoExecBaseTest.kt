@@ -28,7 +28,14 @@ import kotlin.test.*
  * to load libtor.so and pollute the memory space (resulting in a
  * crash). So this is just to disable that source set...
  * */
-abstract class ResourceLoaderNoExecBaseTest(private val runTorMain: Boolean = true) {
+abstract class ResourceLoaderNoExecBaseTest protected constructor(
+    private val runTorMainCount: Int = RUN_TOR_MAIN_COUNT_UNIX
+) {
+
+    protected companion object {
+        const val RUN_TOR_MAIN_COUNT_UNIX: Int = 500
+        const val RUN_TOR_MAIN_COUNT_WINDOWS: Int = 125
+    }
 
     @AfterTest
     fun cleanUp() {
@@ -54,7 +61,7 @@ abstract class ResourceLoaderNoExecBaseTest(private val runTorMain: Boolean = tr
 
     @Test
     fun givenResourceLoaderNoExec_whenWithApi_thenLoadsSuccessfully() {
-        if (!runTorMain || !CAN_RUN_FULL_TESTS) {
+        if (runTorMainCount <= 0 || !CAN_RUN_FULL_TESTS) {
             println("Skipping...")
             return
         }
@@ -67,25 +74,34 @@ abstract class ResourceLoaderNoExecBaseTest(private val runTorMain: Boolean = tr
     }
 
     @Test
-    fun givenResourceLoaderNoExec_whenRunInvalidConfig_thenReturnsNon0() {
-        if (!runTorMain || !CAN_RUN_FULL_TESTS) {
+    fun givenResourceLoaderNoExec_whenMultipleRuns_thenLibTorIsUnloaded() {
+        if (runTorMainCount <= 0 || !CAN_RUN_FULL_TESTS) {
             println("Skipping...")
             return
         }
 
-        val result = LOADER.withApi(TestRuntimeBinder) {
-            assertFalse(isRunning)
+        repeat(runTorMainCount) { index ->
+            if ((index + 1) % 10 == 0) {
+                println("RUN[${index + 1}]")
+            }
 
-            val rv = torRunMain(listOf(
-                "--SocksPort", "-1",
-                "--verify-config",
-            ))
+            val result = LOADER.withApi(TestRuntimeBinder) {
+                assertFalse(isRunning)
 
-            assertFalse(isRunning)
+                val rv = torRunMain(
+                    listOf(
+                        "--SocksPort", "-1",
+                        "--verify-config",
+                        "--quiet"
+                    )
+                )
 
-            rv
+                assertFalse(isRunning)
+
+                rv
+            }
+
+            assertEquals(1, result)
         }
-
-        assertEquals(1, result)
     }
 }
