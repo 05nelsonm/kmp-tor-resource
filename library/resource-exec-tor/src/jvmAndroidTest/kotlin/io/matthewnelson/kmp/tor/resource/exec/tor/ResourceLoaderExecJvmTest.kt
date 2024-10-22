@@ -44,87 +44,90 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
             files
         }
 
-        val b = loader.process(TestRuntimeBinder) { tor, configureEnv ->
-            ProcessBuilder().apply {
-                val env = environment()
-                env["HOME"] = TEST_RESOURCE_DIR.path
-                env.configureEnv()
-                redirectErrorStream(true)
+        repeat(2) {
+            val b = loader.process(TestRuntimeBinder) { tor, configureEnv ->
+                ProcessBuilder().apply {
+                    val env = environment()
+                    env["HOME"] = TEST_RESOURCE_DIR.path
+                    env.configureEnv()
+                    redirectErrorStream(true)
 
-                val cmds = mutableListOf<String>().apply {
-                    add(tor.path)
-                    add("-f"); add("-")
+                    val cmds = mutableListOf<String>().apply {
+                        add(tor.path)
+                        add("-f"); add("-")
 
-                    listOf(
-                        "--DataDirectory" to TEST_RESOURCE_DIR.resolve("data"),
-                        "--CacheDirectory" to TEST_RESOURCE_DIR.resolve("cache"),
-                    ).forEach { (option, argument) ->
-                        argument.deleteRecursively()
-                        argument.mkdirs()
-                        add(option); add(argument.path)
+                        listOf(
+                            "--DataDirectory" to TEST_RESOURCE_DIR.resolve("data"),
+                            "--CacheDirectory" to TEST_RESOURCE_DIR.resolve("cache"),
+                        ).forEach { (option, argument) ->
+                            argument.deleteRecursively()
+                            argument.mkdirs()
+                            add(option); add(argument.path)
+                        }
+
+                        if (geoipFiles != null) {
+                            add("--GeoIPFile"); add(geoipFiles.geoip.toString())
+                            add("--GeoIPv6File"); add(geoipFiles.geoip6.toString())
+                        }
+
+                        add("--DormantCanceledByStartup"); add("1")
+                        add("--SocksPort"); add("0")
+
+                        add("--DisableNetwork"); add("1")
+                        add("--RunAsDaemon"); add("0")
                     }
 
-                    if (geoipFiles != null) {
-                        add("--GeoIPFile"); add(geoipFiles.geoip.toString())
-                        add("--GeoIPv6File"); add(geoipFiles.geoip6.toString())
-                    }
-
-                    add("--DormantCanceledByStartup"); add("1")
-                    add("--SocksPort"); add("0")
-
-                    add("--DisableNetwork"); add("1")
-                    add("--RunAsDaemon"); add("0")
+                    command(cmds)
                 }
-
-                command(cmds)
             }
-        }
 
-        var p: Process? = null
-        val out = StringBuilder()
+            var p: Process? = null
+            val out = StringBuilder()
 
-        val expected = "Delaying directory fetches: DisableNetwork is set."
-        var expectedFound = false
-        try {
-            p = b.start()
+            val expected = "Delaying directory fetches: DisableNetwork is set."
+            var expectedFound = false
+            try {
+                p = b.start()
 
-            // Using arguments "-f" "-" to skip a torrc file. Need to close
-            // this end so tor stops waiting for configuration input.
-            p.outputStream.close()
+                // Using arguments "-f" "-" to skip a torrc file. Need to close
+                // this end so tor stops waiting for configuration input.
+                p.outputStream.close()
 
-            Thread {
-                try {
-                    val reader = p.inputStream.reader().buffered()
+                Thread {
+                    try {
+                        val reader = p.inputStream.reader().buffered()
 
-                    while (true) {
-                        val line = reader.readLine() ?: break
-                        out.appendLine(line)
-                        if (!line.contains(expected)) continue
-                        expectedFound = true
+                        while (true) {
+                            val line = reader.readLine() ?: break
+                            out.appendLine(line)
+                            if (!line.contains(expected)) continue
+                            expectedFound = true
+                        }
+                    } catch (_: Throwable) {
                     }
-                } catch (_: Throwable) {}
-            }.start()
+                }.start()
 
-            // Can't use Process.waitFor(3, TimeUnit.SECONDS) b/c
-            // it requires Android API 24+ so emulator will fail.
-            var i = 0
-            // max 20 seconds at 250ms delay intervals
-            while (i++ < 20 * 4 && !expectedFound) {
-                Thread.sleep(1_000 / 4)
+                // Can't use Process.waitFor(3, TimeUnit.SECONDS) b/c
+                // it requires Android API 24+ so emulator will fail.
+                var i = 0
+                // max 20 seconds at 250ms delay intervals
+                while (i++ < 20 * 4 && !expectedFound) {
+                    Thread.sleep(1_000 / 4)
+                }
+            } finally {
+                p?.destroy()
             }
-        } finally {
-            p?.destroy()
-        }
 
-        Thread.sleep(500)
+            Thread.sleep(500)
 
-        val outString = out.toString()
-        assertTrue(outString.contains(expected), outString)
+            val outString = out.toString()
+            assertTrue(outString.contains(expected), outString)
 
-        // TODO: Assert no warnings. Issue #49
-        //  Should show up if present on Android b/c redirecting stderr to stdout.
-        if (outString.contains("WARNING: linker:")) {
-            print(outString)
+            // TODO: Assert no warnings. Issue #49
+            //  Should show up if present on Android b/c redirecting stderr to stdout.
+            if (outString.contains("WARNING: linker:")) {
+                print(outString)
+            }
         }
     }
 }
