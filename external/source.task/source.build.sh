@@ -652,8 +652,6 @@ function __build:configure:target:finalize:output:shared {
   __build:SCRIPT "  rm -rf \"\$DIR_EXTERNAL/build/out/\$1/$DIR_OUT_SUFFIX\""
   __build:SCRIPT '  mkdir -p "$DIR_SCRIPT/shared-$1/bin"'
   __build:SCRIPT '  cp -Ra "$DIR_EXTERNAL/native" "$DIR_TMP/shared-$1"'
-  __build:SCRIPT '  cp -a "$DIR_EXTERNAL/tor/src/app/main/tor_main.c" "$DIR_TMP/shared-$1"'
-  __build:SCRIPT '  cp -a "$DIR_SCRIPT/$1/include/orconfig.h" "$DIR_TMP/shared-$1"'
   __build:SCRIPT '  cd "$DIR_TMP/shared-$1"'
   __build:SCRIPT ''
   __build:SCRIPT "  \$CC \$CFLAGS $shared_cflags \\"
@@ -680,7 +678,7 @@ function __build:configure:target:finalize:output:shared {
   fi
 
   __build:SCRIPT ''
-  __build:SCRIPT '  $CC $CFLAGS tor_main.c \'
+  __build:SCRIPT '  $CC $CFLAGS kmp_tor_main.c \'
   __build:SCRIPT "    -o $exec_name $exec_ldflags \\"
   __build:SCRIPT "    $shared_name"
   __build:SCRIPT ''

@@ -52,11 +52,11 @@ open class NoExecTorResourceValidationExtension private constructor(
     private val jvmLinuxLibcX86: String = "685d62cf81154dcac5b732a51a94f055c941b2ca246a862defeb533f27df06a2"
     private val jvmLinuxLibcX86_64: String = "10f0d6b1bb81e933accda3a12b691d9985b64b7e86cefc3867c832f7c5edbdf9"
 
-    protected open val jvmMacosAarch64: String = "762b7145c46b6b22baaacee1cbead44ca94357104d6e9364bb0a717cd9025078"
-    protected open val jvmMacosX86_64: String = "f9306e0bda89fc96b7f635a52bc698277d7196f95b59779e7b330b653dd54b4e"
+    protected open val jvmMacosAarch64: String = "df62251d15b0196c1f32237853060dff572ba9f667a30d39db39ffcac79a6fbf"
+    protected open val jvmMacosX86_64: String = "b0d22cc0700f398a2c8c22741e06ea2f0c2bb1bfae1ddf5fc303bdc8748fdd74"
 
-    protected open val jvmMingwX86: String = "5d320792720e1c7ca7ec798f15e01508830b949e4acb2055558581ff512963bd"
-    protected open val jvmMingwX86_64: String = "0e30551fd0ed2f65ffb25fb06d1b2d119515f09ff7903680f9cfa3ccc6b8a8c6"
+    protected open val jvmMingwX86: String = "18e7ce4236715e5e1171266632737f7bfa1bf0ccf6834b98eb6d91b4d110fe73"
+    protected open val jvmMingwX86_64: String = "3da7b42154ef2117e2e03b8799a3a1af58399a2f5d4e1afe46cca48060ab9a66"
 
     private val headerTorApi: String = "c346e767d3e6dbad44d1802579e7e4a8cf1b1ff8595152ebd4679b05d2de6df3"
 
@@ -124,11 +124,11 @@ open class NoExecTorResourceValidationExtension private constructor(
         project: Project,
     ): NoExecTorResourceValidationExtension(project, isGpl = true) {
 
-        override val jvmMacosAarch64: String = "32a7c5285d158ee4e1a788424e3d4d4f840ddcea5150f1d4f198c3d45957c4e2"
-        override val jvmMacosX86_64: String = "a01e53d00dab0dda12f12aca82875adc812abecd3fcf530388b7e17a7abca380"
+        override val jvmMacosAarch64: String = "cefaab2cdae985c5faf0ab1292087947f55319c99bd3d11cdb6e57bd9d7162ed"
+        override val jvmMacosX86_64: String = "a770ddc0638634b5eca3f0c937d881d68d7f0ff862185956a15d4b66e978fb60"
 
-        override val jvmMingwX86: String = "b4ca2ecb8fbcc5ea250a270288c804a1a6e6d60bd402bb6fe7a6d7596b94d0ea"
-        override val jvmMingwX86_64: String = "ecc306b45e32ccd157acf3931a68a2fac4f1e9c155eedb7514001a5f71910846"
+        override val jvmMingwX86: String = "f385e876c449493089084367445302f8cb933258f599b57f2a98d42753605c1c"
+        override val jvmMingwX86_64: String = "987c77e991997ba02a6950892d87f8263c920f134bdf88178fed1f2c6da68eea"
 
         override val iosArm64LibTor: String = "1e4c4b41dbeeae08d77655dbb1a267f27c6e3297631b1a9ce7199728db8fb4c0"
         override val iosArm64Orconfig: String = "b968c615cad5b2ae02db58c4e722941d18b67e56d6ffab2afe3379a0ac0359f1"
