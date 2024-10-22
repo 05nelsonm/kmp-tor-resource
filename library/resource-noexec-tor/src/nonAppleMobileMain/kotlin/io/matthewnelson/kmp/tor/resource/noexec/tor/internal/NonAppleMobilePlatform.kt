@@ -21,8 +21,8 @@ import io.matthewnelson.kmp.tor.common.api.TorApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.toCStringArray
-import kotlin.random.Random
-import kotlin.system.getTimeNanos
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @Throws(IllegalStateException::class, IOException::class)
 internal actual fun loadTorApi(): TorApi = KmpTorApi()
@@ -64,12 +64,8 @@ private class KmpTorApi: TorApi() {
     private companion object {
 
         private val TEMP_DIR: File by lazy {
-            // TODO: Use UUID (Kotlin 2.0.0)
-            @Suppress("DEPRECATION")
-            val tempDir = Random(getTimeNanos()).nextBytes(16).let { bytes ->
-                @OptIn(ExperimentalStdlibApi::class)
-                SysTempDir.resolve("kmp-tor_${bytes.toHexString(HexFormat.UpperCase)}")
-            }
+            @OptIn(ExperimentalUuidApi::class)
+            val tempDir = SysTempDir.resolve("kmp-tor_${Uuid.random()}")
 
             tempDir.deleteOnExit()
             RESOURCE_CONFIG_LIB_TOR.resources.forEach { resource ->
