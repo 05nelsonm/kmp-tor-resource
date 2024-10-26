@@ -222,16 +222,16 @@ MACOS_TARGETS="JVM,JS,IOS_ARM64,IOS_X64,IOS_SIMULATOR_ARM64,MACOS_ARM64,MACOS_X6
 - Check `resource-validation` error reports for any errors
 ```bash
 cat library/resource-geoip/build/reports/resource-validation/resource-geoip/native.err
+cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/iosSimulatorArm64.err
+cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/iosX64.err
 cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/macosArm64.err
 cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/macosX64.err
+cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/iosSimulatorArm64.err
+cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/iosX64.err
 cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/macosArm64.err
 cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/macosX64.err
 cat library/resource-noexec-tor/build/reports/resource-validation/resource-noexec-tor/iosArm64.err
-cat library/resource-noexec-tor/build/reports/resource-validation/resource-noexec-tor/iosSimulatorArm64.err
-cat library/resource-noexec-tor/build/reports/resource-validation/resource-noexec-tor/iosX64.err
 cat library/resource-noexec-tor-gpl/build/reports/resource-validation/resource-noexec-tor-gpl/iosArm64.err
-cat library/resource-noexec-tor-gpl/build/reports/resource-validation/resource-noexec-tor-gpl/iosSimulatorArm64.err
-cat library/resource-noexec-tor-gpl/build/reports/resource-validation/resource-noexec-tor-gpl/iosX64.err
 ```
 
 - Publish macOS build

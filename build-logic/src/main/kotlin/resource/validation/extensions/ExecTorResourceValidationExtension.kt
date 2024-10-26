@@ -70,6 +70,8 @@ open class ExecTorResourceValidationExtension private constructor(
     protected open val nativeMacosArm64: String = "f95e9c29423f9cf7e48951cf40c9ae79c6819205950550dbc2a5e893e6b32d39"
     protected open val nativeMacosX64: String = "048a73d63cb40c263272719ed2e9235dea3f1bcaa66da8d1c67d340467ce5bbd"
 
+    private val nativeIosSimulatorArm64 by lazy { nativeMacosArm64 }
+    private val nativeIosX64 by lazy { nativeMacosX64 }
     private val nativeMingwX64: String by lazy { jvmMingwX86_64 }
 
     /**
@@ -214,6 +216,19 @@ open class ExecTorResourceValidationExtension private constructor(
             ktFileName = "resource_tor_gz.kt",
             hash = nativeLinuxX64,
         ),
+
+        // native ios-simulator
+        ValidationHash.ResourceNative(
+            sourceSetName = "iosSimulatorArm64".toSourceSetName(),
+            ktFileName = "resource_tor_gz.kt",
+            hash = nativeIosSimulatorArm64,
+        ),
+        ValidationHash.ResourceNative(
+            sourceSetName = "iosX64".toSourceSetName(),
+            ktFileName = "resource_tor_gz.kt",
+            hash = nativeIosX64,
+        ),
+
 
         // native macos
         ValidationHash.ResourceNative(

@@ -16,6 +16,8 @@
 # Sourced by external/source.task/source.build.sh & external/source.task/source.package.sh
 
 # See https://github.com/05nelsonm/build-env
+# NOTE: If apple SDKs were updated with version bump, framework Info.plist(s)
+#       may need to be updated with new min version.
 readonly TAG_DOCKER_BUILD_ENV="0.2.0"
 
 readonly DOCKER="$(which docker)"

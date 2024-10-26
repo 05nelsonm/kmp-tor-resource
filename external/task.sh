@@ -46,8 +46,6 @@ function build:all:desktop { ## Builds all Linux, macOS, Windows targets
 #}
 
 function build:all:ios { ## Builds all iOS targets
-  build:ios-simulator:aarch64
-  build:ios-simulator:x86_64
   build:ios:aarch64
 }
 
@@ -117,26 +115,6 @@ function build:android:x86_64 { ## Builds Android x86_64
   local os_arch="x86_64"
   local openssl_target="android-x86_64"
   local ndk_abi="x86_64"
-  local cc_clang="yes"
-  __build:configure:target:init
-  __build:docker:execute
-}
-
-function build:ios-simulator:aarch64 { ## Builds iOS Simulator arm64
-  local os_name="ios"
-  local os_subtype="-simulator"
-  local os_arch="aarch64"
-  local openssl_target="iossimulator-xcrun"
-  local cc_clang="yes"
-  __build:configure:target:init
-  __build:docker:execute
-}
-
-function build:ios-simulator:x86_64 { ## Builds iOS Simulator x86_64
-  local os_name="ios"
-  local os_subtype="-simulator"
-  local os_arch="x86_64"
-  local openssl_target="iossimulator-xcrun"
   local cc_clang="yes"
   __build:configure:target:init
   __build:docker:execute
@@ -431,79 +409,7 @@ function package:android { ## Packages all Android build/out contents
 }
 
 function package:ios { ## Packages all iOS & iOS Simulator build/out contents
-  local target="ios"
-  local dirname_out="tor"
-  local dirname_final="resource-noexec-tor"
-  local os_arch="aarch64"
-  local native_target="iosArm64"
-
-  __package:native:static "libcrypto.a"
-  __package:native:static "libevent.a"
-  __package:native:static "liblzma.a"
-  __package:native:static "libssl.a"
-  __package:native:static "libtor.a"
-  __package:native:static "libz.a"
-  __package:native:static:header "orconfig.h"
-  __package:native:static:header "tor_api.h"
-
-  dirname_out="tor-gpl"
-  dirname_final="resource-noexec-tor-gpl"
-  __package:native:static "libcrypto.a"
-  __package:native:static "libevent.a"
-  __package:native:static "liblzma.a"
-  __package:native:static "libssl.a"
-  __package:native:static "libtor.a"
-  __package:native:static "libz.a"
-  __package:native:static:header "orconfig.h"
-  __package:native:static:header "tor_api.h"
-
-  target="ios-simulator"
-  dirname_out="tor"
-  dirname_final="resource-noexec-tor"
-  native_target="iosSimulatorArm64"
-  __package:native:static "libcrypto.a"
-  __package:native:static "libevent.a"
-  __package:native:static "liblzma.a"
-  __package:native:static "libssl.a"
-  __package:native:static "libtor.a"
-  __package:native:static "libz.a"
-  __package:native:static:header "orconfig.h"
-  __package:native:static:header "tor_api.h"
-
-  dirname_out="tor-gpl"
-  dirname_final="resource-noexec-tor-gpl"
-  __package:native:static "libcrypto.a"
-  __package:native:static "libevent.a"
-  __package:native:static "liblzma.a"
-  __package:native:static "libssl.a"
-  __package:native:static "libtor.a"
-  __package:native:static "libz.a"
-  __package:native:static:header "orconfig.h"
-  __package:native:static:header "tor_api.h"
-
-  os_arch="x86_64"
-  dirname_out="tor"
-  dirname_final="resource-noexec-tor"
-  native_target="iosX64"
-  __package:native:static "libcrypto.a"
-  __package:native:static "libevent.a"
-  __package:native:static "liblzma.a"
-  __package:native:static "libssl.a"
-  __package:native:static "libtor.a"
-  __package:native:static "libz.a"
-  __package:native:static:header "orconfig.h"
-  __package:native:static:header "tor_api.h"
-
-  dirname_out="tor-gpl"
-  dirname_final="resource-noexec-tor-gpl"
-  __package:native:static "libcrypto.a"
-  __package:native:static "libevent.a"
-  __package:native:static "liblzma.a"
-  __package:native:static "libssl.a"
-  __package:native:static "libtor.a"
-  __package:native:static "libz.a"
-  __package:native:static:header "orconfig.h"
-  __package:native:static:header "tor_api.h"
+  echo "TODO"
 }
 
 function package:linux-libc { ## Packages all Linux Libc build/out contents
@@ -631,22 +537,30 @@ function package:macos { ## Packages all macOS & macOS LTS build/out contents
   local native_resource="io.matthewnelson.kmp.tor.resource.lib.tor.internal"
   __package:native:codesign "aarch64" "libtor.dylib" "macosArm64Main"
   __package:native:codesign "x86_64" "libtor.dylib" "macosX64Main"
+  __package:native:codesign "aarch64" "libtor.dylib" "iosSimulatorArm64Main"
+  __package:native:codesign "x86_64" "libtor.dylib" "iosX64Main"
 
   dirname_out="tor-gpl"
   dirname_final="resource-lib-tor-gpl"
   __package:native:codesign "aarch64" "libtor.dylib" "macosArm64Main"
   __package:native:codesign "x86_64" "libtor.dylib" "macosX64Main"
+  __package:native:codesign "aarch64" "libtor.dylib" "iosSimulatorArm64Main"
+  __package:native:codesign "x86_64" "libtor.dylib" "iosX64Main"
 
   dirname_out="tor"
   dirname_final="resource-exec-tor"
   native_resource="io.matthewnelson.kmp.tor.resource.exec.tor.internal"
   __package:native:codesign "aarch64" "tor" "macosArm64Main"
   __package:native:codesign "x86_64" "tor" "macosX64Main"
+  __package:native:codesign "aarch64" "tor" "iosSimulatorArm64Main"
+  __package:native:codesign "x86_64" "tor" "iosX64Main"
 
   dirname_out="tor-gpl"
   dirname_final="resource-exec-tor-gpl"
   __package:native:codesign "aarch64" "tor" "macosArm64Main"
   __package:native:codesign "x86_64" "tor" "macosX64Main"
+  __package:native:codesign "aarch64" "tor" "iosSimulatorArm64Main"
+  __package:native:codesign "x86_64" "tor" "iosX64Main"
 }
 
 function package:mingw { ## Packages all Windows build/out contents
@@ -841,7 +755,7 @@ function validate:all:update_hashes { ## Updates gradle extensions with new hash
 }
 
 # Run
-if [ -z "$CMD_TASK" ] || [ "$CMD_TASK" = "help" ]; then
+if [ -z "$CMD_TASK" ] || [ "$CMD_TASK" = "help" ] || echo "$CMD_TASK" | grep -q "^__"; then
   help
 elif ! grep -qE "^function $CMD_TASK {" "$0"; then
   help

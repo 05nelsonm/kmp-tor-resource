@@ -36,15 +36,15 @@ open class NoExecTorResourceValidationExtension private constructor(
     @Suppress("unused")
     internal constructor(project: Project): this(project, isGpl = false)
 
-    private val androidAarch64: String = "d8b5bb3fd86a02771310fcbaaddfcd8f7c3c2384e03b490c4d91b5063ca8c6ce"
-    private val androidArmv7: String = "21a89ba7860d912c584a1e76417537c6a9f2b0c86c798ad5377a532966d8fb30"
-    private val androidX86: String = "6fdb0325424cb43f17bb9030f11f732117801e31726df39c4e86ab0da78b4bf9"
-    private val androidX86_64: String = "1d81aa328fbe360c38ccdaeea28bd62e4a09d0ff246b6db0152c6f6bbb2fb5c0"
+    private val androidAarch64: String = "6b34d96f0162f37d33e3690d24b812a2bea7c4d0191fb37ab70a439fbf49a1d3"
+    private val androidArmv7: String = "06946ab1275e4bf33567f1fd3b04be984c7787bfae59478f80899aa6a88f1014"
+    private val androidX86: String = "50e751234e069162f0d88d2f225be0f0afb64c43314fafdb95a08e175f4c2a77"
+    private val androidX86_64: String = "bb2ddfa83cf1980b5a5609c561e44b1533afa91be8e8a512107e26d499f8abfa"
 
-    private val jvmLinuxAndroidAarch64: String = "55359b6bf21b2419e14ecaf4afb37193476591488aa72b1401f38e7e3f11e318"
-    private val jvmLinuxAndroidArmv7: String = "5f04a2eed6824f1867b3358772b764dd9b8bdb55e06f621c652fcdc0db6d4144"
-    private val jvmLinuxAndroidX86: String = "664eed7b11f7f3ae14d06ed2235f61d536a153683bc9d7cba341d2974929d9bd"
-    private val jvmLinuxAndroidX86_64: String = "feaed940bde98bebe36b0eb829749124528d88f4a555ec728905b8dc052fa6ad"
+    private val jvmLinuxAndroidAarch64: String = "3c0e90df023fc94eff546a3feb6c268fc47de401b0655f7a8a2d1fab6bfc3041"
+    private val jvmLinuxAndroidArmv7: String = "3ee9f8405b37c473e72522dcbb17b965ee965c150956cdbcd3de169346605ba0"
+    private val jvmLinuxAndroidX86: String = "f8462323df73ecda7d39e88cdf393b27190c2b575e6c02e8d2d0c920bd2086d0"
+    private val jvmLinuxAndroidX86_64: String = "17709a2882455dd90bb70c42394fe237b39bbf01af4bf09464d7ee46fcc6807a"
 
     private val jvmLinuxLibcAarch64: String = "67d0c95450e440d16cc9f5d522302347556ad356a6ce53c7f0ff09c73ae0671e"
     private val jvmLinuxLibcArmv7: String = "5a35d406a803574baf37e250efbf751ebc0cbbdee308529543d940d6d7e9730e"

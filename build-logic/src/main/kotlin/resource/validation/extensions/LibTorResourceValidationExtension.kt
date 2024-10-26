@@ -70,6 +70,9 @@ open class LibTorResourceValidationExtension private constructor(
     protected open val nativeMacosArm64: String = "7044206c02f54805ce5dbd6b9e5f645aa565cf1e2bd4a87b23cf316ebbe6ad83"
     protected open val nativeMacosX64: String = "9fd92a3e5cd191aaef6534615c3c8e80843143dc3db53a44a510910ba1092e0d"
 
+    protected val nativeIosSimulatorArm64 by lazy { nativeMacosArm64 }
+    protected val nativeIosX64 by lazy { nativeMacosX64 }
+
     private val nativeMingwX64: String by lazy { jvmMingwX86_64 }
 
     /**
@@ -241,6 +244,18 @@ open class LibTorResourceValidationExtension private constructor(
             sourceSetName = "macosX64".toSourceSetName(),
             ktFileName = "resource_libtor_dylib_gz.kt",
             hash = nativeMacosX64,
+        ),
+
+        // native ios-simulator
+        ValidationHash.ResourceNative(
+            sourceSetName = "iosSimulatorArm64".toSourceSetName(),
+            ktFileName = "resource_libtor_dylib_gz.kt",
+            hash = nativeIosSimulatorArm64,
+        ),
+        ValidationHash.ResourceNative(
+            sourceSetName = "iosX64".toSourceSetName(),
+            ktFileName = "resource_libtor_dylib_gz.kt",
+            hash = nativeIosX64,
         ),
 
         // native mingw
