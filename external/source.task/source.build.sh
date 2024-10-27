@@ -641,8 +641,9 @@ function __build:configure:target:finalize:output:shared {
       ;;
     "ios"|"tvos"|"watchos")
       is_apple=true
-      exec_ldflags=""
 
+      # Disable executable compilations
+      exec_name=""
       # Disable JNI compilations
       jni_name=""
 
@@ -670,7 +671,6 @@ function __build:configure:target:finalize:output:shared {
     __util:require:var_set "$jni_cflags" "jni_cflags"
   fi
 
-  __util:require:var_set "$exec_name" "exec_name"
   __util:require:var_set "$shared_name" "shared_name"
   __util:require:var_set "$shared_cflags" "shared_cflags"
   __util:require:var_set "$strip_flags" "strip_flags"
@@ -708,10 +708,13 @@ function __build:configure:target:finalize:output:shared {
   fi
 
   __build:SCRIPT ''
-  __build:SCRIPT '  $CC $CFLAGS kmp_tor_main.c \'
-  __build:SCRIPT "    -o $exec_name $exec_ldflags \\"
-  __build:SCRIPT "    $shared_name"
-  __build:SCRIPT ''
+
+  if [ -n "$exec_name" ]; then
+    __build:SCRIPT '  $CC $CFLAGS kmp_tor_main.c \'
+    __build:SCRIPT "    -o $exec_name $exec_ldflags \\"
+    __build:SCRIPT "    $shared_name"
+    __build:SCRIPT ''
+  fi
 
   if [ -n "$jni_name" ]; then
     __build:SCRIPT "  \$CC \$CFLAGS $lib_load_cflags -c lib_load.c"
@@ -728,7 +731,10 @@ function __build:configure:target:finalize:output:shared {
     __build:SCRIPT "  cp -a $jni_name \"\$DIR_SCRIPT/shared-\$1/bin\""
   fi
 
-  __build:SCRIPT "  cp -a $exec_name \"\$DIR_SCRIPT/shared-\$1/bin\""
+  if [ -n "$exec_name" ]; then
+    __build:SCRIPT "  cp -a $exec_name \"\$DIR_SCRIPT/shared-\$1/bin\""
+  fi
+
   __build:SCRIPT "  cp -a $shared_name \"\$DIR_SCRIPT/shared-\$1/bin\""
   __build:SCRIPT '}'
 
@@ -737,8 +743,9 @@ function __build:configure:target:finalize:output:shared {
   if [ -n "$jni_name" ]; then
     needs_execution_items+=" \"bin/$jni_name\""
   fi
-
-  needs_execution_items+=" \"bin/$exec_name\""
+  if [ -n "$exec_name" ]; then
+    needs_execution_items+=" \"bin/$exec_name\""
+  fi
 
   __build:SCRIPT "
 if needs_execution \"\$DIR_SCRIPT\" \"shared-tor\" $needs_execution_items; then
@@ -760,16 +767,20 @@ fi
   __build:SCRIPT '  mkdir -p "$_out"'
   __build:SCRIPT ''
   __build:SCRIPT "  cp -a \"\$_bin/$shared_name\" \"\$_out\""
-  __build:SCRIPT "  cp -a \"\$_bin/$exec_name\" \"\$_out\""
 
+  if [ -n "$exec_name" ]; then
+    __build:SCRIPT "  cp -a \"\$_bin/$exec_name\" \"\$_out\""
+  fi
   if [ -n "$jni_name" ]; then
     __build:SCRIPT "  cp -a \"\$_bin/$jni_name\" \"\$_out\""
   fi
 
   __build:SCRIPT ''
   __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$shared_name\" 2>/dev/null"
-  __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$exec_name\" 2>/dev/null"
 
+  if [ -n "$exec_name" ]; then
+    __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$exec_name\" 2>/dev/null"
+  fi
   if [ -n "$jni_name" ]; then
     __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$jni_name\" 2>/dev/null"
   fi
@@ -777,6 +788,9 @@ fi
   __build:SCRIPT ''
 
   if [ "$os_name" = "android" ]; then
+    __util:require:var_set "$exec_name" "exec_name"
+    __util:require:var_set "$jni_name" "jni_name"
+
     __build:SCRIPT "  _out_linux=\"out/\$1/linux-android/$os_arch\""
     __build:SCRIPT '  rm -rf "$_out_linux"'
     __build:SCRIPT '  mkdir -p "$_out_linux"'
@@ -791,9 +805,11 @@ fi
   __build:SCRIPT "  echo \"        STRIP[\$STRIP $strip_flags]\""
   __build:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/$shared_name\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"$shared_name\")\""
   __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/$shared_name\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"$shared_name\")\""
-  __build:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/$exec_name\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"$exec_name\")\""
-  __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/$exec_name\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"$exec_name\")\""
 
+  if [ -n "$exec_name" ]; then
+    __build:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/$exec_name\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"$exec_name\")\""
+    __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/$exec_name\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"$exec_name\")\""
+  fi
   if [ -n "$jni_name" ]; then
     __build:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/$jni_name\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"$jni_name\")\""
     __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/$jni_name\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"$jni_name\")\""
@@ -810,20 +826,26 @@ fi
     needs_execution_items+=" \"$jni_name\""
   fi
 
+  local needs_execution_items_linux_android="$needs_execution_items"
+
+  if [ -n "$exec_name" ]; then
+    needs_execution_items+=" \"$exec_name\""
+  fi
+
   __build:SCRIPT "
-if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/$DIR_OUT_SUFFIX\" $needs_execution_items \"$exec_name\"; then
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/$DIR_OUT_SUFFIX\" $needs_execution_items; then
   install_shared \"tor\"
 fi
-if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/$DIR_OUT_SUFFIX\" $needs_execution_items \"$exec_name\"; then
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/$DIR_OUT_SUFFIX\" $needs_execution_items; then
   install_shared \"tor-gpl\"
 fi"
 
   if [ "$os_name" = "android" ]; then
     __build:SCRIPT "
-if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/linux-$os_name/$os_arch\" $needs_execution_items \"tor\"; then
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/linux-$os_name/$os_arch\" $needs_execution_items_linux_android \"tor\"; then
   install_shared \"tor\"
 fi
-if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/linux-$os_name/$os_arch\" $needs_execution_items \"tor\"; then
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/linux-$os_name/$os_arch\" $needs_execution_items_linux_android \"tor\"; then
   install_shared \"tor-gpl\"
 fi"
   fi

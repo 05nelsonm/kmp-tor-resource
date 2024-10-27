@@ -113,8 +113,6 @@ fun KmpConfigurationExtension.configureExecTor(
         sourceSetConnect(
             newName = "exec",
             existingNames = listOf(
-                "iosSimulatorArm64",
-                "iosX64",
                 "jvmAndroid",
                 "js",
                 "linux",
@@ -132,7 +130,7 @@ fun KmpConfigurationExtension.configureExecTor(
         sourceSetConnect(
             newName = "nonExec",
             existingNames = listOf(
-                "iosArm64",
+                "ios",
             ),
         )
         sourceSetConnect(
@@ -239,8 +237,6 @@ fun KmpConfigurationExtension.configureExecTor(
                     "jvm" to "js",
 
                     "jvm" to null,
-                    "iosSimulatorArm64" to null,
-                    "iosX64" to null,
                     "linuxArm64" to null,
                     "linuxX64" to null,
                     "macosArm64" to null,

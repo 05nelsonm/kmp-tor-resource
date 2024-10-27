@@ -67,9 +67,6 @@ open class ExecTorResourceValidationExtension private constructor(
     private val nativeLinuxArm64: String = jvmLinuxLibcAarch64
     private val nativeLinuxX64: String = jvmLinuxLibcX86_64
 
-    protected open val nativeIosSimulatorArm64: String = "35f322e9af68944044228f952f1fb44bcb3c2f9b69e59cda986b8d28a640346f"
-    protected open val nativeIosX64: String = "71cd490fc5111d4f7d421204107a66d3fa43d259a47d9a31d461a62ba04104cc"
-
     protected open val nativeMacosArm64: String = "9cc28aa99c78adbd52efa9ef45689174a7321ba7d00f2997085d10cc78563be1"
     protected open val nativeMacosX64: String = "5973740c294ab2048abc8f92eeecd6fd2c262ee6175b4807124af294154fa5d8"
 
@@ -88,9 +85,6 @@ open class ExecTorResourceValidationExtension private constructor(
 
         override val jvmMingwX86: String = "9f0ee8864d3297906a2800198d552497a92af4a57168afc529a16be2569d168d"
         override val jvmMingwX86_64: String = "5148f1e32d79b4a5895d60e3343a5b009ffef056f7df47d199418403ae499991"
-
-        override val nativeIosSimulatorArm64: String = "39df69a93ee4a27076a1a1b372d697c6e6c56983ef472686b2eef1738cf590d8"
-        override val nativeIosX64: String = "56221bcd9e3050876c5534e90b080248b638e86d04473a2ea5c7682727ab4b0f"
 
         override val nativeMacosArm64: String = "f180042ea86d74de43b4dcd416de4e099f255d4237cdb17202d6b0d76e01a64d"
         override val nativeMacosX64: String = "dd23946a7a902c6241f94a21a2066d2cfd79d380e1cac98cab525e036ebdf552"
@@ -219,18 +213,6 @@ open class ExecTorResourceValidationExtension private constructor(
             sourceSetName = "linuxX64".toSourceSetName(),
             ktFileName = "resource_tor_gz.kt",
             hash = nativeLinuxX64,
-        ),
-
-        // native ios-simulator
-        ValidationHash.ResourceNative(
-            sourceSetName = "iosSimulatorArm64".toSourceSetName(),
-            ktFileName = "resource_tor_gz.kt",
-            hash = nativeIosSimulatorArm64,
-        ),
-        ValidationHash.ResourceNative(
-            sourceSetName = "iosX64".toSourceSetName(),
-            ktFileName = "resource_tor_gz.kt",
-            hash = nativeIosX64,
         ),
 
         // native macos

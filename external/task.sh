@@ -443,17 +443,6 @@ function package:ios { ## Packages all iOS & iOS Simulator build/out contents
   __package:native:codesign "aarch64" "libtor.dylib" "iosSimulatorArm64Main"
   __package:native:codesign "x86_64" "libtor.dylib" "iosX64Main"
 
-  dirname_out="tor"
-  dirname_final="resource-exec-tor"
-  native_resource="io.matthewnelson.kmp.tor.resource.exec.tor.internal"
-  __package:native:codesign "aarch64" "tor" "iosSimulatorArm64Main"
-  __package:native:codesign "x86_64" "tor" "iosX64Main"
-
-  dirname_out="tor-gpl"
-  dirname_final="resource-exec-tor-gpl"
-  __package:native:codesign "aarch64" "tor" "iosSimulatorArm64Main"
-  __package:native:codesign "x86_64" "tor" "iosX64Main"
-
   # TODO: iOS aarch64 Framework
 }
 
