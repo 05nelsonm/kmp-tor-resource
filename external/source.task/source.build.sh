@@ -554,16 +554,15 @@ fi
 if needs_execution "$DIR_SCRIPT" "libevent" "lib/libevent.a"; then
   compile_libevent
 fi
-if needs_execution "$DIR_SCRIPT" "tor" "lib/libtor.a" "include/orconfig.h" "include/tor_api.h"; then
+if needs_execution "$DIR_SCRIPT" "tor" "lib/libtor.a"; then
   compile_tor
 fi
-if needs_execution "$DIR_SCRIPT" "tor-gpl" "lib/libtor.a" "include/orconfig.h" "include/tor_api.h"; then
+if needs_execution "$DIR_SCRIPT" "tor-gpl" "lib/libtor.a"; then
   compile_tor_gpl
 fi
 '
 
   __build:configure:target:finalize:output:shared
-  __build:configure:target:finalize:output:static
 
   mkdir -p "$DIR_BUILD"
   echo "$CONF_SCRIPT" > "$DIR_BUILD/build.sh"
@@ -574,6 +573,8 @@ function __build:configure:target:finalize:output:shared {
   __util:require:var_set "$os_arch" "os_arch"
   __util:require:var_set "$os_name" "os_name"
   __util:require:var_set "$DIR_OUT_SUFFIX" "DIR_OUT_SUFFIX"
+
+  local is_apple=false
 
   local exec_name="tor"
   # NOTE: Android API 23 and below will still need LD_LIBRARY_PATH set
@@ -597,26 +598,12 @@ function __build:configure:target:finalize:output:shared {
       exec_name="libtorexec.so"
       jni_java_version="java6"
       jni_cflags+=" -Wl,-soname,$jni_name"
-      jni_cflags+=" -llog"
+      jni_ldadd+=" -llog"
       lib_load_cflags="-D__ANDROID__"
       shared_cflags+=" -Wl,-soname,$shared_name"
       ;;
     "linux")
       # Defaults
-      ;;
-    "macos")
-      exec_ldflags=""
-      jni_name="libtorjni.dylib"
-      jni_cflags="-dynamiclib"
-      jni_cflags+=" -install_name @executable_path/$jni_name"
-      jni_cflags+=" -exported_symbols_list exports/kmp_tor-jni.exp"
-      jni_ldadd=""
-      shared_name="libtor.dylib"
-      shared_cflags="-dynamiclib"
-      shared_cflags+=" -install_name @executable_path/$shared_name"
-      shared_cflags+=" -exported_symbols_list exports/tor_api.exp"
-      shared_ldadd=""
-      strip_flags+="u"
       ;;
     "mingw")
       exec_name="tor.exe"
@@ -629,18 +616,61 @@ function __build:configure:target:finalize:output:shared {
       shared_name="tor.dll"
       shared_ldadd="-lws2_32 -lcrypt32 -lshlwapi -liphlpapi"
       ;;
+    "macos")
+      is_apple=true
+      exec_ldflags=""
+
+      if [ "$os_subtype" = "-lts" ]; then
+        # Jvm/Js
+        jni_name="libtorjni.dylib"
+        jni_cflags="-dynamiclib"
+        jni_cflags+=" -exported_symbols_list exports/kmp_tor-jni.exp"
+        jni_cflags+=" -install_name @executable_path/$jni_name"
+        jni_ldadd=""
+      else
+        # Native. Disable JNI compilations.
+        jni_name=""
+      fi
+
+      shared_name="libtor.dylib"
+      shared_cflags="-dynamiclib"
+      shared_cflags+=" -exported_symbols_list exports/tor_api.exp"
+      shared_cflags+=" -install_name @executable_path/$shared_name"
+      shared_ldadd=""
+      strip_flags+="u"
+      ;;
     "ios"|"tvos"|"watchos")
-      return 0
+      is_apple=true
+
+      # Disable executable compilations
+      exec_name=""
+      # Disable JNI compilations
+      jni_name=""
+
+      shared_cflags="-dynamiclib"
+      shared_cflags+=" -exported_symbols_list exports/tor_api.exp"
+
+      if [ "$os_subtype" = "-simulator" ]; then
+        shared_name="libtor.dylib"
+        shared_cflags+=" -install_name @executable_path/$shared_name"
+      else
+        shared_name="LibTor"
+        shared_cflags+=" -install_name @rpath/$shared_name.framework/$shared_name"
+      fi
+
+      shared_ldadd=""
+      strip_flags+="u"
       ;;
     *)
       __util:error "Unknown os_name[$os_name]"
       ;;
   esac
 
-  __util:require:var_set "$exec_name" "exec_name"
-  __util:require:var_set "$jni_java_version" "jni_java_version"
-  __util:require:var_set "$jni_name" "jni_name"
-  __util:require:var_set "$jni_cflags" "jni_cflags"
+  if [ -n "$jni_name" ]; then
+    __util:require:var_set "$jni_java_version" "jni_java_version"
+    __util:require:var_set "$jni_cflags" "jni_cflags"
+  fi
+
   __util:require:var_set "$shared_name" "shared_name"
   __util:require:var_set "$shared_cflags" "shared_cflags"
   __util:require:var_set "$strip_flags" "strip_flags"
@@ -657,7 +687,7 @@ function __build:configure:target:finalize:output:shared {
   __build:SCRIPT "  \$CC \$CFLAGS $shared_cflags \\"
   __build:SCRIPT "    -o $shared_name \\"
 
-  if [ "$os_name" = "macos" ]; then
+  if $is_apple; then
     __build:SCRIPT '    $LDFLAGS -Wl,-force_load \'
   else
     __build:SCRIPT '    $LDFLAGS -Wl,--whole-archive \'
@@ -671,36 +701,51 @@ function __build:configure:target:finalize:output:shared {
   __build:SCRIPT '    "$DIR_SCRIPT/openssl/lib/libcrypto.a" \'
   __build:SCRIPT '    "$DIR_SCRIPT/libevent/lib/libevent.a" \'
 
-  if [ "$os_name" = "macos" ]; then
+  if $is_apple; then
     __build:SCRIPT "    \$LDFLAGS $shared_ldadd"
   else
     __build:SCRIPT "    -Wl,--no-whole-archive \$LDFLAGS $shared_ldadd"
   fi
 
   __build:SCRIPT ''
-  __build:SCRIPT '  $CC $CFLAGS kmp_tor_main.c \'
-  __build:SCRIPT "    -o $exec_name $exec_ldflags \\"
-  __build:SCRIPT "    $shared_name"
-  __build:SCRIPT ''
-  __build:SCRIPT "  \$CC \$CFLAGS $lib_load_cflags -c lib_load.c"
-  __build:SCRIPT "  \$CC \$CFLAGS -c kmp_tor.c"
-  __build:SCRIPT "  \$CC \$CFLAGS -I\"\${JNI_H}\"/$jni_java_version/include -c kmp_tor-jni.c"
-  __build:SCRIPT ''
-  __build:SCRIPT "  \$CC \$CFLAGS $jni_cflags \\"
-  __build:SCRIPT '    lib_load.o \'
-  __build:SCRIPT '    kmp_tor.o \'
-  __build:SCRIPT '    kmp_tor-jni.o \'
-  __build:SCRIPT "    -o $jni_name \\"
-  __build:SCRIPT "    \$LDFLAGS $jni_ldadd"
-  __build:SCRIPT ''
+
+  if [ -n "$exec_name" ]; then
+    __build:SCRIPT '  $CC $CFLAGS kmp_tor_main.c \'
+    __build:SCRIPT "    -o $exec_name $exec_ldflags \\"
+    __build:SCRIPT "    $shared_name"
+    __build:SCRIPT ''
+  fi
+
+  if [ -n "$jni_name" ]; then
+    __build:SCRIPT "  \$CC \$CFLAGS $lib_load_cflags -c lib_load.c"
+    __build:SCRIPT "  \$CC \$CFLAGS -c kmp_tor.c"
+    __build:SCRIPT "  \$CC \$CFLAGS -I\"\${JNI_H}\"/$jni_java_version/include -c kmp_tor-jni.c"
+    __build:SCRIPT ''
+    __build:SCRIPT "  \$CC \$CFLAGS $jni_cflags \\"
+    __build:SCRIPT '    lib_load.o \'
+    __build:SCRIPT '    kmp_tor.o \'
+    __build:SCRIPT '    kmp_tor-jni.o \'
+    __build:SCRIPT "    -o $jni_name \\"
+    __build:SCRIPT "    \$LDFLAGS $jni_ldadd"
+    __build:SCRIPT ''
+    __build:SCRIPT "  cp -a $jni_name \"\$DIR_SCRIPT/shared-\$1/bin\""
+  fi
+
+  if [ -n "$exec_name" ]; then
+    __build:SCRIPT "  cp -a $exec_name \"\$DIR_SCRIPT/shared-\$1/bin\""
+  fi
+
   __build:SCRIPT "  cp -a $shared_name \"\$DIR_SCRIPT/shared-\$1/bin\""
-  __build:SCRIPT "  cp -a $exec_name \"\$DIR_SCRIPT/shared-\$1/bin\""
-  __build:SCRIPT "  cp -a $jni_name \"\$DIR_SCRIPT/shared-\$1/bin\""
   __build:SCRIPT '}'
 
   local needs_execution_items="\"bin/$shared_name\""
-  needs_execution_items+=" \"bin/$exec_name\""
-  needs_execution_items+=" \"bin/$jni_name\""
+
+  if [ -n "$jni_name" ]; then
+    needs_execution_items+=" \"bin/$jni_name\""
+  fi
+  if [ -n "$exec_name" ]; then
+    needs_execution_items+=" \"bin/$exec_name\""
+  fi
 
   __build:SCRIPT "
 if needs_execution \"\$DIR_SCRIPT\" \"shared-tor\" $needs_execution_items; then
@@ -722,23 +767,36 @@ fi
   __build:SCRIPT '  mkdir -p "$_out"'
   __build:SCRIPT ''
   __build:SCRIPT "  cp -a \"\$_bin/$shared_name\" \"\$_out\""
-  __build:SCRIPT "  cp -a \"\$_bin/$exec_name\" \"\$_out\""
-  __build:SCRIPT "  cp -a \"\$_bin/$jni_name\" \"\$_out\""
-  __build:SCRIPT "  cp -aR \"stage/$DIR_OUT_SUFFIX/\$1/include\" \"\$_out\""
+
+  if [ -n "$exec_name" ]; then
+    __build:SCRIPT "  cp -a \"\$_bin/$exec_name\" \"\$_out\""
+  fi
+  if [ -n "$jni_name" ]; then
+    __build:SCRIPT "  cp -a \"\$_bin/$jni_name\" \"\$_out\""
+  fi
+
   __build:SCRIPT ''
   __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$shared_name\" 2>/dev/null"
-  __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$exec_name\" 2>/dev/null"
-  __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$jni_name\" 2>/dev/null"
+
+  if [ -n "$exec_name" ]; then
+    __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$exec_name\" 2>/dev/null"
+  fi
+  if [ -n "$jni_name" ]; then
+    __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$jni_name\" 2>/dev/null"
+  fi
+
   __build:SCRIPT ''
 
   if [ "$os_name" = "android" ]; then
+    __util:require:var_set "$exec_name" "exec_name"
+    __util:require:var_set "$jni_name" "jni_name"
+
     __build:SCRIPT "  _out_linux=\"out/\$1/linux-android/$os_arch\""
     __build:SCRIPT '  rm -rf "$_out_linux"'
     __build:SCRIPT '  mkdir -p "$_out_linux"'
     __build:SCRIPT "  cp -a \"\$_out/$shared_name\" \"\$_out_linux\""
     __build:SCRIPT "  cp -a \"\$_out/$exec_name\" \"\$_out_linux/tor\""
     __build:SCRIPT "  cp -a \"\$_out/$jni_name\" \"\$_out_linux\""
-    __build:SCRIPT '  cp -aR "$_out/include" "$_out_linux"'
     __build:SCRIPT '  unset _out_linux'
     __build:SCRIPT '  sleep 1'
     __build:SCRIPT ''
@@ -747,10 +805,15 @@ fi
   __build:SCRIPT "  echo \"        STRIP[\$STRIP $strip_flags]\""
   __build:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/$shared_name\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"$shared_name\")\""
   __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/$shared_name\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"$shared_name\")\""
-  __build:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/$exec_name\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"$exec_name\")\""
-  __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/$exec_name\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"$exec_name\")\""
-  __build:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/$jni_name\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"$jni_name\")\""
-  __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/$jni_name\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"$jni_name\")\""
+
+  if [ -n "$exec_name" ]; then
+    __build:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/$exec_name\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"$exec_name\")\""
+    __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/$exec_name\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"$exec_name\")\""
+  fi
+  if [ -n "$jni_name" ]; then
+    __build:SCRIPT "  echo \"        BIN: \$(du -sh \"\$_bin/$jni_name\" | cut -d 's' -f 1) \$(cd \"\$_bin\" && sha256sum \"$jni_name\")\""
+    __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/$jni_name\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"$jni_name\")\""
+  fi
 
   __build:SCRIPT ''
   __build:SCRIPT '  unset _bin'
@@ -758,86 +821,34 @@ fi
   __build:SCRIPT '}'
 
   needs_execution_items="\"$shared_name\""
-  needs_execution_items+=" \"$jni_name\""
-  needs_execution_items+=' "include/orconfig.h"'
-  needs_execution_items+=' "include/tor_api.h"'
+
+  if [ -n "$jni_name" ]; then
+    needs_execution_items+=" \"$jni_name\""
+  fi
+
+  local needs_execution_items_linux_android="$needs_execution_items"
+
+  if [ -n "$exec_name" ]; then
+    needs_execution_items+=" \"$exec_name\""
+  fi
 
   __build:SCRIPT "
-if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/$DIR_OUT_SUFFIX\" \"$exec_name\" $needs_execution_items; then
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/$DIR_OUT_SUFFIX\" $needs_execution_items; then
   install_shared \"tor\"
 fi
-if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/$DIR_OUT_SUFFIX\" \"$exec_name\" $needs_execution_items; then
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/$DIR_OUT_SUFFIX\" $needs_execution_items; then
   install_shared \"tor-gpl\"
 fi"
 
   if [ "$os_name" = "android" ]; then
     __build:SCRIPT "
-if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/linux-$os_name/$os_arch\" \"tor\" $needs_execution_items; then
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/linux-$os_name/$os_arch\" $needs_execution_items_linux_android \"tor\"; then
   install_shared \"tor\"
 fi
-if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/linux-$os_name/$os_arch\" \"tor\" $needs_execution_items; then
+if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/linux-$os_name/$os_arch\" $needs_execution_items_linux_android \"tor\"; then
   install_shared \"tor-gpl\"
 fi"
   fi
-}
-
-function __build:configure:target:finalize:output:static {
-  __util:require:var_set "$os_arch" "os_arch"
-  __util:require:var_set "$os_name" "os_name"
-  __util:require:var_set "$DIR_OUT_SUFFIX" "DIR_OUT_SUFFIX"
-
-  case "$os_name" in
-    "ios"|"tvos"|"watchos")
-      ;;
-    "android"|"linux"|"macos"|"mingw")
-      return 0
-      ;;
-    *)
-      __util:error "Unknown os_name[$os_name]"
-      ;;
-  esac
-
-  __build:SCRIPT 'install_static() {'
-  __build:SCRIPT '  echo "    * Installing static compilations for $1"'
-  __build:SCRIPT ''
-  __build:SCRIPT '  cd "$DIR_EXTERNAL/build"'
-  __build:SCRIPT "  _out=\"out/\$1/$DIR_OUT_SUFFIX\""
-  __build:SCRIPT ''
-  __build:SCRIPT '  rm -rf "$_out"'
-  __build:SCRIPT '  mkdir -p "$_out"'
-  __build:SCRIPT ''
-  __build:SCRIPT "  cp -a \"stage/$DIR_OUT_SUFFIX/zlib/lib/libz.a\" \"\$_out\""
-  __build:SCRIPT "  cp -a \"stage/$DIR_OUT_SUFFIX/xz/lib/liblzma.a\" \"\$_out\""
-  __build:SCRIPT "  cp -a \"stage/$DIR_OUT_SUFFIX/openssl/lib/libcrypto.a\" \"\$_out\""
-  __build:SCRIPT "  cp -a \"stage/$DIR_OUT_SUFFIX/openssl/lib/libssl.a\" \"\$_out\""
-  __build:SCRIPT "  cp -a \"stage/$DIR_OUT_SUFFIX/libevent/lib/libevent.a\" \"\$_out\""
-  __build:SCRIPT "  cp -a \"stage/$DIR_OUT_SUFFIX/\$1/lib/libtor.a\" \"\$_out\""
-  __build:SCRIPT "  cp -aR \"stage/$DIR_OUT_SUFFIX/\$1/include\" \"\$_out\""
-  __build:SCRIPT ''
-  __build:SCRIPT '  llvm-objcopy --enable-deterministic-archives "$_out/libz.a"'
-  __build:SCRIPT '  llvm-objcopy --enable-deterministic-archives "$_out/liblzma.a"'
-  __build:SCRIPT '  llvm-objcopy --enable-deterministic-archives "$_out/libcrypto.a"'
-  __build:SCRIPT '  llvm-objcopy --enable-deterministic-archives "$_out/libssl.a"'
-  __build:SCRIPT '  llvm-objcopy --enable-deterministic-archives "$_out/libevent.a"'
-  __build:SCRIPT '  llvm-objcopy --enable-deterministic-archives "$_out/libtor.a"'
-  __build:SCRIPT ''
-  __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/libz.a\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"libz.a\")\""
-  __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/liblzma.a\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"liblzma.a\")\""
-  __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/libcrypto.a\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"libcrypto.a\")\""
-  __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/libssl.a\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"libssl.a\")\""
-  __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/libevent.a\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"libevent.a\")\""
-  __build:SCRIPT "  echo \"        OUT: \$(du -sh \"\$_out/libtor.a\" | cut -d 'o' -f 1) \$(cd \"\$_out\" && sha256sum \"libtor.a\")\""
-  __build:SCRIPT ''
-  __build:SCRIPT '  unset _out'
-  __build:SCRIPT '}'
-
-  __build:SCRIPT "
-if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/$DIR_OUT_SUFFIX\" \"libz.a\" \"liblzma.a\" \"libcrypto.a\" \"libssl.a\" \"libevent.a\" \"libtor.a\" \"include/orconfig.h\" \"include/tor_api.h\"; then
-  install_static \"tor\"
-fi
-if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/$DIR_OUT_SUFFIX\" \"libz.a\" \"liblzma.a\" \"libcrypto.a\" \"libssl.a\" \"libevent.a\" \"libtor.a\" \"include/orconfig.h\" \"include/tor_api.h\"; then
-  install_static \"tor-gpl\"
-fi"
 }
 
 function __build:docker:execute {

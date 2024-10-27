@@ -88,6 +88,10 @@ fun KmpConfigurationExtension.configureLibTor(
             }
         }
 
+        // Simulator only
+        iosSimulatorArm64()
+        iosX64()
+
         linuxAll()
         macosAll()
         mingwAll()

@@ -62,7 +62,6 @@ fun KmpConfigurationExtension.configureNoExecTor(
     configureShared(
         androidNamespace = packageName,
         java9ModuleName = packageName,
-        excludeNative = true,
         publish = true,
     ) {
         androidLibrary {
@@ -90,13 +89,6 @@ fun KmpConfigurationExtension.configureNoExecTor(
             }
         }
 
-        // TODO: Fix cinterop for iosX64. Issue #64
-        iosArm64()
-        iosSimulatorArm64()
-        linuxAll()
-        macosAll()
-        mingwAll()
-
         common {
             pluginIds("resource-validation", libs.plugins.cklib.get().pluginId)
 
@@ -106,8 +98,6 @@ fun KmpConfigurationExtension.configureNoExecTor(
                 }
             }
         }
-
-        kotlin { noExecResourceValidation.configureNativeInterop(this) }
 
         sourceSetConnect(
             newName = "noExec",
@@ -134,15 +124,17 @@ fun KmpConfigurationExtension.configureNoExecTor(
             ),
         )
         sourceSetConnect(
-            newName = "appleMobile",
+            newName = "appleFramework",
             existingNames = listOf(
-                "ios",
+                "iosArm64",
             ),
             dependencyName = "native",
         )
         sourceSetConnect(
-            newName = "nonAppleMobile",
+            newName = "nonAppleFramework",
             existingNames = listOf(
+                "iosSimulatorArm64",
+                "iosX64",
                 "linux",
                 "macos",
                 "mingw",
@@ -151,7 +143,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
         )
         kotlin {
             with(sourceSets) {
-                listOf("jvmAndroid", "nonAppleMobile").forEach { name ->
+                listOf("jvmAndroid", "nonAppleFramework").forEach { name ->
                     findByName(name + "Main")?.dependencies {
                         implementation(project(":library:resource-lib-tor$suffix"))
                     }
@@ -237,9 +229,9 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     Triple("macosX64", null, listOf(reportDirLibTor)),
                     Triple("mingwX64", null, listOf(reportDirLibTor)),
 
-                    Triple("iosArm64", null, listOf(reportDirNoExec)),
-                    Triple("iosSimulatorArm64", null, listOf(reportDirNoExec)),
-                    Triple("iosX64", null, listOf(reportDirNoExec)),
+                    Triple("iosArm64", null, listOf(/* TODO */)),
+                    Triple("iosSimulatorArm64", null, listOf(reportDirLibTor)),
+                    Triple("iosX64", null, listOf(reportDirLibTor)),
                 ).forEach { (reportName, srcSetName, reportDirs) ->
                     val srcSetTest = findByName("${srcSetName ?: reportName}Test") ?: return@forEach
 
