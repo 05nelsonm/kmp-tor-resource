@@ -61,7 +61,7 @@ function __sign:generate:detached:macos {
   local dir_bundle_macos="$dir_bundle/Contents/MacOS"
 
   local out_dirnames="tor,tor-gpl"
-  local macos_out_dirnames="macos,macos-lts"
+  local platform_out_dirnames="ios-simulator,macos,macos-lts"
   local diff_ext=".signature"
 
   local cmd_sign="$RCODESIGN sign"
@@ -71,19 +71,19 @@ function __sign:generate:detached:macos {
 
 
   local dirname_out=
-  local macos_out_dirname=
+  local platform_out_dirname=
   local lib_name=
   local bundle_program_file=
   for dirname_out in $(echo "$out_dirnames" | tr "," " "); do
     mkdir -p "$dir_bundle_macos/$dirname_out"
 
-    for macos_out_dirname in $(echo "$macos_out_dirnames" | tr "," " "); do
-      if [ ! -d "$DIR_TASK/build/out/$dirname_out/$macos_out_dirname/$1" ]; then
-        echo "$1 not found for $dirname_out/$macos_out_dirname Skipping..."
+    for platform_out_dirname in $(echo "$platform_out_dirnames" | tr "," " "); do
+      if [ ! -d "$DIR_TASK/build/out/$dirname_out/$platform_out_dirname/$1" ]; then
+        echo "$1 not found for $dirname_out/$platform_out_dirname Skipping..."
         continue
       fi
 
-      cp -aR "$DIR_TASK/build/out/$dirname_out/$macos_out_dirname" "$dir_bundle_macos/$dirname_out"
+      cp -aR "$DIR_TASK/build/out/$dirname_out/$platform_out_dirname" "$dir_bundle_macos/$dirname_out"
 
       local remove_arch=
       for remove_arch in $(echo "$arches_remove" | tr "," " "); do
@@ -91,24 +91,27 @@ function __sign:generate:detached:macos {
           continue
         fi
 
-        rm -rf "$dir_bundle_macos/$dirname_out/$macos_out_dirname/$remove_arch"
+        rm -rf "$dir_bundle_macos/$dirname_out/$platform_out_dirname/$remove_arch"
       done
       unset remove_arch
 
       for lib_name in $(echo "$lib_names" | tr "," " "); do
-        cmd_sign+=" --code-signature-flags Contents/MacOS/$dirname_out/$macos_out_dirname/$1/$lib_name:runtime"
+        if [ ! -f "$dir_bundle_macos/$dirname_out/$platform_out_dirname/$1/$lib_name" ]; then
+          continue
+        fi
+        cmd_sign+=" --code-signature-flags Contents/MacOS/$dirname_out/$platform_out_dirname/$1/$lib_name:runtime"
       done
       unset lib_name
 
-      local _file="$dir_bundle_macos/$dirname_out/$macos_out_dirname/$1/tor"
+      local _file="$dir_bundle_macos/$dirname_out/$platform_out_dirname/$1/tor"
       if [ -f "$_file" ]; then
         bundle_program_file="$_file"
       fi
       unset _file
 
-      rm -rf "$dir_bundle_macos/$dirname_out/$macos_out_dirname/$1/include"
+      rm -rf "$dir_bundle_macos/$dirname_out/$platform_out_dirname/$1/include"
     done
-    unset macos_out_dirname
+    unset platform_out_dirname
 
   done
   unset dirname_out
@@ -145,21 +148,25 @@ function __sign:generate:detached:macos {
     "$dir_bundle"
 
   for dirname_out in $(echo "$out_dirnames" | tr "," " "); do
-    for macos_out_dirname in $(echo "$macos_out_dirnames" | tr "," " "); do
-      if [ ! -d "$dir_bundle_macos/$dirname_out/$macos_out_dirname/$1" ]; then
+    for platform_out_dirname in $(echo "$platform_out_dirnames" | tr "," " "); do
+      if [ ! -d "$dir_bundle_macos/$dirname_out/$platform_out_dirname/$1" ]; then
         continue
       fi
 
-      mkdir -p "$DIR_TASK/codesign/$dirname_out/$macos_out_dirname/$1"
+      mkdir -p "$DIR_TASK/codesign/$dirname_out/$platform_out_dirname/$1"
 
       for lib_name in $(echo "$lib_names" | tr "," " "); do
-        rm -rf "$DIR_TASK/codesign/$dirname_out/$macos_out_dirname/$1/$lib_name$diff_ext"
+        if [ ! -f "$dir_bundle_macos/$dirname_out/$platform_out_dirname/$1/$lib_name" ]; then
+          continue
+        fi
+
+        rm -rf "$DIR_TASK/codesign/$dirname_out/$platform_out_dirname/$1/$lib_name$diff_ext"
 
         ../tooling diff-cli create \
           --diff-ext-name "$diff_ext" \
-          "$DIR_TASK/build/out/$dirname_out/$macos_out_dirname/$1/$lib_name" \
-          "$dir_bundle_macos/$dirname_out/$macos_out_dirname/$1/$lib_name" \
-          "$DIR_TASK/codesign/$dirname_out/$macos_out_dirname/$1"
+          "$DIR_TASK/build/out/$dirname_out/$platform_out_dirname/$1/$lib_name" \
+          "$dir_bundle_macos/$dirname_out/$platform_out_dirname/$1/$lib_name" \
+          "$DIR_TASK/codesign/$dirname_out/$platform_out_dirname/$1"
       done
     done
   done

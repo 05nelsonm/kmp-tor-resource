@@ -58,8 +58,8 @@ open class LibTorResourceValidationExtension private constructor(
     protected open val jvmLinuxLibcX86: String = "70b063f22b868558c5c72301f9a6c5c20d16cd851b09ff202533ba87cf107c42"
     protected open val jvmLinuxLibcX86_64: String = "92831a1a51b33582f32f3654b6033c3681b3632573471a116bdd92d08b408e55"
 
-    protected open val jvmMacosAarch64: String = "e30b843ff90cc5077b0441768c6bad7b4c53a74abac4769915bc0142266f016e"
-    protected open val jvmMacosX86_64: String = "30664616d9213af7f59f9eae359bfa3131ab6b83f2497b8dc8e5c397d660ec70"
+    protected open val jvmMacosAarch64: String = "30a02e2aa31d6e35626223307a1b1a89106cf29ea732d17a165497fab30927f3"
+    protected open val jvmMacosX86_64: String = "d8aeb8a92a1541f0644d19cd75f8568e54d6e2aea7d5de93990496caf1467987"
 
     protected open val jvmMingwX86: String = "2bca08ee9414f236eb505dadd928fcd32f61eb62836a111d684f50b923770a62"
     protected open val jvmMingwX86_64: String = "9dfb7676292d37819fc7167217068b4bb3c31cc83c1edfd59bcc739c1e6fffab"
@@ -67,11 +67,11 @@ open class LibTorResourceValidationExtension private constructor(
     private val nativeLinuxArm64: String by lazy { jvmLinuxLibcAarch64 }
     private val nativeLinuxX64: String by lazy { jvmLinuxLibcX86_64 }
 
-    protected open val nativeMacosArm64: String = "7044206c02f54805ce5dbd6b9e5f645aa565cf1e2bd4a87b23cf316ebbe6ad83"
-    protected open val nativeMacosX64: String = "9fd92a3e5cd191aaef6534615c3c8e80843143dc3db53a44a510910ba1092e0d"
+    protected open val nativeIosSimulatorArm64: String = "e78d4ddd80bd059065a3f6ccdc3705b927e3476057514a05cf9fb6f889dfbe6c"
+    protected open val nativeIosX64: String = "585411602f818e7c8c1ab9ae75cd0f2bdbaae1ada4423a9208d6c7a7b5ce8f06"
 
-    protected val nativeIosSimulatorArm64 by lazy { nativeMacosArm64 }
-    protected val nativeIosX64 by lazy { nativeMacosX64 }
+    protected open val nativeMacosArm64: String = "44756a54a68e0535f75fd9bff09cfb96a75c5bf71ac2627f7e88695a4cc54db9"
+    protected open val nativeMacosX64: String = "71b007b2e233bee56a493a6d0083f1ed6e0d6fb3dcce1330c0b8e313f2045527"
 
     private val nativeMingwX64: String by lazy { jvmMingwX86_64 }
 
@@ -99,14 +99,17 @@ open class LibTorResourceValidationExtension private constructor(
         override val jvmLinuxLibcX86: String = "6300a5eee783717e3dc6bcbdf7d5633b55d656c0c295074821c8d417c1812a45"
         override val jvmLinuxLibcX86_64: String = "77bbb26d4dfcd4223e2a99beee4e05b26acbf23ec8e6dc9add7eff25f1c37564"
 
-        override val jvmMacosAarch64: String = "9594f54561a1c575b374a204fe6e17b000c14706e5ab498d1d5d59aff5f12219"
-        override val jvmMacosX86_64: String = "267b84e5823c352cf537734b1e4c25a42a8820fbd12fcff5dc0f2f7f59c6a914"
+        override val jvmMacosAarch64: String = "bf6e4a2c321a8e1d891efab02a2dee980243afb63b5133ac7c933545bcd4a72b"
+        override val jvmMacosX86_64: String = "5faeac7e58333f505143d03248789efc3b708eadd4efeea3880145d25f52f146"
 
         override val jvmMingwX86: String = "9f1a9fa6d2267155cadb3537ade9fbd53c0fedce7f219a7385cb5a48732ed0b6"
         override val jvmMingwX86_64: String = "7a3bfd0691b849292313b968a24c0bd511c034ce592f56884d5ccf0e4def7ef3"
 
-        override val nativeMacosArm64: String = "393f9b7cec65f884aaad24de3dfa137cb32e349f3ba8ba348bce666badeb2f1c"
-        override val nativeMacosX64: String = "844368a9966496fd73aa150618a2819e43e38442d9537b6e8261e46d62b1a9e1"
+        override val nativeIosSimulatorArm64: String = "c33cd85b0d549570e9bca3f91a429c558f8cbca5ab328717253cecf3966eb1a7"
+        override val nativeIosX64: String = "4902e8af754f987f00a318c34999c5146e83c5d2baa6b9289dacf69caadf0296"
+
+        override val nativeMacosArm64: String = "35283bfb7b5964de78f7791b666c08f845dbec52a9b95db240de0a8a9ccc77a8"
+        override val nativeMacosX64: String = "c4802d41e8ef06f25d595c785f7034a401613452ad59fe206016e4d2b4514eca"
 
         internal companion object {
             internal const val NAME = "libTorGPLResourceValidation"
@@ -234,18 +237,6 @@ open class LibTorResourceValidationExtension private constructor(
             hash = nativeLinuxX64,
         ),
 
-        // native macos
-        ValidationHash.ResourceNative(
-            sourceSetName = "macosArm64".toSourceSetName(),
-            ktFileName = "resource_libtor_dylib_gz.kt",
-            hash = nativeMacosArm64,
-        ),
-        ValidationHash.ResourceNative(
-            sourceSetName = "macosX64".toSourceSetName(),
-            ktFileName = "resource_libtor_dylib_gz.kt",
-            hash = nativeMacosX64,
-        ),
-
         // native ios-simulator
         ValidationHash.ResourceNative(
             sourceSetName = "iosSimulatorArm64".toSourceSetName(),
@@ -256,6 +247,18 @@ open class LibTorResourceValidationExtension private constructor(
             sourceSetName = "iosX64".toSourceSetName(),
             ktFileName = "resource_libtor_dylib_gz.kt",
             hash = nativeIosX64,
+        ),
+
+        // native macos
+        ValidationHash.ResourceNative(
+            sourceSetName = "macosArm64".toSourceSetName(),
+            ktFileName = "resource_libtor_dylib_gz.kt",
+            hash = nativeMacosArm64,
+        ),
+        ValidationHash.ResourceNative(
+            sourceSetName = "macosX64".toSourceSetName(),
+            ktFileName = "resource_libtor_dylib_gz.kt",
+            hash = nativeMacosX64,
         ),
 
         // native mingw

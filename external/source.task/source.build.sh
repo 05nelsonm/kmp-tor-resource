@@ -619,26 +619,44 @@ function __build:configure:target:finalize:output:shared {
     "macos")
       is_apple=true
       exec_ldflags=""
-      jni_name="libtorjni.dylib"
-      jni_cflags="-dynamiclib"
-      jni_cflags+=" -install_name @executable_path/$jni_name"
-      jni_cflags+=" -exported_symbols_list exports/kmp_tor-jni.exp"
-      jni_ldadd=""
+
+      if [ "$os_subtype" = "-lts" ]; then
+        # Jvm/Js
+        jni_name="libtorjni.dylib"
+        jni_cflags="-dynamiclib"
+        jni_cflags+=" -exported_symbols_list exports/kmp_tor-jni.exp"
+        jni_cflags+=" -install_name @executable_path/$jni_name"
+        jni_ldadd=""
+      else
+        # Native. Disable JNI compilations.
+        jni_name=""
+      fi
+
       shared_name="libtor.dylib"
       shared_cflags="-dynamiclib"
-      shared_cflags+=" -install_name @executable_path/$shared_name"
       shared_cflags+=" -exported_symbols_list exports/tor_api.exp"
+      shared_cflags+=" -install_name @executable_path/$shared_name"
       shared_ldadd=""
       strip_flags+="u"
       ;;
     "ios"|"tvos"|"watchos")
       is_apple=true
       exec_ldflags=""
-      jni_name="" # Disable jni compilations
-      shared_name="LibTor"
+
+      # Disable JNI compilations
+      jni_name=""
+
       shared_cflags="-dynamiclib"
-      shared_cflags+=" -install_name @rpath/$shared_name.framework/$shared_name"
       shared_cflags+=" -exported_symbols_list exports/tor_api.exp"
+
+      if [ "$os_subtype" = "-simulator" ]; then
+        shared_name="libtor.dylib"
+        shared_cflags+=" -install_name @executable_path/$shared_name"
+      else
+        shared_name="LibTor"
+        shared_cflags+=" -install_name @rpath/$shared_name.framework/$shared_name"
+      fi
+
       shared_ldadd=""
       strip_flags+="u"
       ;;
