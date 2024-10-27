@@ -99,8 +99,6 @@ fun KmpConfigurationExtension.configureNoExecTor(
             }
         }
 
-//        kotlin { noExecResourceValidation.configureNativeInterop(this) }
-
         sourceSetConnect(
             newName = "noExec",
             existingNames = listOf(
