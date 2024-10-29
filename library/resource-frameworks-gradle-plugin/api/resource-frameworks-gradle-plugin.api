@@ -1,0 +1,14 @@
+public abstract class io/matthewnelson/kmp/tor/resource/frameworks/KmpTorResourceFrameworksExtension {
+	public static final field Companion Lio/matthewnelson/kmp/tor/resource/frameworks/KmpTorResourceFrameworksExtension$Companion;
+	public static final field NAME Ljava/lang/String;
+	public abstract fun getTorGPL ()Lorg/gradle/api/provider/Property;
+}
+
+public final class io/matthewnelson/kmp/tor/resource/frameworks/KmpTorResourceFrameworksExtension$Companion {
+}
+
+public abstract class io/matthewnelson/kmp/tor/resource/frameworks/KmpTorResourceFrameworksPlugin : org/gradle/api/Plugin {
+	public synthetic fun apply (Ljava/lang/Object;)V
+	public final fun apply (Lorg/gradle/api/Project;)V
+}
+
