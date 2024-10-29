@@ -442,8 +442,15 @@ function package:ios { ## Packages all iOS & iOS Simulator build/out contents
   dirname_final="resource-lib-tor-gpl"
   __package:native:codesign "aarch64" "libtor.dylib" "iosSimulatorArm64Main"
   __package:native:codesign "x86_64" "libtor.dylib" "iosX64Main"
+  unset target
+  unset native_resource
 
-  # TODO: iOS aarch64 Framework
+  local permissions="775"
+  local gzip="no"
+  dirname_final="resource-frameworks-gradle-plugin"
+  for dirname_out in $(echo "tor,tor-gpl" | tr "," " "); do
+    __package:file "build/out/$dirname_out/ios/aarch64" "jvmMain/resources/io/matthewnelson/kmp/tor/resource/frameworks/native/$dirname_out/ios" "LibTor"
+  done
 }
 
 function package:linux-libc { ## Packages all Linux Libc build/out contents
@@ -724,6 +731,7 @@ function validate { ## Checks the build/package directory output against expecte
   __validate:report "resource-exec-tor-gpl"
   __validate:report "resource-noexec-tor"
   __validate:report "resource-noexec-tor-gpl"
+  __validate:report "resource-frameworks-gradle-plugin"
 }
 
 function validate:all { ## Includes Android (which are implicitly checked in validate). Requires Java 17+ & Android Studio
@@ -736,6 +744,7 @@ function validate:all:update_hashes { ## Updates gradle extensions with new hash
   extension_kt_files+=",GeoipResourceValidationExtension.kt"
   extension_kt_files+=",LibTorResourceValidationExtension.kt"
   extension_kt_files+=",NoExecTorResourceValidationExtension.kt"
+  extension_kt_files+=",FrameworksResourceValidationExtension.kt"
 
   local output=""
   output="$(validate:all | grep "ERROR\[" | grep "did not match")"

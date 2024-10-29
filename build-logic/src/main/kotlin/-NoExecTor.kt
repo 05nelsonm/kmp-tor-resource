@@ -229,14 +229,14 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     Triple("macosX64", null, listOf(reportDirLibTor)),
                     Triple("mingwX64", null, listOf(reportDirLibTor)),
 
-                    Triple("iosArm64", null, listOf(/* TODO */)),
+                    Triple("iosArm64", null, emptyList()),
                     Triple("iosSimulatorArm64", null, listOf(reportDirLibTor)),
                     Triple("iosX64", null, listOf(reportDirLibTor)),
                 ).forEach { (reportName, srcSetName, reportDirs) ->
                     val srcSetTest = findByName("${srcSetName ?: reportName}Test") ?: return@forEach
 
                     val isErrReportEmpty = {
-                        var hasError = false
+                        var hasError = reportDirs.isEmpty()
                         reportDirs.forEach readReport@{ dir ->
                             if (hasError) return@readReport
                             hasError = dir

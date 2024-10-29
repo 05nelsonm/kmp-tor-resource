@@ -29,7 +29,9 @@ git checkout -b release_"$VERSION_NAME"
 
 - Update `version` in project's `README.md` documentation
 
-- Update `tag` in project's `docs/BUILD.md` documentation (step 2)
+- Update `version` in project's `docs/DETERMINISTIC_BUILDS.md` documentation
+
+- Update `version` in project's `library/resource-frameworks-gradle-plugin/README.md` documentation
 
 - Update `CHANGELOG.md`
 
@@ -148,6 +150,7 @@ cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exe
 cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/mingwX64.err
 cat library/resource-noexec-tor/build/reports/resource-validation/resource-noexec-tor/jvm.err
 cat library/resource-noexec-tor-gpl/build/reports/resource-validation/resource-noexec-tor-gpl/jvm.err
+cat library/resource-frameworks-gradle-plugin/build/reports/resource-validation/resource-frameworks-gradle-plugin/jvm.err
 ```
 
 - Publish

@@ -17,18 +17,16 @@ package resource.validation
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import resource.validation.extensions.ExecTorResourceValidationExtension
-import resource.validation.extensions.GeoipResourceValidationExtension
-import resource.validation.extensions.LibTorResourceValidationExtension
-import resource.validation.extensions.NoExecTorResourceValidationExtension
+import resource.validation.extensions.*
 
 open class ResourceValidationPlugin internal constructor(): Plugin<Project> {
     override fun apply(target: Project) {
         listOf(
+            ExecTorResourceValidationExtension.NAME to ExecTorResourceValidationExtension::class.java,
+            FrameworksResourceValidationExtension.NAME to FrameworksResourceValidationExtension::class.java,
             GeoipResourceValidationExtension.NAME to GeoipResourceValidationExtension::class.java,
             LibTorResourceValidationExtension.NAME to LibTorResourceValidationExtension::class.java,
             LibTorResourceValidationExtension.GPL.NAME to LibTorResourceValidationExtension.GPL::class.java,
-            ExecTorResourceValidationExtension.NAME to ExecTorResourceValidationExtension::class.java,
             ExecTorResourceValidationExtension.GPL.NAME to ExecTorResourceValidationExtension.GPL::class.java,
             NoExecTorResourceValidationExtension.NAME to NoExecTorResourceValidationExtension::class.java,
             NoExecTorResourceValidationExtension.GPL.NAME to NoExecTorResourceValidationExtension.GPL::class.java,

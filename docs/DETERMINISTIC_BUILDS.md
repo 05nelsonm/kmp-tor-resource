@@ -18,6 +18,8 @@ script. The expected Sha256 hashes are provided by gradle extensions located in 
    cd kmp-tor-resource
    ```
 
+<!-- TAG_VERSION -->
+
 2) Checkout the tag you wish to validate (replace with desired tag name):
    ```shell
    git checkout master
