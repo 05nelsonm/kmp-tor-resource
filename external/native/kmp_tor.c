@@ -23,179 +23,76 @@
 #include <pthread.h>
 
 typedef struct {
+  int result;
+} kmp_tor_run_thread_res_t;
+
+typedef struct {
+  kmp_tor_run_thread_res_t *res_t;
+  void *cfg;
+  int (*tor_api_run_main)(void *cfg);
+} kmp_tor_run_thread_args_t;
+
+struct kmp_tor_handle_t {
+  int error_code;
+
   int argc;
   char **argv;
 
-  void* (*tor_api_cfg_new)(void);
-  int (*tor_api_cfg_set_command_line)(void *cfg, int argc, char **argv);
   void (*tor_api_cfg_free)(void *cfg);
-  int (*tor_api_run_main)(void *cfg);
-} kmp_tor_run_thread_t;
 
-typedef struct {
-  int result;
-} kmp_tor_run_thread_res_t;
+  pthread_t thread_id;
+  kmp_tor_run_thread_args_t *args_t;
+  lib_handle_t *handle_t;
+};
 
 void *
 kmp_tor_run_thread(void *arg)
 {
   int rv = -1;
-  void *cfg = NULL;
-  kmp_tor_run_thread_t *args_t = arg;
-  kmp_tor_run_thread_res_t *res_t = NULL;
+  kmp_tor_run_thread_args_t *args_t = arg;
 
-  res_t = malloc(sizeof(kmp_tor_run_thread_res_t));
-  if (res_t == NULL) {
-    return NULL;
+  rv = args_t->tor_api_run_main(args_t->cfg);
+  if (rv < 0 || rv > 255) {
+    rv = 1;
   }
 
-  cfg = args_t->tor_api_cfg_new();
-  if (cfg == NULL) {
-    res_t->result = -13;
-    return res_t;
-  }
-
-  if (args_t->tor_api_cfg_set_command_line(cfg, args_t->argc, args_t->argv) < 0) {
-    rv = -14;
-  }
-
-  if (rv == -1) {
-    rv = args_t->tor_api_run_main(cfg);
-    if (rv < 0 || rv > 255) {
-      rv = 1;
-    }
-  }
-
-  args_t->tor_api_cfg_free(cfg);
-  res_t->result = rv;
-  return res_t;
+  args_t->res_t->result = rv;
+  return args_t->res_t;
 }
 
-/*
- * Returns the following integer value depending on case:
- *  -10    : invalid arguments
- *  -11    : configuration failure
- *  -12    : dlopen/dlsym failure
- *  -13    : tor_main_configuration_new failure
- *  -14    : tor_main_configuration_set_command_line failure
- *  0      : tor_run_main returned success
- *  1 - 255: tor_run_main returned failure
- */
-int
-kmp_tor_run_main(int shutdown_delay_millis, const char *libtor, int argc, char *argv[])
+void
+kmp_tor_handle_free(kmp_tor_handle_t *handle_t)
 {
-  if (shutdown_delay_millis <= 0) {
-    return -10;
-  }
-  if (libtor == NULL) {
-    return -10;
+  assert(handle_t != NULL);
+}
+
+kmp_tor_handle_t *
+kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
+{
+  // TODO
+  if (lib_tor == NULL) {
+    return NULL;
   }
   if (argc <= 0) {
-    return -10;
+    return NULL;
   }
   if (argv == NULL) {
-    return -10;
+    return NULL;
   }
+  return NULL;
+}
 
-  int result = 0;
-  void *res = NULL;
-  lib_handle_t *handle_t = NULL;
-  void (*OPENSSL_cleanup)(void) = NULL;
-  kmp_tor_run_thread_t *args_t = NULL;
-  pthread_attr_t attrs_t;
-  pthread_t thread_id;
+int
+kmp_tor_check_error_code(kmp_tor_handle_t *handle_t)
+{
+  assert(handle_t != NULL);
+  return handle_t->error_code;
+}
 
-  args_t = malloc(sizeof(kmp_tor_run_thread_t));
-  if (args_t == NULL) {
-    return -11;
-  }
-
-  args_t->argc = argc;
-  args_t->argv = argv;
-
-  result = pthread_attr_init(&attrs_t);
-  if (result != 0) {
-    free(args_t);
-    return -11;
-  }
-
-  // TODO: Configure pthread_attr_t
-
-  handle_t = lib_load_open(libtor);
-  if (handle_t == NULL) {
-    free(args_t);
-    pthread_attr_destroy(&attrs_t);
-    return -12;
-  }
-
-  *(void **) (&OPENSSL_cleanup) = lib_load_resolve(handle_t, "OPENSSL_cleanup");
-  if (OPENSSL_cleanup == NULL) {
-    free(args_t);
-    pthread_attr_destroy(&attrs_t);
-    lib_load_close(handle_t);
-    return -12;
-  }
-
-  *(void **) (&args_t->tor_api_cfg_new) = lib_load_resolve(handle_t, "tor_main_configuration_new");
-  if (args_t->tor_api_cfg_new == NULL) {
-    free(args_t);
-    pthread_attr_destroy(&attrs_t);
-    lib_load_close(handle_t);
-    return -12;
-  }
-
-  *(void **) (&args_t->tor_api_cfg_set_command_line) = lib_load_resolve(handle_t, "tor_main_configuration_set_command_line");
-  if (args_t->tor_api_cfg_set_command_line == NULL) {
-    free(args_t);
-    pthread_attr_destroy(&attrs_t);
-    lib_load_close(handle_t);
-    return -12;
-  }
-
-  *(void **) (&args_t->tor_api_cfg_free) = lib_load_resolve(handle_t, "tor_main_configuration_free");
-  if (args_t->tor_api_cfg_free == NULL) {
-    free(args_t);
-    pthread_attr_destroy(&attrs_t);
-    lib_load_close(handle_t);
-    return -12;
-  }
-
-  *(void **) (&args_t->tor_api_run_main) = lib_load_resolve(handle_t, "tor_run_main");
-  if (args_t->tor_api_run_main == NULL) {
-    free(args_t);
-    pthread_attr_destroy(&attrs_t);
-    lib_load_close(handle_t);
-    return -12;
-  }
-
-  result = pthread_create(&thread_id, &attrs_t, kmp_tor_run_thread, (void *) args_t);
-  pthread_attr_destroy(&attrs_t);
-  if (result != 0) {
-    free(args_t);
-    lib_load_close(handle_t);
-    return -11;
-  }
-
-  result = pthread_join(thread_id, &res);
-  if (result != 0) {
-    // TODO: pthread_kill
-  }
-  if (res != NULL) {
-    kmp_tor_run_thread_res_t *res_t = res;
-    result = res_t->result;
-
-    if (result >= 0) {
-      // tor_run_main was called
-      usleep((useconds_t) shutdown_delay_millis * 1000);
-    }
-
-    free(res);
-  } else {
-    result = -11;
-  }
-
-  free(args_t);
-  OPENSSL_cleanup();
-  lib_load_close(handle_t);
-  return result;
+int
+kmp_tor_terminate_and_await_result(kmp_tor_handle_t *handle_t)
+{
+  assert(handle_t != NULL);
+  // TODO
+  return 1;
 }

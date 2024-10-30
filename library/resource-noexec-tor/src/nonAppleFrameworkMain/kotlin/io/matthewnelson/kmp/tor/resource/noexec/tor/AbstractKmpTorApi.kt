@@ -22,32 +22,43 @@ import io.matthewnelson.kmp.file.IOException
 import io.matthewnelson.kmp.file.SysTempDir
 import io.matthewnelson.kmp.file.resolve
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.*
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT.Companion.toHandleTOrNull
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.deleteOnExit
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.toCStringArray
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 // nonAppleFramework
-@OptIn(InternalKmpTorApi::class)
+@OptIn(ExperimentalForeignApi::class, InternalKmpTorApi::class)
 internal actual sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
 protected actual constructor(): TorApi2() {
 
-    protected actual fun kmpTorRunMain(libTor: String, args: Array<String>): HandleT? {
-        // TODO
-        return null
+    protected actual fun kmpTorRunMain(
+        libTor: String,
+        args: Array<String>,
+    ): HandleT? = memScoped {
+        kmp_tor_run_main(
+            lib_tor = libTor,
+            argc = args.size,
+            argv = args.toCStringArray(autofreeScope = this)
+        ).toHandleTOrNull()
     }
-    protected actual fun kmpTorTerminateAndAwaitResult(handle: HandleT): Int {
-        // TODO
-        return 1
-    }
-    protected actual fun kmpTorCheckResult(handle: HandleT): Int {
-        // TODO
-        return -99
-    }
+
+    protected actual fun kmpTorCheckErrorCode(
+        handle: HandleT,
+    ): Int = kmp_tor_check_error_code(handle.ptr)
+
+    protected actual fun kmpTorTerminateAndAwaitResult(
+        handle: HandleT,
+    ): Int = kmp_tor_terminate_and_await_result(handle.ptr)
 
     @Throws(IllegalStateException::class, IOException::class)
     protected actual fun libTor(): File {

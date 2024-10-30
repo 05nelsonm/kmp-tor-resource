@@ -17,6 +17,21 @@
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
-// TODO
-internal actual class HandleT {
+import cnames.structs.kmp_tor_handle_t
+import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.ExperimentalForeignApi
+
+@OptIn(ExperimentalForeignApi::class)
+internal actual value class HandleT private actual constructor(private actual val _ptr: Any) {
+
+    @Suppress("UNCHECKED_CAST")
+    internal val ptr: CPointer<kmp_tor_handle_t> get() = _ptr as CPointer<kmp_tor_handle_t>
+
+    internal companion object {
+
+        internal fun CPointer<kmp_tor_handle_t>?.toHandleTOrNull(): HandleT? {
+            if (this == null) return null
+            return HandleT(this)
+        }
+    }
 }

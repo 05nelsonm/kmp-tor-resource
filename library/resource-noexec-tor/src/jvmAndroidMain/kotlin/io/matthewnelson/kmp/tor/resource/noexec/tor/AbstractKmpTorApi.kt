@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING", "LocalVariableName")
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
@@ -22,6 +22,7 @@ import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT.Companion.toHandleTOrNull
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
 import java.util.UUID
@@ -32,18 +33,34 @@ internal actual sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
 protected actual constructor(): TorApi2() {
 
-    protected actual fun kmpTorRunMain(libTor: String, args: Array<String>): HandleT? {
-        // TODO
-        return null
-    }
-    protected actual fun kmpTorTerminateAndAwaitResult(handle: HandleT): Int {
-        // TODO
-        return 1
-    }
-    protected actual fun kmpTorCheckResult(handle: HandleT): Int {
-        // TODO
-        return -99
-    }
+    private external fun kmpTorRunMainJNI(
+        lib_tor: String,
+        args: Array<String>,
+    ): Long?
+
+    private external fun kmpTorCheckErrorCodeJNI(
+        handle_t: Long,
+    ): Int
+
+    private external fun kmpTorTerminateAndAwaitResultJNI(
+        handle_t: Long,
+    ): Int
+
+    protected actual fun kmpTorRunMain(
+        libTor: String,
+        args: Array<String>,
+    ): HandleT? = kmpTorRunMainJNI(
+        lib_tor = libTor,
+        args = args,
+    ).toHandleTOrNull()
+
+    protected actual fun kmpTorCheckErrorCode(
+        handle: HandleT,
+    ): Int = kmpTorCheckErrorCodeJNI(handle.ptr)
+
+    protected actual fun kmpTorTerminateAndAwaitResult(
+        handle: HandleT,
+    ): Int = kmpTorTerminateAndAwaitResultJNI(handle.ptr)
 
     @Throws(IllegalStateException::class, IOException::class)
     protected actual fun libTor(): File = extractLibTor(loadTorJni = false)

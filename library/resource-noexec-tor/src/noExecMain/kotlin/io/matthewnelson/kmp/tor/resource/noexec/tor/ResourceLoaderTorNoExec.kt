@@ -104,7 +104,7 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
             check(handleT != null) { "Memory allocation failure" }
 
-            when (val r = kmpTorCheckResult(handleT)) {
+            when (val r = kmpTorCheckErrorCode(handleT)) {
                 -100 -> null // All good, running
                 -10 -> "kmp_tor_run_main invalid arguments"
                 -11 -> "kmp_tor_run_main configuration failure"

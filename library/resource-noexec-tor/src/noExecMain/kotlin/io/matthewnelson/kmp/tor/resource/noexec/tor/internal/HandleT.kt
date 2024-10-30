@@ -17,4 +17,4 @@
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
-internal expect class HandleT
+internal expect value class HandleT private constructor(private val _ptr: Any)

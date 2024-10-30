@@ -17,18 +17,12 @@
 #ifndef KMP_TOR_H
 #define KMP_TOR_H
 
-// TODO: Return handle to thread
+typedef struct kmp_tor_handle_t kmp_tor_handle_t;
 
-/*
- * Returns the following integer value depending on case:
- *  -10    : invalid arguments
- *  -11    : configuration failure
- *  -12    : dlopen/dlsym failure
- *  -13    : tor_main_configuration_new failure
- *  -14    : tor_main_configuration_set_command_line failure
- *  0      : tor_run_main returned success
- *  1 - 255: tor_run_main returned failure
- */
-int kmp_tor_run_main(int shutdown_delay_millis, const char *libtor, int argc, char *argv[]);
+kmp_tor_handle_t *kmp_tor_run_main(const char *lib_tor, int argc, char *argv[]);
+
+int kmp_tor_check_error_code(kmp_tor_handle_t *handle_t);
+
+int kmp_tor_terminate_and_await_result(kmp_tor_handle_t *handle_t);
 
 #endif /* !defined(KMP_TOR_H) */

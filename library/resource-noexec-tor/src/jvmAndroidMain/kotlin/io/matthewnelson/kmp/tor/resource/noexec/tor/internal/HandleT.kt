@@ -17,7 +17,17 @@
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
-internal actual class HandleT(
-    @JvmField
-    internal val ptr: Long
-)
+@JvmInline
+internal actual value class HandleT private actual constructor(private actual val _ptr: Any) {
+
+    internal val ptr: Long get() = _ptr as Long
+
+    internal companion object {
+
+        @JvmSynthetic
+        internal fun Long?.toHandleTOrNull(): HandleT? {
+            if (this == null) return null
+            return HandleT(this)
+        }
+    }
+}

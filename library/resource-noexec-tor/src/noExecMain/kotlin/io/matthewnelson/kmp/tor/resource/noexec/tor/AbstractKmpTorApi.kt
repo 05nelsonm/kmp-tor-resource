@@ -27,9 +27,18 @@ internal expect sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
 protected constructor(): TorApi2 {
 
-    protected fun kmpTorRunMain(libTor: String, args: Array<String>): HandleT?
-    protected fun kmpTorTerminateAndAwaitResult(handle: HandleT): Int
-    protected fun kmpTorCheckResult(handle: HandleT): Int
+    protected fun kmpTorRunMain(
+        libTor: String,
+        args: Array<String>,
+    ): HandleT?
+
+    protected fun kmpTorCheckErrorCode(
+        handle: HandleT,
+    ): Int
+
+    protected fun kmpTorTerminateAndAwaitResult(
+        handle: HandleT,
+    ): Int
 
     @Throws(IllegalStateException::class, IOException::class)
     protected fun libTor(): File
