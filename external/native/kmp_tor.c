@@ -17,10 +17,18 @@
 #include "lib_load.h"
 
 #include <assert.h>
+#include <pthread.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <pthread.h>
+
+#define ERR_CODE_NONE    -100
+#define ERR_CODE_ARGS    -10
+#define ERR_CODE_CFG     -11
+#define ERR_CODE_LIB     -12
+#define ERR_CODE_TOR_NEW -13
+#define ERR_CODE_TOR_SET -14
 
 typedef struct {
   int result;
@@ -38,11 +46,12 @@ struct kmp_tor_handle_t {
   int argc;
   char **argv;
 
+  void (*OPENSSL_cleanup)(void);
   void (*tor_api_cfg_free)(void *cfg);
 
   pthread_t thread_id;
   kmp_tor_run_thread_args_t *args_t;
-  lib_handle_t *handle_t;
+  lib_handle_t *lib_t;
 };
 
 void *
@@ -61,25 +70,184 @@ kmp_tor_run_thread(void *arg)
 }
 
 void
-kmp_tor_handle_free(kmp_tor_handle_t *handle_t)
+kmp_tor_free_all(kmp_tor_handle_t *handle_t)
 {
   assert(handle_t != NULL);
+
+  if (handle_t->args_t != NULL) {
+    if (handle_t->args_t->cfg != NULL) {
+      handle_t->tor_api_cfg_free(handle_t->args_t->cfg);
+    }
+
+    if (handle_t->args_t->res_t != NULL) {
+      free(handle_t->args_t->res_t);
+    }
+    free(handle_t->args_t);
+  }
+
+  if (handle_t->argv != NULL) {
+    for (int i = 0; i < handle_t->argc; i++) {
+      if (handle_t->argv[i] != NULL) {
+        free(handle_t->argv[i]);
+      }
+    }
+    free(handle_t->argv);
+  }
+
+  if (handle_t->OPENSSL_cleanup != NULL) {
+    handle_t->OPENSSL_cleanup();
+  }
+
+  if (handle_t->lib_t != NULL) {
+    lib_load_close(handle_t->lib_t);
+  }
+
+  free(handle_t);
 }
 
 kmp_tor_handle_t *
 kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
 {
-  // TODO
-  if (lib_tor == NULL) {
+  kmp_tor_handle_t *handle_t = NULL;
+  pthread_attr_t attrs_t;
+  void* (*tor_api_cfg_new)(void) = NULL;
+  int (*tor_api_cfg_set_command_line)(void *cfg, int argc, char **argv) = NULL;
+
+  handle_t = malloc(sizeof(kmp_tor_handle_t));
+  if (handle_t == NULL) {
+    return NULL;
+  } else {
+    handle_t->error_code = ERR_CODE_NONE;
+
+    if (lib_tor == NULL) {
+      handle_t->error_code = ERR_CODE_ARGS;
+    }
+    if (argc <= 0) {
+      handle_t->error_code = ERR_CODE_ARGS;
+    }
+    if (argv == NULL) {
+      handle_t->error_code = ERR_CODE_ARGS;
+    }
+
+    if (handle_t->error_code != ERR_CODE_NONE) {
+      return handle_t;
+    }
+  }
+
+  handle_t->args_t = malloc(sizeof(kmp_tor_run_thread_args_t));
+  if (handle_t->args_t == NULL) {
+    kmp_tor_free_all(handle_t);
     return NULL;
   }
-  if (argc <= 0) {
+
+  handle_t->args_t->res_t = malloc(sizeof(kmp_tor_run_thread_res_t));
+  if (handle_t->args_t->res_t == NULL) {
+    kmp_tor_free_all(handle_t);
+    return NULL;
+  } else {
+    handle_t->args_t->res_t->result = -1;
+  }
+
+  handle_t->argc = argc;
+  handle_t->argv = malloc(argc * sizeof(char *));
+  if (handle_t->argv == NULL) {
+    kmp_tor_free_all(handle_t);
     return NULL;
   }
-  if (argv == NULL) {
-    return NULL;
+
+  for (int i = 0; i < argc; i++) {
+    if (handle_t->error_code != ERR_CODE_NONE) {
+      handle_t->argv[i] = NULL;
+      continue;
+    }
+
+    if (argv[i] != NULL) {
+      handle_t->argv[i] = strdup(argv[i]);
+    } else {
+      handle_t->argv[i] = NULL;
+    }
+
+    if (handle_t->argv[i] == NULL) {
+      handle_t->error_code = ERR_CODE_CFG;
+    }
   }
-  return NULL;
+
+  if (handle_t->error_code != ERR_CODE_NONE) {
+    return handle_t;
+  }
+
+  if (pthread_attr_init(&attrs_t) != 0) {
+    handle_t->error_code = ERR_CODE_CFG;
+    return handle_t;
+  }
+
+  // TODO: Configure pthread_attr_t
+
+  handle_t->lib_t = lib_load_open(lib_tor);
+  if (handle_t->lib_t == NULL) {
+    handle_t->error_code = ERR_CODE_LIB;
+    pthread_attr_destroy(&attrs_t);
+    return handle_t;
+  }
+
+  *(void **) (&handle_t->OPENSSL_cleanup) = lib_load_resolve(handle_t->lib_t, "OPENSSL_cleanup");
+  if (handle_t->OPENSSL_cleanup == NULL) {
+    handle_t->error_code = ERR_CODE_LIB;
+    pthread_attr_destroy(&attrs_t);
+    return handle_t;
+  }
+
+  *(void **) (&handle_t->tor_api_cfg_free) = lib_load_resolve(handle_t->lib_t, "tor_main_configuration_free");
+  if (handle_t->tor_api_cfg_free == NULL) {
+    handle_t->error_code = ERR_CODE_LIB;
+    pthread_attr_destroy(&attrs_t);
+    return handle_t;
+  }
+
+  *(void **) (&handle_t->args_t->tor_api_run_main) = lib_load_resolve(handle_t->lib_t, "tor_run_main");
+  if (handle_t->args_t->tor_api_run_main == NULL) {
+    handle_t->error_code = ERR_CODE_LIB;
+    pthread_attr_destroy(&attrs_t);
+    return handle_t;
+  }
+
+  *(void **) (&tor_api_cfg_new) = lib_load_resolve(handle_t->lib_t, "tor_main_configuration_new");
+  if (tor_api_cfg_new == NULL) {
+    handle_t->error_code = ERR_CODE_LIB;
+    pthread_attr_destroy(&attrs_t);
+    return handle_t;
+  }
+
+  *(void **) (&tor_api_cfg_set_command_line) = lib_load_resolve(handle_t->lib_t, "tor_main_configuration_set_command_line");
+  if (tor_api_cfg_set_command_line == NULL) {
+    handle_t->error_code = ERR_CODE_LIB;
+    pthread_attr_destroy(&attrs_t);
+    return handle_t;
+  }
+
+  handle_t->args_t->cfg = tor_api_cfg_new();
+  if (handle_t->args_t->cfg == NULL) {
+    handle_t->error_code = ERR_CODE_TOR_NEW;
+    pthread_attr_destroy(&attrs_t);
+    return handle_t;
+  }
+
+  if (tor_api_cfg_set_command_line(handle_t->args_t->cfg, handle_t->argc, handle_t->argv) < 0) {
+    handle_t->error_code = ERR_CODE_TOR_SET;
+    pthread_attr_destroy(&attrs_t);
+    return handle_t;
+  }
+
+  if (pthread_create(&handle_t->thread_id, &attrs_t, kmp_tor_run_thread, (void *) handle_t->args_t) != 0) {
+    handle_t->error_code = ERR_CODE_CFG;
+  }
+  pthread_attr_destroy(&attrs_t);
+
+  if (handle_t->error_code == ERR_CODE_NONE) {
+    usleep((useconds_t) 50 * 1000);
+  }
+
+  return handle_t;
 }
 
 int
@@ -93,6 +261,23 @@ int
 kmp_tor_terminate_and_await_result(kmp_tor_handle_t *handle_t)
 {
   assert(handle_t != NULL);
-  // TODO
-  return 1;
+  int result = 0;
+
+  if (handle_t->error_code == ERR_CODE_NONE) {
+    void *res = NULL;
+    pthread_kill(handle_t->thread_id, SIGTERM);
+    pthread_join(handle_t->thread_id, &res);
+
+    if (res != NULL) {
+      kmp_tor_run_thread_res_t *res_t = res;
+      result = res_t->result;
+    } else {
+      result = handle_t->args_t->res_t->result;
+    }
+  } else {
+    result = handle_t->error_code;
+  }
+
+  kmp_tor_free_all(handle_t);
+  return result;
 }

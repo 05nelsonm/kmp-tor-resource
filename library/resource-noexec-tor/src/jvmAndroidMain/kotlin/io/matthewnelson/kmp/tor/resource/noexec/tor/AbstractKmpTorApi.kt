@@ -49,10 +49,14 @@ protected actual constructor(): TorApi2() {
     protected actual fun kmpTorRunMain(
         libTor: String,
         args: Array<String>,
-    ): HandleT? = kmpTorRunMainJNI(
-        lib_tor = libTor,
-        args = args,
-    ).toHandleTOrNull()
+    ): HandleT? {
+        val ptr = kmpTorRunMainJNI(
+            lib_tor = libTor,
+            args = args,
+        )
+
+        return ptr.toHandleTOrNull()
+    }
 
     protected actual fun kmpTorCheckErrorCode(
         handle: HandleT,
