@@ -62,8 +62,9 @@ internal fun File.deleteOnExit() {
 private fun deleteFiles() {
     @OptIn(InternalKmpTorApi::class)
     synchronized(LOCK) {
-        while (FILES.isNotEmpty()) {
-            FILES.removeLast().delete()
+        var limit = FILES.size
+        while (limit > 0) {
+            FILES.elementAt(--limit).delete()
         }
     }
 }
