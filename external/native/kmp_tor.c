@@ -30,6 +30,8 @@
 #define ERR_CODE_TOR_NEW -13
 #define ERR_CODE_TOR_SET -14
 
+#define THREAD_RESULT_DEFAULT -1
+
 typedef struct {
   int result;
 } kmp_tor_run_thread_res_t;
@@ -145,7 +147,7 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
     kmp_tor_free_all(handle_t);
     return NULL;
   } else {
-    handle_t->args_t->res_t->result = -1;
+    handle_t->args_t->res_t->result = THREAD_RESULT_DEFAULT;
   }
 
   handle_t->argc = argc;
@@ -265,7 +267,11 @@ kmp_tor_terminate_and_await_result(kmp_tor_handle_t *handle_t)
 
   if (handle_t->error_code == ERR_CODE_NONE) {
     void *res = NULL;
-    pthread_kill(handle_t->thread_id, SIGTERM);
+
+    if (handle_t->args_t->res_t->result == THREAD_RESULT_DEFAULT) {
+      pthread_kill(handle_t->thread_id, SIGTERM);
+    }
+
     pthread_join(handle_t->thread_id, &res);
 
     if (res != NULL) {
