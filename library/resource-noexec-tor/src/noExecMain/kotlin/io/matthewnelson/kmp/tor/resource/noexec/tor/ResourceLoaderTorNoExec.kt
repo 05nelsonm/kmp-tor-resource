@@ -18,6 +18,9 @@
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.file.IOException
+import io.matthewnelson.kmp.file.name
+import io.matthewnelson.kmp.file.path
 import io.matthewnelson.kmp.tor.common.api.GeoipFiles
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
@@ -25,7 +28,6 @@ import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_GEO
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP6
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.loadTorApi
 import kotlin.concurrent.Volatile
 import kotlin.jvm.JvmStatic
 
@@ -41,7 +43,7 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
             return NoExec.getOrCreate(
                 resourceDir = resourceDir,
                 extract = ::extractGeoips,
-                load = ::loadTorApi,
+                load = ::KmpTorApi,
                 toString = ::toString
             )
         }
@@ -90,6 +92,32 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
             }
 
             append(']')
+        }
+    }
+
+    private class KmpTorApi: AbstractKmpTorApi() {
+
+        @Throws(IllegalStateException::class, IOException::class)
+        override fun torRunMainProtected(args: Array<String>): Handle {
+            val libTor = libTor()
+            val handleT = kmpTorRunMain(libTor.path, args)
+
+            check(handleT != null) { "Memory allocation failure" }
+
+            when (val r = kmpTorCheckResult(handleT)) {
+                -100 -> null // All good, running
+                -10 -> "kmp_tor_run_main invalid arguments"
+                -11 -> "kmp_tor_run_main configuration failure"
+                -12 -> "Failed to load ${libTor.name}"
+                -13 -> "tor_main_configuration_new failure"
+                -14 -> "tor_main_configuration_set_command_line failure"
+                else -> "kmp_tor_run_main experienced an unknown error code[$r]"
+            }?.let { error ->
+                kmpTorTerminateAndAwaitResult(handleT)
+                throw IllegalStateException(error)
+            }
+
+            return Handle { kmpTorTerminateAndAwaitResult(handleT) }
         }
     }
 

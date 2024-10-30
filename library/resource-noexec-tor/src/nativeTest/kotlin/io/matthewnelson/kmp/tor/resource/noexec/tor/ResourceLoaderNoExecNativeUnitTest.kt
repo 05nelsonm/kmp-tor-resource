@@ -20,10 +20,11 @@ import kotlin.test.Test
 
 @OptIn(ExperimentalNativeApi::class)
 class ResourceLoaderNoExecNativeUnitTest: ResourceLoaderNoExecBaseTest(
-    runTorMainCount = when (Platform.osFamily) {
-        OsFamily.WINDOWS -> RUN_TOR_MAIN_COUNT_WINDOWS
-        else -> RUN_TOR_MAIN_COUNT_UNIX
-    }
+    runTorMainCount = 0 /* TODO: kmp_tor.h + kmp_tor.c */
+//    runTorMainCount = when (Platform.osFamily) {
+//        OsFamily.WINDOWS -> RUN_TOR_MAIN_COUNT_WINDOWS
+//        else -> RUN_TOR_MAIN_COUNT_UNIX
+//    }
 ) {
 
     @Test

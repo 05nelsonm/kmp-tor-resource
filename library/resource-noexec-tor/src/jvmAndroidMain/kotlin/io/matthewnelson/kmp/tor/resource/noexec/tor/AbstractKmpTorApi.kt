@@ -13,51 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
+@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 
-import io.matthewnelson.kmp.file.File
-import io.matthewnelson.kmp.file.IOException
-import io.matthewnelson.kmp.file.SysTempDir
-import io.matthewnelson.kmp.file.resolve
-import io.matthewnelson.kmp.file.toFile
+package io.matthewnelson.kmp.tor.resource.noexec.tor
+
+import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
-import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.common.core.OSInfo
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
 import java.util.UUID
 
-internal const val ALIAS_LIB_TOR_JNI: String = "libtorjni"
-
-@JvmSynthetic
-@Throws(IllegalStateException::class, IOException::class)
-internal actual fun loadTorApi(): TorApi = KmpTorApi()
-
+// jvmAndroid
 @OptIn(InternalKmpTorApi::class)
-private class KmpTorApi: TorApi() {
+internal actual sealed class AbstractKmpTorApi
+@Throws(IllegalStateException::class, IOException::class)
+protected actual constructor(): TorApi2() {
 
-    private external fun kmpTorRunMain(shutdownDelayMillis: Int, libtor: String, args: Array<String>): Int
-
-    override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
-        val libtor = extractLibTor()
-        val result = kmpTorRunMain(
-            shutdownDelayMillis = 100,
-            libtor = libtor.path,
-            args = args,
-        )
-
-        when (result) {
-            -9  -> "JNI: Failed to convert args to C"
-            -10 -> "JNI: kmp_tor_run_main invalid arguments"
-            -11 -> "JNI: kmp_tor_run_main configuration failure"
-            -12 -> "JNI: Failed to load ${libtor.name}"
-            -13 -> "JNI: tor_main_configuration_new failure"
-            -14 -> "JNI: tor_main_configuration_set_command_line failure"
-            else -> null
-        }?.let { throw IllegalStateException(it) }
-
-        return result
+    protected actual fun kmpTorRunMain(libTor: String, args: Array<String>): HandleT? {
+        // TODO
+        return null
+    }
+    protected actual fun kmpTorTerminateAndAwaitResult(handle: HandleT): Int {
+        // TODO
+        return 1
+    }
+    protected actual fun kmpTorCheckResult(handle: HandleT): Int {
+        // TODO
+        return -99
     }
 
-    private fun extractLibTor(loadTorJni: Boolean = false): File {
+    @Throws(IllegalStateException::class, IOException::class)
+    protected actual fun libTor(): File = extractLibTor(loadTorJni = false)
+
+    @Throws(IllegalStateException::class, IOException::class)
+    private fun extractLibTor(loadTorJni: Boolean): File {
         val tempDir = TEMP_DIR
 
         return try {
@@ -87,7 +79,9 @@ private class KmpTorApi: TorApi() {
 
     init { extractLibTor(loadTorJni = true) }
 
-    private companion object {
+    internal companion object {
+
+        internal const val ALIAS_LIB_TOR_JNI: String = "libtorjni"
 
         private val TEMP_DIR: File? by lazy {
             if (OSInfo.INSTANCE.isAndroidRuntime()) return@lazy null

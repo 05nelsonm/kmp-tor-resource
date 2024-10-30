@@ -19,6 +19,7 @@ import io.matthewnelson.kmp.file.readBytes
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.LOADER
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.TEST_DIR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.WORK_DIR
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
 import kotlin.test.*
 
 /**
@@ -34,7 +35,15 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
 
     protected companion object {
         const val RUN_TOR_MAIN_COUNT_UNIX: Int = 500
-        const val RUN_TOR_MAIN_COUNT_WINDOWS: Int = 125
+        const val RUN_TOR_MAIN_COUNT_WINDOWS: Int = 200
+    }
+
+    private val skipTorRunMain: Boolean get() {
+        val skip = runTorMainCount <= 0 || !CAN_RUN_FULL_TESTS
+        if (skip) {
+            println("Skipping...")
+        }
+        return skip
     }
 
     @AfterTest
@@ -61,13 +70,10 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
 
     @Test
     fun givenResourceLoaderNoExec_whenWithApi_thenLoadsSuccessfully() {
-        if (runTorMainCount <= 0 || !CAN_RUN_FULL_TESTS) {
-            println("Skipping...")
-            return
-        }
+        if (skipTorRunMain) return
 
         val result = LOADER.withApi(TestRuntimeBinder) {
-            torRunMain(listOf("--version"))
+            (this as TorApi2).torRunMain2(listOf("--version")).terminateAndAwaitResult()
         }
 
         assertEquals(0, result)
@@ -75,10 +81,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
 
     @Test
     fun givenResourceLoaderNoExec_whenMultipleRuns_thenLibTorIsUnloaded() {
-        if (runTorMainCount <= 0 || !CAN_RUN_FULL_TESTS) {
-            println("Skipping...")
-            return
-        }
+        if (skipTorRunMain) return
 
         repeat(runTorMainCount) { index ->
             if ((index + 1) % 10 == 0) {
@@ -86,17 +89,18 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
             }
 
             val result = LOADER.withApi(TestRuntimeBinder) {
-                assertFalse(isRunning)
+                val api = this as TorApi2
+                assertFalse(api.isRunning2)
 
-                val rv = torRunMain(
+                val rv = api.torRunMain2(
                     listOf(
                         "--SocksPort", "-1",
                         "--verify-config",
                         "--quiet"
                     )
-                )
+                ).terminateAndAwaitResult()
 
-                assertFalse(isRunning)
+                assertFalse(api.isRunning2)
 
                 rv
             }

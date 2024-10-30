@@ -21,6 +21,7 @@ import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.lib.tor.tryConfigureTestTorResources
+import io.matthewnelson.kmp.tor.resource.noexec.tor.AbstractKmpTorApi.Companion.ALIAS_LIB_TOR_JNI
 
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)

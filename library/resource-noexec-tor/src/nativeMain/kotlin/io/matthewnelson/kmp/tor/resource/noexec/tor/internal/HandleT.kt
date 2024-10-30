@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-@file:Suppress("KotlinRedundantDiagnosticSuppress", "EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
-import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
-import io.matthewnelson.kmp.tor.common.core.Resource
-
-@Suppress("NOTHING_TO_INLINE")
-@OptIn(InternalKmpTorApi::class)
-internal actual inline fun Resource.Config.Builder.configureLibTorResources() { /* no-op */ }
+// TODO
+internal actual class HandleT {
+}

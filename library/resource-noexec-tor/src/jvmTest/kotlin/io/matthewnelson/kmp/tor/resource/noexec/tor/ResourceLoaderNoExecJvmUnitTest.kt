@@ -22,10 +22,11 @@ import kotlin.test.Test
 
 @OptIn(InternalKmpTorApi::class)
 class ResourceLoaderNoExecJvmUnitTest: ResourceLoaderNoExecBaseTest(
-    runTorMainCount = when (OSInfo.INSTANCE.osHost) {
-        is OSHost.Windows -> RUN_TOR_MAIN_COUNT_WINDOWS
-        else -> RUN_TOR_MAIN_COUNT_UNIX
-    }
+    runTorMainCount = 0 /* TODO: JNI */
+//    runTorMainCount = when (OSInfo.INSTANCE.osHost) {
+//        is OSHost.Windows -> RUN_TOR_MAIN_COUNT_WINDOWS
+//        else -> RUN_TOR_MAIN_COUNT_UNIX
+//    }
 ) {
 
     @Test
