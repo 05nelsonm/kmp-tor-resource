@@ -97,6 +97,12 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     api(libs.kmp.tor.common.api)
                 }
             }
+
+            sourceSetTest {
+                dependencies {
+                    implementation(libs.kotlinx.coroutines.test)
+                }
+            }
         }
 
         sourceSetConnect(

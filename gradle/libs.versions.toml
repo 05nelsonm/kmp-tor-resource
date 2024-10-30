@@ -17,6 +17,7 @@ encoding = "2.2.2"
 
 kotlincrypto-hash = "0.5.3"
 kotlinx-cli = "0.3.6"
+kotlinx-coroutines = "1.8.1"
 kotlinx-datetime = "0.5.0"
 
 okio = "3.7.0"
@@ -41,6 +42,7 @@ encoding-base64 = { module = "io.matthewnelson.encoding:base64", version.ref = "
 
 kotlincrypto-hash-sha2 = { module = "org.kotlincrypto.hash:sha2", version.ref = "kotlincrypto-hash" }
 kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 okio-okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
