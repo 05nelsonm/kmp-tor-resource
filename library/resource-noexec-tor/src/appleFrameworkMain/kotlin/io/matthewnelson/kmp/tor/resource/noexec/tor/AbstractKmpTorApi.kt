@@ -17,9 +17,14 @@
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
+import io.matthewnelson.kmp.file.path
+import io.matthewnelson.kmp.file.resolve
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.IOException
 import io.matthewnelson.kmp.file.toFile
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_check_error_code
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_run_main
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_terminate_and_await_result
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT.Companion.toHandleTOrNull
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
