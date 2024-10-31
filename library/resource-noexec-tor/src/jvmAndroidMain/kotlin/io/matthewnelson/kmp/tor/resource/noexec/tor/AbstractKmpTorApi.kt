@@ -33,38 +33,42 @@ internal actual sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
 protected actual constructor(): TorApi2() {
 
-    private external fun kmpTorRunMainJNI(
+    private external fun kmpTorRunMain(
+        pointer: HandleT.Pointer,
         lib_tor: String,
         args: Array<String>,
-    ): Long?
+    )
 
-    private external fun kmpTorCheckErrorCodeJNI(
-        handle_t: Long,
+    private external fun kmpTorCheckErrorCode(
+        pointer: HandleT.Pointer,
     ): Int
 
-    private external fun kmpTorTerminateAndAwaitResultJNI(
-        handle_t: Long,
+    private external fun kmpTorTerminateAndAwaitResult(
+        pointer: HandleT.Pointer,
     ): Int
 
     protected actual fun kmpTorRunMain(
         libTor: String,
         args: Array<String>,
     ): HandleT? {
-        val ptr = kmpTorRunMainJNI(
+        val pointer = HandleT.Pointer()
+
+        kmpTorRunMain(
+            pointer = pointer,
             lib_tor = libTor,
             args = args,
         )
 
-        return ptr.toHandleTOrNull()
+        return pointer.toHandleTOrNull()
     }
 
     protected actual fun kmpTorCheckErrorCode(
         handle: HandleT,
-    ): Int = kmpTorCheckErrorCodeJNI(handle.ptr)
+    ): Int = kmpTorCheckErrorCode(handle.ptr)
 
     protected actual fun kmpTorTerminateAndAwaitResult(
         handle: HandleT,
-    ): Int = kmpTorTerminateAndAwaitResultJNI(handle.ptr)
+    ): Int = kmpTorTerminateAndAwaitResult(handle.ptr)
 
     @Throws(IllegalStateException::class, IOException::class)
     protected actual fun libTor(): File = extractLibTor(loadTorJni = false)

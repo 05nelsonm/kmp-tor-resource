@@ -21,7 +21,7 @@
 #include <string.h>
 
 char *
-jstring_dup(JNIEnv *env, jstring arg)
+JStringDup(JNIEnv *env, jstring arg)
 {
   const char *_arg = (*env)->GetStringUTFChars(env, arg, NULL);
   char *dup = strdup(_arg);
@@ -29,62 +29,65 @@ jstring_dup(JNIEnv *env, jstring arg)
   return dup;
 }
 
-/*
- * Class:     io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi
- * Method:    kmpTorRunMain
- * Signature: (I;String;[Ljava/lang/String;)I
- *
- * Returns the following integer value depending on case:
- *  -9     : JNI to C conversion failure
- *  -10    : invalid arguments
- *  -11    : configuration failure
- *  -12    : dlopen/dlsym failure
- *  -13    : tor_main_configuration_new failure
- *  -14    : tor_main_configuration_set_command_line failure
- *  0      : tor_run_main returned success
- *  1 - 255: tor_run_main returned failure
- */
-JNIEXPORT jint JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMain
-(JNIEnv *env, jobject thiz, jint shutdown_delay_millis, jstring libtor, jobjectArray args)
+jfieldID
+GetPointerFieldID(JNIEnv *env, jobject pointer)
 {
-  int result = -1;
+  jclass pointerClazz = (*env)->GetObjectClass(env, pointer);
+  if (pointerClazz == NULL) {
+    return NULL;
+  }
+
+  return (*env)->GetFieldID(env, pointerClazz, "pointer", "J");
+}
+
+JNIEXPORT void JNICALL
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMain
+(JNIEnv *env, jobject thiz, jobject pointer, jstring lib_tor, jobjectArray args)
+{
   int argc = -1;
+  int result = 0;
   char **argv = NULL;
-  char *libtor_cstr = NULL;
+  char *lib_tor_cstr = NULL;
+  kmp_tor_handle_t *handle_t = NULL;
+  jfieldID pointerField = NULL;
+
+  pointerField = GetPointerFieldID(env, pointer);
+  if (pointerField == NULL) {
+    return;
+  }
 
   argc = (*env)->GetArrayLength(env, args);
   if (argc <= 0) {
-    return -9;
+    return;
   }
 
-  libtor_cstr = jstring_dup(env, libtor);
-  if (libtor_cstr == NULL) {
-    return -9;
+  lib_tor_cstr = JStringDup(env, lib_tor);
+  if (lib_tor_cstr == NULL) {
+    return;
   }
 
   argv = malloc(argc * sizeof(char *));
   if (argv == NULL) {
-    free(libtor_cstr);
-    return -9;
+    free(lib_tor_cstr);
+    return;
   }
 
   for (int i = 0; i < argc; i++) {
-    if (result != -1) {
+    if (result != 0) {
       argv[i] = NULL;
       continue;
     }
 
-    jstring arg = (jstring) (*env)->GetObjectArrayElement(env, args, i);
-    argv[i] = jstring_dup(env, arg);
+    jstring arg = (jstring) (*env) ->GetObjectArrayElement(env, args, i);
+    argv[i] = JStringDup(env, arg);
 
     if (argv[i] == NULL) {
-      result = -9;
+      result = -1;
     }
   }
 
-  if (result == -1) {
-    result = kmp_tor_run_main(shutdown_delay_millis, libtor_cstr, argc, argv);
+  if (result == 0) {
+    handle_t = kmp_tor_run_main(lib_tor_cstr, argc, argv);
   }
 
   for (int i = 0; i < argc; i++) {
@@ -93,7 +96,35 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMa
     }
   }
   free(argv);
-  free(libtor_cstr);
+  free(lib_tor_cstr);
 
-  return result;
+  if (handle_t != NULL) {
+    (*env)->SetLongField(env, pointer, pointerField, handle_t);
+  }
+
+  return;
+}
+
+JNIEXPORT jint JNICALL
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorCheckErrorCode
+(JNIEnv *env, jobject thiz, jobject pointer)
+{
+  kmp_tor_handle_t *handle_t = NULL;
+
+  jfieldID pointerField = GetPointerFieldID(env, pointer);
+  handle_t = (*env)->GetLongField(env, pointer, pointerField);
+
+  return kmp_tor_check_error_code(handle_t);
+}
+
+JNIEXPORT jint JNICALL
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorTerminateAndAwaitResult
+(JNIEnv *env, jobject thiz, jobject pointer)
+{
+  kmp_tor_handle_t *handle_t = NULL;
+
+  jfieldID pointerField = GetPointerFieldID(env, pointer);
+  handle_t = (*env)->GetLongField(env, pointer, pointerField);
+
+  return kmp_tor_terminate_and_await_result(handle_t);
 }

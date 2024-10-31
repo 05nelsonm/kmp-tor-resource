@@ -15,10 +15,12 @@
  **/
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
+import kotlin.test.Ignore
 import kotlin.test.Test
 
-class ResourceLoaderNoExecAndroidTest: ResourceLoaderNoExecBaseTest(runTorMainCount = 0 /* TODO: JNI */ ) {
+class ResourceLoaderNoExecAndroidTest: ResourceLoaderNoExecBaseTest() {
 
     @Test
+    @Ignore("stub")
     fun stub() {}
 }

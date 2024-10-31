@@ -199,8 +199,12 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
             listOf(
                 "Delaying directory fetches: DisableNetwork is set.",
                 "Catching signal TERM, exiting cleanly.",
-            ).forEach { expected ->
-                assertTrue(logText.contains(expected), "Logs did not contain EXPECTED[$expected]")
+            ).mapNotNull { expected ->
+                if (logText.contains(expected)) return@mapNotNull null
+
+                "Logs did not contain EXPECTED[$expected]. RUN_TOR[${index + 1}]"
+            }.takeIf { it.isNotEmpty() }?.joinToString(separator = "\n")?.let { errors ->
+                throw AssertionError(errors + "\n\n" + logText)
             }
         }
     }

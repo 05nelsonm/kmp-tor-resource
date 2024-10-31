@@ -20,13 +20,21 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 @JvmInline
 internal actual value class HandleT private actual constructor(private actual val _ptr: Any) {
 
-    internal val ptr: Long get() = _ptr as Long
+    internal val ptr: Pointer get() = _ptr as Pointer
+
+    internal class Pointer {
+
+        @Volatile
+        private var pointer: Long = Long.MIN_VALUE
+
+        internal fun isSet(): Boolean = pointer != Long.MIN_VALUE
+    }
 
     internal companion object {
 
         @JvmSynthetic
-        internal fun Long?.toHandleTOrNull(): HandleT? {
-            if (this == null) return null
+        internal fun Pointer.toHandleTOrNull(): HandleT? {
+            if (!isSet()) return null
             return HandleT(this)
         }
     }
