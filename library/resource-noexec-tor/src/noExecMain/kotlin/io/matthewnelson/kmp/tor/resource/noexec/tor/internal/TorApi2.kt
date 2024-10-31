@@ -86,26 +86,26 @@ internal abstract class TorApi2: TorApi() {
     @Throws(IllegalStateException::class, IOException::class)
     protected abstract fun torRunMainProtected(args: Array<String>): Handle
 
-    private inner class SynchronizedHandle(private val delegate: Handle): Handle {
+    private inner class SynchronizedHandle(delegate: Handle): Handle {
 
         @Volatile
-        private var _result: Int? = null
+        private var _delegate: Handle? = delegate
         @Volatile
-        private var _isTerminating: Boolean = false
+        private var _result: Int? = null
 
         @Throws(IllegalStateException::class)
         public override fun terminateAndAwaitResult(): Int {
             _result?.let { return it }
 
             @OptIn(InternalKmpTorApi::class)
-            val terminate = synchronized(lock) {
-                _result?.let { return it }
-                if (_isTerminating) return@synchronized false
-                _isTerminating = true
-                true
+            val delegate = synchronized(lock) {
+                val d = _delegate
+                _delegate = null
+                d
             }
 
-            if (!terminate) {
+            if (delegate == null) {
+                _result?.let { return it }
                 throw IllegalStateException("terminateAndAwaitResult has already been invoked. Waiting for result")
             }
 
@@ -113,7 +113,6 @@ internal abstract class TorApi2: TorApi() {
                 delegate.terminateAndAwaitResult().also { _result = it }
             } finally {
                 _handle = null
-                _isTerminating = false
             }
 
             return result
