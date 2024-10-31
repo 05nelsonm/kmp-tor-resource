@@ -90,6 +90,6 @@ protected actual constructor(): TorApi2() {
     private companion object {
         private const val LIB_NAME: String = "LibTor"
         private const val FRAMEWORK: String = "$LIB_NAME.framework"
-        private const val FRAMEWORK_ID: String = "io.matthewnelson.kmp.tor.resource.noexec.tor"
+        private const val FRAMEWORK_ID: String = "io.matthewnelson.kmp.tor.resource.lib.tor"
     }
 }
