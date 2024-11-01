@@ -111,6 +111,7 @@ kmp_tor_free(kmp_tor_handle_t *handle_t)
   }
 
   if (handle_t->lib_t != NULL) {
+    usleep((useconds_t) 50 * 1000);
     lib_load_close(handle_t->lib_t);
   }
 

@@ -99,15 +99,17 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
     private class KmpTorApi: AbstractKmpTorApi() {
 
         @Volatile
-        private var handle: HandleT? = null
+        private var handleT: HandleT? = null
 
         @Throws(IllegalStateException::class, IOException::class)
         override fun torRunMainProtected(args: Array<String>): Handle {
             val libTor = libTor()
             val handleT = kmpTorRunMain(libTor.path, args)
-            handle = handleT
 
             check(handleT != null) { "Memory allocation failure" }
+
+            this.handleT = handleT
+            val handle = Handle { kmpTorTerminateAndAwaitResult(handleT).also { this.handleT = null } }
 
             when (val r = kmpTorCheckErrorCode(handleT)) {
                 -100 -> null // All good, running
@@ -119,13 +121,11 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
                 -15 -> "tor_main_configuration_set_command_line failure"
                 else -> "kmp_tor_run_main experienced an unknown error code[$r]"
             }?.let { error ->
-                kmpTorTerminateAndAwaitResult(handleT)
+                handle.terminateAndAwaitResult()
                 throw IllegalStateException(error)
             }
 
-            return Handle {
-                kmpTorTerminateAndAwaitResult(handleT).also { handle = null }
-            }
+            return handle
         }
     }
 
