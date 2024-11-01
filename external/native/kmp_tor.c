@@ -46,7 +46,6 @@ typedef struct {
 } kmp_tor_run_thread_res_t;
 
 typedef struct {
-  kmp_tor_run_thread_res_t *res_t;
   void *cfg;
   int (*tor_api_run_main)(void *cfg);
 } kmp_tor_run_thread_args_t;
@@ -71,27 +70,29 @@ kmp_tor_run_thread(void *arg)
 {
   int rv = -1;
   kmp_tor_run_thread_args_t *args_t = arg;
+  kmp_tor_run_thread_res_t *res_t = NULL;
+  res_t = malloc(sizeof(kmp_tor_run_thread_res_t));
+
   rv = args_t->tor_api_run_main(args_t->cfg);
   if (rv < 0 || rv > 255) {
     rv = 1;
   }
 
-  args_t->res_t->result = rv;
-  return args_t->res_t;
+  if (res_t != NULL) {
+    res_t->result = rv;
+  }
+
+  return res_t;
 }
 
 void
-kmp_tor_free_all(kmp_tor_handle_t *handle_t)
+kmp_tor_free(kmp_tor_handle_t *handle_t)
 {
   assert(handle_t != NULL);
 
   if (handle_t->args_t != NULL) {
     if (handle_t->args_t->cfg != NULL) {
       handle_t->tor_api_cfg_free(handle_t->args_t->cfg);
-    }
-
-    if (handle_t->args_t->res_t != NULL) {
-      free(handle_t->args_t->res_t);
     }
     free(handle_t->args_t);
   }
@@ -148,22 +149,14 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
 
   handle_t->args_t = malloc(sizeof(kmp_tor_run_thread_args_t));
   if (handle_t->args_t == NULL) {
-    kmp_tor_free_all(handle_t);
+    kmp_tor_free(handle_t);
     return NULL;
-  }
-
-  handle_t->args_t->res_t = malloc(sizeof(kmp_tor_run_thread_res_t));
-  if (handle_t->args_t->res_t == NULL) {
-    kmp_tor_free_all(handle_t);
-    return NULL;
-  } else {
-    handle_t->args_t->res_t->result = -1;
   }
 
   handle_t->argc = argc;
   handle_t->argv = malloc(argc * sizeof(char *));
   if (handle_t->argv == NULL) {
-    kmp_tor_free_all(handle_t);
+    kmp_tor_free(handle_t);
     return NULL;
   }
 
@@ -290,7 +283,7 @@ int
 kmp_tor_terminate_and_await_result(kmp_tor_handle_t *handle_t)
 {
   assert(handle_t != NULL);
-  int result = 0;
+  int result = 1;
 
   if (handle_t->error_code == ERR_CODE_NONE) {
     void *res = NULL;
@@ -298,16 +291,13 @@ kmp_tor_terminate_and_await_result(kmp_tor_handle_t *handle_t)
     raw_closesocket(handle_t->ctrl_socket);
     pthread_join(handle_t->thread_id, &res);
 
-    if (res == NULL) {
-      result = handle_t->args_t->res_t->result;
-    } else {
+    if (res != NULL) {
       kmp_tor_run_thread_res_t *res_t = res;
       result = res_t->result;
+      free(res_t);
     }
-  } else {
-    result = handle_t->error_code;
   }
 
-  kmp_tor_free_all(handle_t);
+  kmp_tor_free(handle_t);
   return result;
 }

@@ -121,10 +121,13 @@ JNIEXPORT jint JNICALL
 Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorTerminateAndAwaitResult
 (JNIEnv *env, jobject thiz, jobject pointer)
 {
+  int result = 0;
   kmp_tor_handle_t *handle_t = NULL;
 
   jfieldID pointerField = GetPointerFieldID(env, pointer);
   handle_t = (*env)->GetLongField(env, pointer, pointerField);
 
-  return kmp_tor_terminate_and_await_result(handle_t);
+  result = kmp_tor_terminate_and_await_result(handle_t);
+  (*env)->SetLongField(env, pointer, pointerField, -1);
+  return result;
 }
