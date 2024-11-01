@@ -24,7 +24,6 @@ internal actual value class HandleT private actual constructor(private actual va
 
     internal class Pointer {
 
-        @Volatile
         private var pointer: Long = -1L
 
         internal fun isSet(): Boolean = pointer != -1L
