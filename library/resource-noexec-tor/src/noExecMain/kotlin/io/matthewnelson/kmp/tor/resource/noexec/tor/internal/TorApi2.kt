@@ -48,26 +48,9 @@ internal abstract class TorApi2: TorApi() {
         @OptIn(InternalKmpTorApi::class)
         val args = synchronized(lock) {
             if (isRunning2) return@synchronized null
-
-            var assertNext: Pair<String, String>? = null
-            val array = Array(configuration.size + 1) { i ->
-                val arg = if (i == 0) "tor" else configuration[i - 1]
-
-                assertNext?.let { (option, expected) ->
-                    check(arg == expected) {
-                        "Option[$option] invalid argument[$arg], expected[$expected]"
-                    }
-                    assertNext = null
-                }
-
-                if (arg.contains("DisableSignalHandlers")) {
-                    assertNext = arg to "0"
-                }
-
-                arg
-            }
-            _isStarting = true
-            array
+            Array(configuration.size + 1) { i ->
+                if (i == 0) "tor" else configuration[i - 1]
+            }.also{ _isStarting = true }
         }
 
         check(args != null) { "tor is running" }

@@ -612,7 +612,7 @@ function __build:configure:target:finalize:output:shared {
       # tor-browser-build.
       exec_ldflags+=" -Wl,--subsystem,console"
       jni_name="torjni.dll"
-      jni_ldadd="-lpthread"
+      jni_ldadd="-lpthread -lws2_32"
       shared_name="tor.dll"
       shared_ldadd="-lws2_32 -lcrypt32 -lshlwapi -liphlpapi"
       ;;
@@ -675,14 +675,14 @@ function __build:configure:target:finalize:output:shared {
   __util:require:var_set "$shared_cflags" "shared_cflags"
   __util:require:var_set "$strip_flags" "strip_flags"
 
-  __build:SCRIPT 'compile_shared() {'
-  __build:SCRIPT '  echo "    * Compiling shared-$1 (shared libraries & linked executable)"'
+  __build:SCRIPT 'compile_libtor() {'
+  __build:SCRIPT '  echo "    * Compiling lib$1 (shared libraries & linked executable)"'
   __build:SCRIPT ''
-  __build:SCRIPT '  rm -rf "$DIR_SCRIPT/shared-$1"'
+  __build:SCRIPT '  rm -rf "$DIR_SCRIPT/lib$1"'
   __build:SCRIPT "  rm -rf \"\$DIR_EXTERNAL/build/out/\$1/$DIR_OUT_SUFFIX\""
-  __build:SCRIPT '  mkdir -p "$DIR_SCRIPT/shared-$1/bin"'
-  __build:SCRIPT '  cp -Ra "$DIR_EXTERNAL/native" "$DIR_TMP/shared-$1"'
-  __build:SCRIPT '  cd "$DIR_TMP/shared-$1"'
+  __build:SCRIPT '  mkdir -p "$DIR_SCRIPT/lib$1/bin"'
+  __build:SCRIPT '  cp -Ra "$DIR_EXTERNAL/native" "$DIR_TMP/lib$1"'
+  __build:SCRIPT '  cd "$DIR_TMP/lib$1"'
   __build:SCRIPT ''
   __build:SCRIPT "  \$CC \$CFLAGS $shared_cflags \\"
   __build:SCRIPT "    -o $shared_name \\"
@@ -729,14 +729,14 @@ function __build:configure:target:finalize:output:shared {
     __build:SCRIPT "    -o $jni_name \\"
     __build:SCRIPT "    \$LDFLAGS $jni_ldadd"
     __build:SCRIPT ''
-    __build:SCRIPT "  cp -a $jni_name \"\$DIR_SCRIPT/shared-\$1/bin\""
+    __build:SCRIPT "  cp -a $jni_name \"\$DIR_SCRIPT/lib\$1/bin\""
   fi
 
   if [ -n "$exec_name" ]; then
-    __build:SCRIPT "  cp -a $exec_name \"\$DIR_SCRIPT/shared-\$1/bin\""
+    __build:SCRIPT "  cp -a $exec_name \"\$DIR_SCRIPT/lib\$1/bin\""
   fi
 
-  __build:SCRIPT "  cp -a $shared_name \"\$DIR_SCRIPT/shared-\$1/bin\""
+  __build:SCRIPT "  cp -a $shared_name \"\$DIR_SCRIPT/lib\$1/bin\""
   __build:SCRIPT '}'
 
   local needs_execution_items="\"bin/$shared_name\""
@@ -749,19 +749,19 @@ function __build:configure:target:finalize:output:shared {
   fi
 
   __build:SCRIPT "
-if needs_execution \"\$DIR_SCRIPT\" \"shared-tor\" $needs_execution_items; then
-  compile_shared \"tor\"
+if needs_execution \"\$DIR_SCRIPT\" \"libtor\" $needs_execution_items; then
+  compile_libtor \"tor\"
 fi
-if needs_execution \"\$DIR_SCRIPT\" \"shared-tor-gpl\" $needs_execution_items; then
-  compile_shared \"tor-gpl\"
+if needs_execution \"\$DIR_SCRIPT\" \"libtor-gpl\" $needs_execution_items; then
+  compile_libtor \"tor-gpl\"
 fi
 "
 
-  __build:SCRIPT 'install_shared() {'
-  __build:SCRIPT '  echo "    * Installing compilations from shared-$1/bin"'
+  __build:SCRIPT 'install_libtor() {'
+  __build:SCRIPT '  echo "    * Installing compilations from lib$1/bin"'
   __build:SCRIPT ''
   __build:SCRIPT '  cd "$DIR_EXTERNAL/build"'
-  __build:SCRIPT "  _bin=\"stage/$DIR_OUT_SUFFIX/shared-\$1/bin\""
+  __build:SCRIPT "  _bin=\"stage/$DIR_OUT_SUFFIX/lib\$1/bin\""
   __build:SCRIPT "  _out=\"out/\$1/$DIR_OUT_SUFFIX\""
   __build:SCRIPT ''
   __build:SCRIPT '  rm -rf "$_out"'
@@ -835,19 +835,19 @@ fi
 
   __build:SCRIPT "
 if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/$DIR_OUT_SUFFIX\" $needs_execution_items; then
-  install_shared \"tor\"
+  install_libtor \"tor\"
 fi
 if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/$DIR_OUT_SUFFIX\" $needs_execution_items; then
-  install_shared \"tor-gpl\"
+  install_libtor \"tor-gpl\"
 fi"
 
   if [ "$os_name" = "android" ]; then
     __build:SCRIPT "
 if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor/linux-$os_name/$os_arch\" $needs_execution_items_linux_android \"tor\"; then
-  install_shared \"tor\"
+  install_libtor \"tor\"
 fi
 if needs_execution \"\$DIR_EXTERNAL/build\" \"out/tor-gpl/linux-$os_name/$os_arch\" $needs_execution_items_linux_android \"tor\"; then
-  install_shared \"tor-gpl\"
+  install_libtor \"tor-gpl\"
 fi"
   fi
 }
