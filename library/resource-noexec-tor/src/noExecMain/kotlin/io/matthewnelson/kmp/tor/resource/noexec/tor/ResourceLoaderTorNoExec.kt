@@ -27,6 +27,7 @@ import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_GEOIPS
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP6
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import kotlin.concurrent.Volatile
 import kotlin.jvm.JvmStatic
@@ -97,10 +98,14 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
     private class KmpTorApi: AbstractKmpTorApi() {
 
+        @Volatile
+        private var handle: HandleT? = null
+
         @Throws(IllegalStateException::class, IOException::class)
         override fun torRunMainProtected(args: Array<String>): Handle {
             val libTor = libTor()
             val handleT = kmpTorRunMain(libTor.path, args)
+            handle = handleT
 
             check(handleT != null) { "Memory allocation failure" }
 
@@ -118,7 +123,9 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
                 throw IllegalStateException(error)
             }
 
-            return Handle { kmpTorTerminateAndAwaitResult(handleT) }
+            return Handle {
+                kmpTorTerminateAndAwaitResult(handleT).also { handle = null }
+            }
         }
     }
 
