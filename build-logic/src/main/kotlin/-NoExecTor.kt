@@ -279,7 +279,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     Family.LINUX,
                     Family.IOS,
                     Family.OSX -> "-lpthread -ldl"
-                    Family.MINGW -> "-lws2_32"
+                    Family.MINGW -> ""
                     else -> null
                 }
 

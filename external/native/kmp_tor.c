@@ -23,7 +23,7 @@
 #include <unistd.h>
 
 #ifdef _WIN32
-#include <winsock.h>
+#include <winsock2.h>
 typedef SOCKET tor_control_socket_t;
 #define INVALID_TOR_CONTROL_SOCKET INVALID_SOCKET
 #define raw_closesocket closesocket
