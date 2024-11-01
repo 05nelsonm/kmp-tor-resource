@@ -40,6 +40,7 @@ typedef int tor_control_socket_t;
 #define ERR_CODE_THREAD        -13
 #define ERR_CODE_TOR_CFG_NEW   -14
 #define ERR_CODE_TOR_CFG_SET   -15
+#define ERR_CODE_TOR_CFG_CTRL  -16
 
 typedef struct {
   int result;
@@ -48,6 +49,7 @@ typedef struct {
 typedef struct {
   void *cfg;
   int (*tor_api_run_main)(void *cfg);
+  void (*tor_api_cfg_free)(void *cfg);
 } kmp_tor_run_thread_args_t;
 
 struct kmp_tor_handle_t {
@@ -57,7 +59,6 @@ struct kmp_tor_handle_t {
   char **argv;
 
   void (*OPENSSL_cleanup)(void);
-  void (*tor_api_cfg_free)(void *cfg);
   tor_control_socket_t ctrl_socket;
 
   pthread_t thread_id;
@@ -82,6 +83,9 @@ kmp_tor_run_thread(void *arg)
     res_t->result = rv;
   }
 
+  args_t->tor_api_cfg_free(args_t->cfg);
+  usleep((useconds_t) 1 * 1000);
+
   return res_t;
 }
 
@@ -91,8 +95,10 @@ kmp_tor_free(kmp_tor_handle_t *handle_t)
   assert(handle_t != NULL);
 
   if (handle_t->args_t != NULL) {
-    if (handle_t->args_t->cfg != NULL) {
-      handle_t->tor_api_cfg_free(handle_t->args_t->cfg);
+    if (handle_t->error_code != ERR_CODE_NONE) {
+      if (handle_t->args_t->cfg != NULL) {
+        handle_t->args_t->tor_api_cfg_free(handle_t->args_t->cfg);
+      }
     }
     free(handle_t->args_t);
   }
@@ -107,6 +113,9 @@ kmp_tor_free(kmp_tor_handle_t *handle_t)
   }
 
   if (handle_t->OPENSSL_cleanup != NULL) {
+    if (handle_t->error_code == ERR_CODE_NONE) {
+      usleep((useconds_t) 50 * 1000);
+    }
     handle_t->OPENSSL_cleanup();
   }
 
@@ -203,8 +212,8 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
     return handle_t;
   }
 
-  *(void **) (&handle_t->tor_api_cfg_free) = lib_load_resolve(handle_t->lib_t, "tor_main_configuration_free");
-  if (handle_t->tor_api_cfg_free == NULL) {
+  *(void **) (&handle_t->args_t->tor_api_cfg_free) = lib_load_resolve(handle_t->lib_t, "tor_main_configuration_free");
+  if (handle_t->args_t->tor_api_cfg_free == NULL) {
     handle_t->error_code = ERR_CODE_LIB_LOAD;
     pthread_attr_destroy(&attrs_t);
     return handle_t;
@@ -253,7 +262,7 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
 
   handle_t->ctrl_socket = tor_api_cfg_setup_ctrl_socket(handle_t->args_t->cfg);
   if (handle_t->ctrl_socket == INVALID_TOR_CONTROL_SOCKET) {
-    handle_t->error_code = ERR_CODE_TOR_CFG_SET;
+    handle_t->error_code = ERR_CODE_TOR_CFG_CTRL;
     pthread_attr_destroy(&attrs_t);
     return handle_t;
   }
@@ -290,6 +299,8 @@ kmp_tor_terminate_and_await_result(kmp_tor_handle_t *handle_t)
     void *res = NULL;
 
     raw_closesocket(handle_t->ctrl_socket);
+    handle_t->ctrl_socket = INVALID_TOR_CONTROL_SOCKET;
+
     pthread_join(handle_t->thread_id, &res);
 
     if (res != NULL) {
