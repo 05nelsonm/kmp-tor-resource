@@ -71,8 +71,8 @@ kmp_tor_run_thread(void *arg)
     res_t->result = rv;
   }
 
+  usleep((useconds_t) 100 * 1000);
   args_t->tor_api_cfg_free(args_t->cfg);
-  usleep((useconds_t) 1 * 1000);
 
   return res_t;
 }
@@ -101,9 +101,6 @@ kmp_tor_free(kmp_tor_handle_t *handle_t)
   }
 
   if (handle_t->OPENSSL_cleanup != NULL) {
-    if (handle_t->error_code == ERR_CODE_NONE) {
-      usleep((useconds_t) 50 * 1000);
-    }
     handle_t->OPENSSL_cleanup();
   }
 
