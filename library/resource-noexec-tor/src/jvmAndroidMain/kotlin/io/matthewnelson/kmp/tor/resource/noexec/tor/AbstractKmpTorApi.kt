@@ -20,6 +20,7 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor
 import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSInfo
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.*
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT.Companion.toHandleTOrNull
@@ -33,28 +34,24 @@ internal actual sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
 protected actual constructor(): TorApi2() {
 
-    private external fun kmpTorRunMain(
-        pointer: HandleT.Pointer,
+    private external fun kmpTorRunMainJNI(
         lib_tor: String,
         args: Array<String>,
-    )
+    ): Pointer?
 
-    private external fun kmpTorCheckErrorCode(
-        pointer: HandleT.Pointer,
+    private external fun kmpTorCheckErrorCodeJNI(
+        pointer: Pointer,
     ): Int
 
-    private external fun kmpTorTerminateAndAwaitResult(
-        pointer: HandleT.Pointer,
+    private external fun kmpTorTerminateAndAwaitResultJNI(
+        pointer: Pointer,
     ): Int
 
     protected actual fun kmpTorRunMain(
         libTor: String,
         args: Array<String>,
     ): HandleT? {
-        val pointer = HandleT.Pointer()
-
-        kmpTorRunMain(
-            pointer = pointer,
+        val pointer = kmpTorRunMainJNI(
             lib_tor = libTor,
             args = args,
         )
@@ -64,11 +61,11 @@ protected actual constructor(): TorApi2() {
 
     protected actual fun kmpTorCheckErrorCode(
         handle: HandleT,
-    ): Int = kmpTorCheckErrorCode(handle.ptr)
+    ): Int = kmpTorCheckErrorCodeJNI(handle.ptr)
 
     protected actual fun kmpTorTerminateAndAwaitResult(
         handle: HandleT,
-    ): Int = kmpTorTerminateAndAwaitResult(handle.ptr)
+    ): Int = kmpTorTerminateAndAwaitResultJNI(handle.ptr)
 
     @Throws(IllegalStateException::class, IOException::class)
     protected actual fun libTor(): File = extractLibTor(loadTorJni = false)

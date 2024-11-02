@@ -118,6 +118,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
     }
 
     @Test
+    @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
     fun givenHandle_whenTerminateAndAwait_thenTorExits() = runTest(timeout = 5.minutes) {
         if (skipTorRunMain) return@runTest
 
@@ -173,6 +174,9 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
             add("--RunAsDaemon"); add("0")
         }.toImmutableList()
 
+        val bgDispatcher = newSingleThreadContext("bg-tor-terminate")
+        job.invokeOnCompletion { bgDispatcher.close() }
+
         repeat(runTorMainCount / 10) { index ->
             if ((index + 1) % 5 == 0) {
                 println("RUN_TOR[${index + 1}]")
@@ -188,17 +192,19 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
                 } catch (_: IllegalStateException) {}
             }
 
-            withContext(Dispatchers.IO) { delay(1.seconds) }
+            withContext(bgDispatcher) {
+                delay(1.seconds)
+                assertEquals(0, handle.terminateAndAwaitResult())
+            }
 
-            assertEquals(0, handle.terminateAndAwaitResult())
             completion.dispose()
 
             val logText = logFile.readUtf8()
             logFile.delete()
 
             listOf(
+                "Tor can't help you if you use it wrong!",
                 "Delaying directory fetches: DisableNetwork is set.",
-                "Catching signal TERM, exiting cleanly.",
             ).mapNotNull { expected ->
                 if (logText.contains(expected)) return@mapNotNull null
 

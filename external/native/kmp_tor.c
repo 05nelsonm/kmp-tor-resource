@@ -22,17 +22,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#ifdef _WIN32
-#include <winsock2.h>
-typedef SOCKET tor_control_socket_t;
-#define INVALID_TOR_CONTROL_SOCKET INVALID_SOCKET
-#define raw_closesocket closesocket
-#else
-typedef int tor_control_socket_t;
-#define INVALID_TOR_CONTROL_SOCKET (-1)
-#define raw_closesocket close
-#endif /* defined(_WIN32) */
-
 #define ERR_CODE_NONE          -100
 #define ERR_CODE_ARGS          -10
 #define ERR_CODE_CFG           -11
@@ -40,7 +29,6 @@ typedef int tor_control_socket_t;
 #define ERR_CODE_THREAD        -13
 #define ERR_CODE_TOR_CFG_NEW   -14
 #define ERR_CODE_TOR_CFG_SET   -15
-#define ERR_CODE_TOR_CFG_CTRL  -16
 
 typedef struct {
   int result;
@@ -59,7 +47,7 @@ struct kmp_tor_handle_t {
   char **argv;
 
   void (*OPENSSL_cleanup)(void);
-  tor_control_socket_t ctrl_socket;
+  void (*tor_shutdown)(int exit_code);
 
   pthread_t thread_id;
   kmp_tor_run_thread_args_t *args_t;
@@ -134,7 +122,6 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
   pthread_attr_t attrs_t;
   void* (*tor_api_cfg_new)(void) = NULL;
   int (*tor_api_cfg_set_command_line)(void *cfg, int argc, char **argv) = NULL;
-  tor_control_socket_t (*tor_api_cfg_setup_ctrl_socket)(void *cfg) = NULL;
 
   handle_t = malloc(sizeof(kmp_tor_handle_t));
   if (handle_t == NULL) {
@@ -212,6 +199,13 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
     return handle_t;
   }
 
+  *(void **) (&handle_t->tor_shutdown) = lib_load_resolve(handle_t->lib_t, "tor_shutdown_event_loop_and_exit");
+  if (handle_t->tor_shutdown == NULL) {
+    handle_t->error_code = ERR_CODE_LIB_LOAD;
+    pthread_attr_destroy(&attrs_t);
+    return handle_t;
+  }
+
   *(void **) (&handle_t->args_t->tor_api_cfg_free) = lib_load_resolve(handle_t->lib_t, "tor_main_configuration_free");
   if (handle_t->args_t->tor_api_cfg_free == NULL) {
     handle_t->error_code = ERR_CODE_LIB_LOAD;
@@ -240,13 +234,6 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
     return handle_t;
   }
 
-  *(void **) (&tor_api_cfg_setup_ctrl_socket) = lib_load_resolve(handle_t->lib_t, "tor_main_configuration_setup_control_socket");
-  if (tor_api_cfg_setup_ctrl_socket == NULL) {
-    handle_t->error_code = ERR_CODE_LIB_LOAD;
-    pthread_attr_destroy(&attrs_t);
-    return handle_t;
-  }
-
   handle_t->args_t->cfg = tor_api_cfg_new();
   if (handle_t->args_t->cfg == NULL) {
     handle_t->error_code = ERR_CODE_TOR_CFG_NEW;
@@ -260,13 +247,6 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
     return handle_t;
   }
 
-  handle_t->ctrl_socket = tor_api_cfg_setup_ctrl_socket(handle_t->args_t->cfg);
-  if (handle_t->ctrl_socket == INVALID_TOR_CONTROL_SOCKET) {
-    handle_t->error_code = ERR_CODE_TOR_CFG_CTRL;
-    pthread_attr_destroy(&attrs_t);
-    return handle_t;
-  }
-
   if (pthread_create(&handle_t->thread_id, &attrs_t, kmp_tor_run_thread, (void *) handle_t->args_t) != 0) {
     handle_t->error_code = ERR_CODE_THREAD;
   }
@@ -274,9 +254,6 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
 
   if (handle_t->error_code == ERR_CODE_NONE) {
     usleep((useconds_t) 50 * 1000);
-  } else {
-    raw_closesocket(handle_t->ctrl_socket);
-    handle_t->ctrl_socket = INVALID_TOR_CONTROL_SOCKET;
   }
 
   return handle_t;
@@ -298,9 +275,7 @@ kmp_tor_terminate_and_await_result(kmp_tor_handle_t *handle_t)
   if (handle_t->error_code == ERR_CODE_NONE) {
     void *res = NULL;
 
-    raw_closesocket(handle_t->ctrl_socket);
-    handle_t->ctrl_socket = INVALID_TOR_CONTROL_SOCKET;
-
+    handle_t->tor_shutdown(0);
     pthread_join(handle_t->thread_id, &res);
 
     if (res != NULL) {
