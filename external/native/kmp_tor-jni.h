@@ -19,16 +19,16 @@
 
 #include <jni.h>
 
-JNIEXPORT jobject JNICALL
+JNIEXPORT jint JNICALL
 Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMainJNI
 (JNIEnv *, jobject, jstring, jobjectArray);
 
 JNIEXPORT jint JNICALL
 Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorCheckErrorCodeJNI
-(JNIEnv *, jobject, jobject);
+(JNIEnv *, jobject);
 
 JNIEXPORT jint JNICALL
 Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorTerminateAndAwaitResultJNI
-(JNIEnv *, jobject, jobject);
+(JNIEnv *, jobject);
 
 #endif /* !defined(KMP_TOR_JNI_H) */
