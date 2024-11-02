@@ -98,8 +98,6 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
     private class KmpTorApi: AbstractKmpTorApi() {
 
-        private var handleT: HandleT? = null
-
         @Throws(IllegalStateException::class, IOException::class)
         override fun torRunMainProtected(args: Array<String>): Handle {
             val libTor = libTor()
@@ -107,7 +105,6 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
             check(handleT != null) { "Memory allocation failure" }
 
-            this.handleT = handleT
             val handle = Handle { kmpTorTerminateAndAwaitResult(handleT) }
 
             when (val r = kmpTorCheckErrorCode(handleT)) {
