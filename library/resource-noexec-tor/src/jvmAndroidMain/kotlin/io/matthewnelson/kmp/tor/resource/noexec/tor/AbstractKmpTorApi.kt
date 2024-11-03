@@ -40,15 +40,15 @@ protected actual constructor(): TorApi2() {
     protected actual fun kmpTorRunMain(
         libTor: String,
         args: Array<String>,
-    ): HandleT? = kmpTorRunMainJNI(libTor, args.size, args).toHandleTOrNull()
+    ): HandleT? = synchronized(Companion) { kmpTorRunMainJNI(libTor, args.size, args).toHandleTOrNull() }
 
     protected actual fun kmpTorCheckErrorCode(
         handle: HandleT,
-    ): Int = kmpTorCheckErrorCodeJNI()
+    ): Int = synchronized(Companion) { kmpTorCheckErrorCodeJNI() }
 
     protected actual fun kmpTorTerminateAndAwaitResult(
         handle: HandleT,
-    ): Int = kmpTorTerminateAndAwaitResultJNI()
+    ): Int = synchronized(Companion) { kmpTorTerminateAndAwaitResultJNI() }
 
     @Throws(IllegalStateException::class, IOException::class)
     protected actual fun libTor(): File = extractLibTor(loadTorJni = false)
