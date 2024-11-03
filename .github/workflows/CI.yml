@@ -149,7 +149,7 @@ jobs:
       - name: Run macOS [ aarch64 ] Tests [ Java 11 ]
         if: matrix.os == 'macos-latest' && matrix.java-version == 11
         run: >
-          ./gradlew check --stacktrace
+          ./gradlew check --stacktrace --no-parallel
           -PKMP_TARGETS="JS,JVM,WASM_JS,WASM_WASI"
 
       - name: Run macOS [ aarch64 ] Tests [ Java 19 ]
@@ -161,7 +161,7 @@ jobs:
       - name: Run macOS [ x86_64 ] Tests [ Java 11 ]
         if: matrix.os == 'macos-13' && matrix.java-version == 11
         run: >
-          ./gradlew check --stacktrace
+          ./gradlew check --stacktrace --no-parallel
           -PKMP_TARGETS="JS,JVM,WASM_JS,WASM_WASI"
 
       - name: Run macOS [ x86_64 ] Tests [ Java 19 ]
@@ -173,7 +173,7 @@ jobs:
       - name: Run Linux Tests [ Java 11 ]
         if: matrix.os == 'ubuntu-latest' && matrix.java-version == 11
         run: >
-          ./gradlew check --stacktrace
+          ./gradlew check --stacktrace --no-parallel
           -PKMP_TARGETS="JS,JVM,WASM_JS,WASM_WASI"
 
       - name: Run Linux Tests [ Java 19 ]
@@ -185,7 +185,7 @@ jobs:
       - name: Run Windows Tests [ Java 11 ]
         if: matrix.os == 'windows-latest' && matrix.java-version == 11
         run: >
-          ./gradlew check --stacktrace
+          ./gradlew check --stacktrace --no-parallel
           -PKMP_TARGETS="JS,JVM,WASM_JS,WASM_WASI"
 
       - name: Run Windows Tests [ Java 19 ]
