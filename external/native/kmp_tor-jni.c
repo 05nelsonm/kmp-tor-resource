@@ -16,10 +16,10 @@
 #include "kmp_tor-jni.h"
 #include "kmp_tor.h"
 
-#include <assert.h>
 #include <jni.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 static kmp_tor_handle_t *handle_t = NULL;
 
@@ -27,20 +27,31 @@ JNIEXPORT jint JNICALL
 Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMainJNI
 (JNIEnv *env, jobject thiz, jstring lib_tor, jint argc, jobjectArray args)
 {
-  assert(handle_t == NULL);
-
   int c_argc = 0;
   int result = 0;
   char **c_argv = NULL;
   char *c_lib_tor = NULL;
+  kmp_tor_handle_t *_handle_t = NULL;
+
+  if (lib_tor == NULL) {
+    return 1;
+  }
+  if (argc <= 0) {
+    return 1;
+  }
+  if (args == NULL) {
+    return 1;
+  }
 
   if (c_argc == 0) {
-    const char *c_arg = (*env)->GetStringUTFChars(env, lib_tor, NULL);
-    if (c_arg == NULL) {
-      return 1;
+    jboolean is_copy;
+    const char *c_arg = (*env)->GetStringUTFChars(env, lib_tor, &is_copy);
+    if (c_arg != NULL) {
+      c_lib_tor = strdup(c_arg);
     }
-    c_lib_tor = strdup(c_arg);
-    (*env)->ReleaseStringUTFChars(env, lib_tor, c_arg);
+    if (is_copy) {
+      (*env)->ReleaseStringUTFChars(env, lib_tor, c_arg);
+    }
   }
 
   if (c_lib_tor == NULL) {
@@ -53,30 +64,38 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMai
     return 1;
   }
 
-  for (int i = 0; i < argc; i++) {
-    c_argc++;
-
+  for (jsize i = 0; i < argc; i++) {
     if (result != 0) {
-      c_argv[i] = NULL;
+      c_argv[c_argc++] = NULL;
       continue;
     }
 
-    jstring arg = (jstring) (*env) ->GetObjectArrayElement(env, args, i);
-    const char *c_arg = (*env)->GetStringUTFChars(env, arg, NULL);
-    if (c_arg != NULL) {
-      c_argv[i] = strdup(c_arg);
-      (*env)->ReleaseStringUTFChars(env, arg, c_arg);
+    jstring j_arg = (jstring) (*env)->GetObjectArrayElement(env, args, i);
+    if (j_arg == NULL) {
+      c_argv[c_argc] = NULL;
     } else {
-      c_argv[i] = NULL;
+      jboolean is_copy;
+      const char *c_arg = (*env)->GetStringUTFChars(env, j_arg, &is_copy);
+      if (c_arg != NULL) {
+        c_argv[c_argc] = strdup(c_arg);
+      } else {
+        c_argv[c_argc] = NULL;
+      }
+      if (is_copy) {
+        (*env)->ReleaseStringUTFChars(env, j_arg, c_arg);
+      }
+      (*env)->DeleteLocalRef(env, j_arg);
     }
 
-    if (c_argv[i] == NULL) {
+    if (c_argv[c_argc] == NULL) {
       result = -1;
     }
+
+    c_argc++;
   }
 
   if (result == 0) {
-    handle_t = kmp_tor_run_main(c_lib_tor, c_argc, c_argv);
+    _handle_t = kmp_tor_run_main(c_lib_tor, c_argc, c_argv);
   }
 
   for (int i = 0; i < c_argc; i++) {
@@ -87,11 +106,13 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMai
   free(c_argv);
   free(c_lib_tor);
 
-  if (handle_t == NULL) {
+  if (_handle_t == NULL) {
     return 1;
-  } else {
-    return 0;
   }
+
+  handle_t = _handle_t;
+  usleep((useconds_t) 5 * 1000);
+  return 0;
 }
 
 JNIEXPORT jint JNICALL
@@ -105,8 +126,12 @@ JNIEXPORT jint JNICALL
 Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorTerminateAndAwaitResultJNI
 (JNIEnv *env, jobject thiz)
 {
+  int result;
   kmp_tor_handle_t *_handle_t = NULL;
+
   _handle_t = handle_t;
   handle_t = NULL;
-  return kmp_tor_terminate_and_await_result(_handle_t);
+  result = kmp_tor_terminate_and_await_result(_handle_t);
+  usleep((useconds_t) 5 * 1000);
+  return result;
 }
