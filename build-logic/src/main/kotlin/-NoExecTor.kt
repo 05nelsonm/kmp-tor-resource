@@ -19,6 +19,7 @@ import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test
 import org.gradle.configurationcache.extensions.capitalized
@@ -241,7 +242,11 @@ fun KmpConfigurationExtension.configureNoExecTor(
                 ).forEach { (reportName, srcSetName, reportDirs) ->
                     val srcSetTest = findByName("${srcSetName ?: reportName}Test") ?: return@forEach
 
-                    val isErrReportEmpty = {
+                    val isErrReportEmpty = report@ {
+                        if (isGpl && JavaVersion.current() < JavaVersion.VERSION_17) {
+                            return@report false
+                        }
+
                         var hasError = reportDirs.isEmpty()
                         reportDirs.forEach readReport@{ dir ->
                             if (hasError) return@readReport
