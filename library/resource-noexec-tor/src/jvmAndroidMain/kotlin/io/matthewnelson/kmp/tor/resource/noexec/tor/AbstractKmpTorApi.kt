@@ -34,10 +34,6 @@ internal actual sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
 protected actual constructor(): TorApi2() {
 
-    private external fun kmpTorRunMainJNI(lib_tor: String, argc: Int, args: Array<String>): Pointer?
-    private external fun kmpTorCheckErrorCodeJNI(pointer: Pointer): Int
-    private external fun kmpTorTerminateAndAwaitResultJNI(pointer: Pointer): Int
-
     protected actual fun kmpTorRunMain(
         libTor: String,
         args: Array<String>,
@@ -91,6 +87,13 @@ protected actual constructor(): TorApi2() {
     internal companion object {
 
         internal const val ALIAS_LIB_TOR_JNI: String = "libtorjni"
+
+        @JvmStatic
+        private external fun kmpTorRunMainJNI(lib_tor: String, argc: Int, args: Array<String>): Pointer?
+        @JvmStatic
+        private external fun kmpTorCheckErrorCodeJNI(pointer: Pointer): Int
+        @JvmStatic
+        private external fun kmpTorTerminateAndAwaitResultJNI(pointer: Pointer): Int
 
         private val TEMP_DIR: File? by lazy {
             if (OSInfo.INSTANCE.isAndroidRuntime()) return@lazy null
