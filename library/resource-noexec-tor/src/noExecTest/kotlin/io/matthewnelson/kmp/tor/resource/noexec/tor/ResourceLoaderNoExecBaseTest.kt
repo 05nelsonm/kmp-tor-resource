@@ -177,7 +177,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         val bgDispatcher = newSingleThreadContext("bg-tor-terminate")
         job.invokeOnCompletion { bgDispatcher.close() }
 
-        repeat(1) { index ->
+        repeat(runTorMainCount / 10) { index ->
             if ((index + 1) % 5 == 0) {
                 println("RUN_TOR[${index + 1}]")
             }
