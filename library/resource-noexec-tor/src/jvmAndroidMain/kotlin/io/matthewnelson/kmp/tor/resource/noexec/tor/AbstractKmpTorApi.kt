@@ -33,22 +33,14 @@ internal actual sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
 protected actual constructor(): TorApi2() {
 
-    @Synchronized
     private external fun kmpTorRunMainJNI(lib_tor: String, argc: Int, args: Array<String>): Int
-
-    @Synchronized
     private external fun kmpTorCheckErrorCodeJNI(): Int
-
-    @Synchronized
     private external fun kmpTorTerminateAndAwaitResultJNI(): Int
 
     protected actual fun kmpTorRunMain(
         libTor: String,
         args: Array<String>,
-    ): HandleT? {
-        val result = kmpTorRunMainJNI(lib_tor = libTor, argc = args.size, args = args)
-        return result.toHandleTOrNull()
-    }
+    ): HandleT? = kmpTorRunMainJNI(libTor, args.size, args).toHandleTOrNull()
 
     protected actual fun kmpTorCheckErrorCode(
         handle: HandleT,
