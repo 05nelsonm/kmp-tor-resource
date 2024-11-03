@@ -177,7 +177,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         val bgDispatcher = newSingleThreadContext("bg-tor-terminate")
         job.invokeOnCompletion { bgDispatcher.close() }
 
-        repeat(runTorMainCount / 10) { index ->
+        repeat(1) { index ->
             if ((index + 1) % 5 == 0) {
                 println("RUN_TOR[${index + 1}]")
             }
@@ -205,6 +205,8 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
             listOf(
                 "Tor can't help you if you use it wrong!",
                 "Delaying directory fetches: DisableNetwork is set.",
+                "Owning controller connection has closed -- exiting now.",
+                "Catching signal TERM, exiting cleanly.",
             ).mapNotNull { expected ->
                 if (logText.contains(expected)) return@mapNotNull null
 

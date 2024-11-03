@@ -612,7 +612,7 @@ function __build:configure:target:finalize:output:shared {
       # tor-browser-build.
       exec_ldflags+=" -Wl,--subsystem,console"
       jni_name="torjni.dll"
-      jni_ldadd="-lpthread"
+      jni_ldadd="-lpthread -lws2_32"
       shared_name="tor.dll"
       shared_ldadd="-lws2_32 -lcrypt32 -lshlwapi -liphlpapi"
       ;;

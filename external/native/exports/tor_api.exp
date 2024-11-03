@@ -6,4 +6,3 @@ _tor_main_configuration_new
 _tor_main_configuration_set_command_line
 _tor_main_configuration_setup_control_socket
 _tor_run_main
-_tor_shutdown_event_loop_and_exit

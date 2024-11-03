@@ -8,7 +8,6 @@
         tor_main_configuration_set_command_line;
         tor_main_configuration_setup_control_socket;
         tor_run_main;
-        tor_shutdown_event_loop_and_exit;
     local:
         *;
 };
