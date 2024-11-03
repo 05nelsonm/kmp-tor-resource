@@ -37,18 +37,21 @@ protected actual constructor(): TorApi2() {
     protected actual fun kmpTorRunMain(
         libTor: String,
         args: Array<String>,
-    ): HandleT? {
-        val pointer = kmpTorRunMainJNI(libTor, args.size, args)
-        return pointer.toHandleTOrNull()
+    ): HandleT? = synchronized(Companion) {
+        kmpTorRunMainJNI(libTor, args.size, args).toHandleTOrNull()
     }
 
     protected actual fun kmpTorCheckErrorCode(
         handle: HandleT,
-    ): Int = kmpTorCheckErrorCodeJNI(handle.ptr)
+    ): Int = synchronized(Companion) {
+        kmpTorCheckErrorCodeJNI(handle.ptr)
+    }
 
     protected actual fun kmpTorTerminateAndAwaitResult(
         handle: HandleT,
-    ): Int = kmpTorTerminateAndAwaitResultJNI(handle.ptr)
+    ): Int = synchronized(Companion) {
+        kmpTorTerminateAndAwaitResultJNI(handle.ptr)
+    }
 
     @Throws(IllegalStateException::class, IOException::class)
     protected actual fun libTor(): File = extractLibTor(loadTorJni = false)
