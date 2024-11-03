@@ -300,7 +300,9 @@ kmp_tor_terminate_and_await_result(kmp_tor_handle_t *handle_t)
     __closesocket(handle_t->ctrl_socket);
     handle_t->ctrl_socket = INVALID_CTRL_SOCKET;
 
-    pthread_join(handle_t->thread_id, &res);
+    if (pthread_join(handle_t->thread_id, &res) != 0) {
+      usleep((useconds_t) 250 * 1000);
+    }
 
     if (res != NULL) {
       kmp_tor_run_thread_res_t *res_t = res;
