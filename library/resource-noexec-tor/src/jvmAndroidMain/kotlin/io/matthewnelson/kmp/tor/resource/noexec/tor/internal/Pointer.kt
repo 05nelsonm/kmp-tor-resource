@@ -13,21 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
-
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
-@JvmInline
-internal actual value class HandleT private actual constructor(private actual val _ptr: Any) {
-
-    internal val ptr: Pointer get() = _ptr as Pointer
-
-    internal companion object {
-
-        @JvmSynthetic
-        internal fun Pointer?.toHandleTOrNull(): HandleT? {
-            if (this == null) return null
-            return HandleT(this)
-        }
-    }
-}
+@Suppress("unused")
+internal class Pointer private constructor(private val value: Long)

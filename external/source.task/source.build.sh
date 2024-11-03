@@ -719,7 +719,8 @@ function __build:configure:target:finalize:output:shared {
   if [ -n "$jni_name" ]; then
     __build:SCRIPT "  \$CC \$CFLAGS $lib_load_cflags -c lib_load.c"
     __build:SCRIPT "  \$CC \$CFLAGS -c kmp_tor.c"
-    __build:SCRIPT "  \$CC \$CFLAGS -I\"\${JNI_H}\"/$jni_java_version/include -c kmp_tor-jni.c"
+    __build:SCRIPT "  \$CC \$CFLAGS -I\"\${JNI_H}\"/$jni_java_version/include -Wno-int-conversion \\"
+    __build:SCRIPT '    -c kmp_tor-jni.c'
     __build:SCRIPT ''
     __build:SCRIPT "  \$CC \$CFLAGS $jni_cflags \\"
     __build:SCRIPT '    lib_load.o \'
