@@ -34,7 +34,7 @@ internal actual sealed class AbstractKmpTorApi
 protected actual constructor(): TorApi2() {
 
     @Synchronized
-    private external fun kmpTorRunMainJNI(lib_tor: String, args: Array<String>): Int
+    private external fun kmpTorRunMainJNI(lib_tor: String, argc: Int, args: Array<String>): Int
 
     @Synchronized
     private external fun kmpTorCheckErrorCodeJNI(): Int
@@ -46,7 +46,7 @@ protected actual constructor(): TorApi2() {
         libTor: String,
         args: Array<String>,
     ): HandleT? {
-        val result = kmpTorRunMainJNI(lib_tor = libTor, args = args)
+        val result = kmpTorRunMainJNI(lib_tor = libTor, argc = args.size, args = args)
         return result.toHandleTOrNull()
     }
 

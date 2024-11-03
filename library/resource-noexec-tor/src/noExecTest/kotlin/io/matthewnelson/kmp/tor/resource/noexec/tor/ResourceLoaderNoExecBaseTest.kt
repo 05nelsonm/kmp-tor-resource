@@ -104,7 +104,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
                     listOf(
                         "--SocksPort", "-1",
                         "--verify-config",
-                        "--quiet"
+                        "--quiet",
                     )
                 ).terminateAndAwaitResult()
 
