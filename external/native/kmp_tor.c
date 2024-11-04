@@ -96,6 +96,7 @@ kmp_tor_free(kmp_tor_handle_t *handle_t)
 
   if (handle_t->ctrl_socket != INVALID_CTRL_SOCKET) {
     __closesocket(handle_t->ctrl_socket);
+    handle_t->ctrl_socket = INVALID_CTRL_SOCKET;
   }
 
   if (handle_t->args_t != NULL) {
@@ -104,25 +105,33 @@ kmp_tor_free(kmp_tor_handle_t *handle_t)
         handle_t->args_t->tor_api_cfg_free(handle_t->args_t->cfg);
       }
     }
+    handle_t->args_t->cfg = NULL;
+    handle_t->args_t->tor_api_cfg_free = NULL;
+    handle_t->args_t->tor_api_run_main = NULL;
     free(handle_t->args_t);
+    handle_t->args_t = NULL;
   }
 
   if (handle_t->argv != NULL) {
     for (int i = 0; i < handle_t->argc; i++) {
       if (handle_t->argv[i] != NULL) {
         free(handle_t->argv[i]);
+        handle_t->argv[i] = NULL;
       }
     }
     free(handle_t->argv);
+    handle_t->argv = NULL;
   }
 
   if (handle_t->OPENSSL_cleanup != NULL) {
     handle_t->OPENSSL_cleanup();
+    handle_t->OPENSSL_cleanup = NULL;
   }
 
   if (handle_t->lib_t != NULL) {
     usleep((useconds_t) 50 * 1000);
     lib_load_close(handle_t->lib_t);
+    handle_t->lib_t = NULL;
   }
 
   free(handle_t);

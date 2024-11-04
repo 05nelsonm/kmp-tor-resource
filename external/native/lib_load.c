@@ -93,10 +93,12 @@ lib_load_free(lib_handle_t *handle_t)
 
   if (handle_t->lib != NULL) {
     free(handle_t->lib);
+    handle_t->lib = NULL;
   }
 #ifdef _WIN32
   if (handle_t->err_buf != NULL) {
     free(handle_t->err_buf);
+    handle_t->err_buf = NULL;
   }
 #endif
   free(handle_t);

@@ -22,6 +22,9 @@ internal actual value class HandleT private actual constructor(private actual va
 
     internal val ptr: Pointer get() = _ptr as Pointer
 
+    @Suppress("unused")
+    internal class Pointer private constructor(private val value: Long)
+
     internal companion object {
 
         @JvmSynthetic

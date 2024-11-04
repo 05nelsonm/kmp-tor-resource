@@ -23,7 +23,6 @@ import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT.Companion.toHandleTOrNull
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.Pointer
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
 import java.util.UUID
@@ -34,22 +33,22 @@ internal actual sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
 protected actual constructor(): TorApi2() {
 
-    private external fun kmpTorRunMainJNI(lib_tor: String, argc: Int, args: Array<String>): Pointer?
-    private external fun kmpTorCheckErrorCodeJNI(pointer: Pointer): Int
-    private external fun kmpTorTerminateAndAwaitResultJNI(pointer: Pointer): Int
+    private external fun torJNIRunMain(lib_tor: String, argc: Int, args: Array<String>): HandleT.Pointer?
+    private external fun torJNICheckErrorCode(pointer: HandleT.Pointer): Int
+    private external fun torJNITerminateAndAwaitResult(pointer: HandleT.Pointer): Int
 
     protected actual fun kmpTorRunMain(
         libTor: String,
         args: Array<String>,
-    ): HandleT? = kmpTorRunMainJNI(libTor, args.size, args).toHandleTOrNull()
+    ): HandleT? = torJNIRunMain(libTor, args.size, args).toHandleTOrNull()
 
     protected actual fun kmpTorCheckErrorCode(
         handle: HandleT,
-    ): Int = kmpTorCheckErrorCodeJNI(handle.ptr)
+    ): Int = torJNICheckErrorCode(handle.ptr)
 
     protected actual fun kmpTorTerminateAndAwaitResult(
         handle: HandleT,
-    ): Int = kmpTorTerminateAndAwaitResultJNI(handle.ptr)
+    ): Int = torJNITerminateAndAwaitResult(handle.ptr)
 
     @Throws(IllegalStateException::class, IOException::class)
     protected actual fun libTor(): File = extractLibTor(loadTorJni = false)

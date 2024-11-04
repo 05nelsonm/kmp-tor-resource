@@ -25,29 +25,38 @@ static jclass pointer_clazz = NULL;
 static jfieldID pointer_field = NULL;
 static jmethodID pointer_init = NULL;
 
+static void *
+JLongToPointer(jlong l)
+{
+  void *result;
+  memcpy(&result, &l, sizeof(void *));
+  return result;
+}
+
+static jlong
+PointerToJLong(void *p)
+{
+  jlong result;
+  memcpy(&result, &p, sizeof(void *));
+  return result;
+}
+
 JNIEXPORT jobject JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMainJNI
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNIRunMain
 (JNIEnv *env, jobject thiz, jstring lib_tor, jint argc, jobjectArray args)
 {
   assert(pointer_clazz != NULL);
   assert(pointer_field != NULL);
   assert(pointer_init != NULL);
+  assert(lib_tor != NULL);
+  assert(args != NULL);
+  assert(argc > 0);
 
   int c_argc = 0;
   int copy_args = 0;
   char **c_argv = NULL;
   char *c_lib_tor = NULL;
   kmp_tor_handle_t *handle_t = NULL;
-
-  if (lib_tor == NULL) {
-    return NULL;
-  }
-  if (argc <= 0) {
-    return NULL;
-  }
-  if (args == NULL) {
-    return NULL;
-  }
 
   if (c_argc == 0) {
     const char *c_arg = (*env)->GetStringUTFChars(env, lib_tor, NULL);
@@ -58,13 +67,13 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMai
   }
 
   if (c_lib_tor == NULL) {
-    return NULL;
+    return (jobject) NULL;
   }
 
   c_argv = malloc(argc * sizeof(char *));
   if (c_argv == NULL) {
     free(c_lib_tor);
-    return NULL;
+    return (jobject) NULL;
   }
 
   for (jsize i = 0; i < argc; i++) {
@@ -107,41 +116,43 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMai
   free(c_lib_tor);
 
   if (handle_t == NULL) {
-    return NULL;
+    return (jobject) NULL;
   }
 
-  return (*env)->NewObject(env, pointer_clazz, pointer_init, handle_t);
+  jlong j_handle_t = PointerToJLong(handle_t);
+  return (*env)->NewObject(env, pointer_clazz, pointer_init, j_handle_t);
 }
 
 JNIEXPORT jint JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorCheckErrorCodeJNI
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNICheckErrorCode
 (JNIEnv *env, jobject thiz, jobject pointer)
 {
   kmp_tor_handle_t *handle_t = NULL;
-  handle_t = (*env)->GetLongField(env, pointer, pointer_field);
+  jlong j_handle_t = (*env)->GetLongField(env, pointer, pointer_field);
+  handle_t = JLongToPointer(j_handle_t);
   return kmp_tor_check_error_code(handle_t);
 }
 
 JNIEXPORT jint JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorTerminateAndAwaitResultJNI
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNITerminateAndAwaitResult
 (JNIEnv *env, jobject thiz, jobject pointer)
 {
   kmp_tor_handle_t *handle_t = NULL;
-  handle_t = (*env)->GetLongField(env, pointer, pointer_field);
-  (*env)->SetLongField(env, pointer, pointer_field, -1);
+  jlong j_handle_t = (*env)->GetLongField(env, pointer, pointer_field);
+  handle_t = JLongToPointer(j_handle_t);
   return kmp_tor_terminate_and_await_result(handle_t);
 }
 
 JNIEXPORT jint JNICALL
-JNI_OnLoad(JavaVM *vm, void *reserved)
+JNI_OnLoad(JavaVM *jvm, void *reserved)
 {
   JNIEnv *env = NULL;
 
-  if (JNI_OK != (*vm)->GetEnv(vm, (void **) &env, JNI_VERSION_1_6)) {
+  if (JNI_OK != (*jvm)->GetEnv(jvm, (void **) &env, JNI_VERSION_1_6)) {
     return JNI_ERR;
   }
 
-  pointer_clazz = (*env)->FindClass(env, "io/matthewnelson/kmp/tor/resource/noexec/tor/internal/Pointer");
+  pointer_clazz = (*env)->FindClass(env, "io/matthewnelson/kmp/tor/resource/noexec/tor/internal/HandleT$Pointer");
   if (pointer_clazz == NULL) {
     return JNI_ERR;
   }
@@ -153,11 +164,11 @@ JNI_OnLoad(JavaVM *vm, void *reserved)
 }
 
 JNIEXPORT void JNICALL
-JNI_OnUnload(JavaVM *vm, void *reserved)
+JNI_OnUnload(JavaVM *jvm, void *reserved)
 {
   JNIEnv *env = NULL;
 
-  if (JNI_OK != (*vm)->GetEnv(vm, (void **) &env, JNI_VERSION_1_6)) {
+  if (JNI_OK != (*jvm)->GetEnv(jvm, (void **) &env, JNI_VERSION_1_6)) {
     return;
   }
 
