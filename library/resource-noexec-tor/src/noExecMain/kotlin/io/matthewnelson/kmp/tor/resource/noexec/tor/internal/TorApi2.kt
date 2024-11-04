@@ -23,6 +23,8 @@ import io.matthewnelson.kmp.tor.common.core.synchronized
 import kotlin.concurrent.Volatile
 import kotlin.jvm.JvmName
 
+internal expect fun TorApi2.registerOnShutdownHook(handle: () -> TorApi2.Handle?)
+
 internal abstract class TorApi2: TorApi() {
 
     @Volatile
@@ -109,4 +111,6 @@ internal abstract class TorApi2: TorApi() {
         temp.removeFirstOrNull()
         return torRunMain2(temp).terminateAndAwaitResult()
     }
+
+    init { registerOnShutdownHook { _handle } }
 }
