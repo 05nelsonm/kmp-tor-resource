@@ -20,10 +20,10 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor
 import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSInfo
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.*
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT.Companion.toHandleTOrNull
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.Pointer
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
 import java.util.UUID
@@ -34,24 +34,22 @@ internal actual sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
 protected actual constructor(): TorApi2() {
 
+    private external fun kmpTorRunMainJNI(lib_tor: String, argc: Int, args: Array<String>): Pointer?
+    private external fun kmpTorCheckErrorCodeJNI(pointer: Pointer): Int
+    private external fun kmpTorTerminateAndAwaitResultJNI(pointer: Pointer): Int
+
     protected actual fun kmpTorRunMain(
         libTor: String,
         args: Array<String>,
-    ): HandleT? = synchronized(Companion) {
-        kmpTorRunMainJNI(libTor, args.size, args).toHandleTOrNull()
-    }
+    ): HandleT? = kmpTorRunMainJNI(libTor, args.size, args).toHandleTOrNull()
 
     protected actual fun kmpTorCheckErrorCode(
         handle: HandleT,
-    ): Int = synchronized(Companion) {
-        kmpTorCheckErrorCodeJNI(handle.ptr)
-    }
+    ): Int = kmpTorCheckErrorCodeJNI(handle.ptr)
 
     protected actual fun kmpTorTerminateAndAwaitResult(
         handle: HandleT,
-    ): Int = synchronized(Companion) {
-        kmpTorTerminateAndAwaitResultJNI(handle.ptr)
-    }
+    ): Int = kmpTorTerminateAndAwaitResultJNI(handle.ptr)
 
     @Throws(IllegalStateException::class, IOException::class)
     protected actual fun libTor(): File = extractLibTor(loadTorJni = false)
@@ -90,13 +88,6 @@ protected actual constructor(): TorApi2() {
     internal companion object {
 
         internal const val ALIAS_LIB_TOR_JNI: String = "libtorjni"
-
-        @JvmStatic
-        private external fun kmpTorRunMainJNI(lib_tor: String, argc: Int, args: Array<String>): Pointer?
-        @JvmStatic
-        private external fun kmpTorCheckErrorCodeJNI(pointer: Pointer): Int
-        @JvmStatic
-        private external fun kmpTorTerminateAndAwaitResultJNI(pointer: Pointer): Int
 
         private val TEMP_DIR: File? by lazy {
             if (OSInfo.INSTANCE.isAndroidRuntime()) return@lazy null
