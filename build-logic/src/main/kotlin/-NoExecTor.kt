@@ -68,6 +68,13 @@ fun KmpConfigurationExtension.configureNoExecTor(
         androidLibrary {
             android {
                 noExecResourceValidation.configureAndroidJniResources()
+
+                sourceSets["androidTest"].manifest.srcFile(
+                    project.projectDir
+                        .resolve("src")
+                        .resolve("androidInstrumentedTest")
+                        .resolve("AndroidManifest.xml")
+                )
             }
 
             sourceSetTest {
