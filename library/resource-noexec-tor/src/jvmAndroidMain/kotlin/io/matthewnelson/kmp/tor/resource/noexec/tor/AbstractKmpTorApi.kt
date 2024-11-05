@@ -26,6 +26,7 @@ import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT.Companion.t
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
 import java.util.UUID
+import kotlin.concurrent.Volatile
 
 // jvmAndroid
 @OptIn(InternalKmpTorApi::class)
@@ -82,9 +83,22 @@ protected actual constructor(): TorApi2() {
         }
     }
 
-    init { extractLibTor(loadTorJni = true) }
+    init {
+        // Even though ResourceLoader will hold a static reference to a
+        // single implementation, still must only load once because
+        // of possibility of having both Jvm & Android Unit Test source
+        // sets. Double loading in same Test Process would crash shit.
+        synchronized(Companion) {
+            if (_isLoaded) return@synchronized
+            extractLibTor(loadTorJni = true)
+            _isLoaded = true
+        }
+    }
 
     internal companion object {
+
+        @Volatile
+        private var _isLoaded: Boolean = false
 
         internal const val ALIAS_LIB_TOR_JNI: String = "libtorjni"
 
