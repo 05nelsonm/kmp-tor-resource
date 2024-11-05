@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.konan.target.Family
+import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
 import resource.validation.extensions.NoExecTorResourceValidationExtension
 import java.io.File
@@ -51,13 +52,6 @@ fun KmpConfigurationExtension.configureNoExecTor(
         } else {
             NoExecTorResourceValidationExtension::class.java
         }.let { project.extensions.getByType(it) }
-    }
-
-    // Needed so that memory space is separated
-    // when jni libs are loaded for Jvm/Android.
-    project.tasks.withType<Test> {
-        forkEvery = 1
-//        environment["DYLD_PRINT_APIS"] = "1"
     }
 
     configureShared(
@@ -231,11 +225,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
                 listOf(
                     Triple("android", "androidInstrumented", listOf(reportDirLibTor, reportDirNoExec)),
-
-                    // If no errors for JVM resources, then android-unit-test project
-                    // dependency is not utilizing mock resources and can run tests.
                     Triple("jvm", "androidUnit", listOf(reportDirLibTor, reportDirNoExec)),
-
                     Triple("jvm", null, listOf(reportDirLibTor, reportDirNoExec)),
                     Triple("linuxArm64", null, listOf(reportDirLibTor)),
                     Triple("linuxX64", null, listOf(reportDirLibTor)),
@@ -250,8 +240,14 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     val srcSetTest = findByName("${srcSetName ?: reportName}Test") ?: return@forEach
 
                     val isErrReportEmpty = report@ {
-                        if (isGpl && JavaVersion.current() < JavaVersion.VERSION_17) {
-                            return@report false
+                        if (reportName == "jvm" && !HostManager.hostIsMingw) {
+                            if (JavaVersion.current() < JavaVersion.VERSION_16) {
+                                // Java 15- tests for JVM on UNIX are very problematic due
+                                // to Process and how the tests get run... test runner will
+                                // exit exceptionally crying about memory issues, but it's
+                                // actually OK.
+                                return@report false
+                            }
                         }
 
                         var hasError = reportDirs.isEmpty()
