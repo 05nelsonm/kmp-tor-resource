@@ -16,11 +16,13 @@
 #include "kmp_tor-jni.h"
 #include "kmp_tor.h"
 
-#include <assert.h>
 #include <jni.h>
 #include <stdlib.h>
 #include <string.h>
 
+static jobject null = NULL;
+
+static jclass exception_clazz = NULL;
 static jclass pointer_clazz = NULL;
 static jfieldID pointer_field = NULL;
 static jmethodID pointer_init = NULL;
@@ -28,6 +30,9 @@ static jmethodID pointer_init = NULL;
 static void *
 JLongToPointer(jlong l)
 {
+  if (l < 0) {
+    return NULL;
+  }
   void *result;
   memcpy(&result, &l, sizeof(void *));
   return result;
@@ -36,21 +41,57 @@ JLongToPointer(jlong l)
 static jlong
 PointerToJLong(void *p)
 {
+  if (p == NULL) {
+    return -1;
+  }
   jlong result;
   memcpy(&result, &p, sizeof(void *));
   return result;
+}
+
+static void
+ThrowIllegalState(JNIEnv *env, const char *fmt, ...)
+{
+  jclass illegal_state = exception_clazz;
+  if (illegal_state == NULL) {
+    illegal_state = (*env)->FindClass(env, "java/lang/IllegalStateException");
+  }
+  char msg[512];
+  va_list args;
+  va_start (args, fmt);
+  vsnprintf(msg, sizeof(msg), fmt, args);
+  va_end (args);
+  (*env)->ThrowNew(env, illegal_state, msg);
 }
 
 JNIEXPORT jobject JNICALL
 Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNIRunMain
 (JNIEnv *env, jobject thiz, jstring lib_tor, jint argc, jobjectArray args)
 {
-  assert(pointer_clazz != NULL);
-  assert(pointer_field != NULL);
-  assert(pointer_init != NULL);
-  assert(lib_tor != NULL);
-  assert(args != NULL);
-  assert(argc > 0);
+  if (pointer_clazz == NULL) {
+    ThrowIllegalState(env, "Pointer class not set");
+    return null;
+  }
+  if (pointer_field == NULL) {
+    ThrowIllegalState(env, "Pointer.value field not set");
+    return null;
+  }
+  if (pointer_init == NULL) {
+    ThrowIllegalState(env, "Pointer.<init> method not set");
+    return null;
+  }
+  if (lib_tor == NULL) {
+    ThrowIllegalState(env, "lib_tor cannot be NULL");
+    return null;
+  }
+  if (args == NULL) {
+    ThrowIllegalState(env, "args cannot be NULL");
+    return null;
+  }
+  if (argc <= 0) {
+    ThrowIllegalState(env, "argc must be greater than 0");
+    return null;
+  }
 
   int c_argc = 0;
   int copy_args = 0;
@@ -67,13 +108,13 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNIRunMai
   }
 
   if (c_lib_tor == NULL) {
-    return (jobject) NULL;
+    return null;
   }
 
   c_argv = malloc(argc * sizeof(char *));
   if (c_argv == NULL) {
     free(c_lib_tor);
-    return (jobject) NULL;
+    return null;
   }
 
   for (jsize i = 0; i < argc; i++) {
@@ -116,20 +157,39 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNIRunMai
   free(c_lib_tor);
 
   if (handle_t == NULL) {
-    return (jobject) NULL;
+    return null;
   }
 
   jlong j_handle_t = PointerToJLong(handle_t);
-  return (*env)->NewObject(env, pointer_clazz, pointer_init, j_handle_t);
+  if (j_handle_t < 0) {
+    kmp_tor_terminate_and_await_result(handle_t);
+    ThrowIllegalState(env, "PointerToJLong failed");
+    return null;
+  }
+
+  jobject pointer = (*env)->NewObject(env, pointer_clazz, pointer_init, j_handle_t);
+  if (pointer == NULL) {
+    kmp_tor_terminate_and_await_result(handle_t);
+    ThrowIllegalState(env, "NewObject failed");
+    return null;
+  }
+
+  return pointer;
 }
 
 JNIEXPORT jint JNICALL
 Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNICheckErrorCode
 (JNIEnv *env, jobject thiz, jobject pointer)
 {
+  if (pointer == NULL) {
+    return -1;
+  }
   kmp_tor_handle_t *handle_t = NULL;
   jlong j_handle_t = (*env)->GetLongField(env, pointer, pointer_field);
   handle_t = JLongToPointer(j_handle_t);
+  if (handle_t == NULL) {
+    return -1;
+  }
   return kmp_tor_check_error_code(handle_t);
 }
 
@@ -137,9 +197,18 @@ JNIEXPORT jint JNICALL
 Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNITerminateAndAwaitResult
 (JNIEnv *env, jobject thiz, jobject pointer)
 {
+  if (pointer == NULL) {
+    ThrowIllegalState(env, "pointer cannot be NULL");
+    return -1;
+  }
   kmp_tor_handle_t *handle_t = NULL;
   jlong j_handle_t = (*env)->GetLongField(env, pointer, pointer_field);
   handle_t = JLongToPointer(j_handle_t);
+  if (handle_t == NULL) {
+    ThrowIllegalState(env, "JLongToPointer failed (has this handle already been terminated?)");
+    return -1;
+  }
+  (*env)->SetLongField(env, pointer, pointer_field, -1);
   return kmp_tor_terminate_and_await_result(handle_t);
 }
 
@@ -152,11 +221,19 @@ JNI_OnLoad(JavaVM *jvm, void *reserved)
     return JNI_ERR;
   }
 
-  pointer_clazz = (*env)->FindClass(env, "io/matthewnelson/kmp/tor/resource/noexec/tor/internal/HandleT$Pointer");
-  if (pointer_clazz == NULL) {
+  exception_clazz = (*env)->FindClass(env, "java/lang/IllegalStateException");
+  if (exception_clazz == NULL) {
     return JNI_ERR;
   }
-  pointer_clazz = (*env)->NewGlobalRef(env, pointer_clazz);
+  exception_clazz = (*env)->NewWeakGlobalRef(env, exception_clazz);
+
+  pointer_clazz = (*env)->FindClass(env, "io/matthewnelson/kmp/tor/resource/noexec/tor/internal/HandleT$Pointer");
+  if (pointer_clazz == NULL) {
+    (*env)->DeleteWeakGlobalRef(env, exception_clazz);
+    exception_clazz = NULL;
+    return JNI_ERR;
+  }
+  pointer_clazz = (*env)->NewWeakGlobalRef(env, pointer_clazz);
   pointer_field = (*env)->GetFieldID(env, pointer_clazz, "value", "J");
   pointer_init = (*env)->GetMethodID(env, pointer_clazz, "<init>", "(J)V");
 
@@ -172,8 +249,13 @@ JNI_OnUnload(JavaVM *jvm, void *reserved)
     return;
   }
 
+  if (exception_clazz != NULL) {
+    (*env)->DeleteWeakGlobalRef(env, exception_clazz);
+    exception_clazz = NULL;
+  }
+
   if (pointer_clazz != NULL) {
-    (*env)->DeleteGlobalRef(env, pointer_clazz);
+    (*env)->DeleteWeakGlobalRef(env, pointer_clazz);
     pointer_clazz = NULL;
   }
   pointer_init = NULL;
