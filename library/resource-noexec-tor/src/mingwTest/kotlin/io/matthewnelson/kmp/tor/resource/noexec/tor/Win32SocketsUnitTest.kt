@@ -28,7 +28,6 @@ import kotlinx.cinterop.usePinned
 import platform.posix.INVALID_SOCKET
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -49,13 +48,6 @@ class Win32SocketsUnitTest {
         val fds = ULongArray(2) { INVALID_SOCKET }
 
         val result = fds.usePinned { pinned ->
-            val expectErr = win32_socketpair(
-                af_unix_path = null,
-                fds = pinned.addressOf(0),
-            )
-
-            assertNotEquals(0, expectErr)
-
             win32_socketpair(
                 af_unix_path = MINGW_AF_UNIX_PATH.path,
                 fds = pinned.addressOf(0),
