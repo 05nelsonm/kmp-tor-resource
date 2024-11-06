@@ -17,9 +17,18 @@
 #ifndef KMP_TOR_H
 #define KMP_TOR_H
 
+#define ERR_CODE_NONE           -100
+#define ERR_CODE_ARGS           -10
+#define ERR_CODE_CFG            -11
+#define ERR_CODE_LIB_LOAD       -12
+#define ERR_CODE_THREAD         -13
+#define ERR_CODE_TOR_CFG_NEW    -14
+#define ERR_CODE_TOR_CFG_SET    -15
+#define ERR_CODE_TOR_CFG_SOCKET -16
+
 typedef struct kmp_tor_handle_t kmp_tor_handle_t;
 
-kmp_tor_handle_t *kmp_tor_run_main(const char *lib_tor, int argc, char *argv[]);
+kmp_tor_handle_t *kmp_tor_run_main(const char *lib_tor, const char *win32_af_unix_path, int argc, char *argv[]);
 
 int kmp_tor_check_error_code(kmp_tor_handle_t *handle_t);
 

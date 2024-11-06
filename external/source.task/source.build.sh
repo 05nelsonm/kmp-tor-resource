@@ -717,14 +717,20 @@ function __build:configure:target:finalize:output:shared {
   fi
 
   if [ -n "$jni_name" ]; then
-    __build:SCRIPT "  \$CC \$CFLAGS $lib_load_cflags -c lib_load.c"
     __build:SCRIPT "  \$CC \$CFLAGS -c kmp_tor.c"
     __build:SCRIPT "  \$CC \$CFLAGS -I\"\${JNI_H}\"/$jni_java_version/include -c kmp_tor-jni.c"
+    __build:SCRIPT "  \$CC \$CFLAGS $lib_load_cflags -c lib_load.c"
+    if [ "$os_name" = "mingw" ]; then
+      __build:SCRIPT '  $CC $CFLAGS -c win32_sockets.c'
+    fi
     __build:SCRIPT ''
     __build:SCRIPT "  \$CC \$CFLAGS $jni_cflags \\"
-    __build:SCRIPT '    lib_load.o \'
     __build:SCRIPT '    kmp_tor.o \'
     __build:SCRIPT '    kmp_tor-jni.o \'
+    __build:SCRIPT '    lib_load.o \'
+    if [ "$os_name" = "mingw" ]; then
+      __build:SCRIPT '    win32_sockets.o \'
+    fi
     __build:SCRIPT "    -o $jni_name \\"
     __build:SCRIPT "    \$LDFLAGS $jni_ldadd"
     __build:SCRIPT ''

@@ -42,7 +42,7 @@ struct lib_handle_t {
   char *lib;
   void *handle;
 };
-#endif
+#endif // _WIN32
 
 void
 lib_load_assert(lib_handle_t *handle_t)
@@ -51,7 +51,7 @@ lib_load_assert(lib_handle_t *handle_t)
   assert(handle_t->lib != NULL);
 #ifdef _WIN32
   assert(handle_t->err_buf != NULL);
-#endif
+#endif // _WIN32
   assert(handle_t->handle != NULL);
   return;
 }
@@ -82,7 +82,7 @@ lib_load_error(lib_handle_t *handle_t)
 #else
 
   return dlerror();
-#endif
+#endif // _WIN32
 }
 
 void
@@ -100,7 +100,7 @@ lib_load_free(lib_handle_t *handle_t)
     free(handle_t->err_buf);
     handle_t->err_buf = NULL;
   }
-#endif
+#endif // _WIN32
   free(handle_t);
   return;
 }
@@ -169,7 +169,7 @@ lib_load_open(const char *lib)
   //             for Linux/Android when not present, it is NOT
   //             the default for macOS (RTLD_GLOBAL is).
   handle_t->handle = dlopen(handle_t->lib, RTLD_NOW | RTLD_LOCAL);
-#endif
+#endif // _WIN32
 
   if (handle_t->handle == NULL) {
     char *err = lib_load_error(handle_t);
@@ -191,7 +191,7 @@ lib_load_resolve(lib_handle_t *handle_t, const char *symbol)
   ptr = GetProcAddress(handle_t->handle, symbol);
 #else
   ptr = dlsym(handle_t->handle, symbol);
-#endif
+#endif // _WIN32
 
   if (ptr == NULL) {
     char *err = lib_load_error(handle_t);
@@ -224,7 +224,7 @@ lib_load_close(lib_handle_t *handle_t)
     }
 #else
     result = dlclose(handle_t->handle);
-#endif
+#endif // _WIN32
 
     if (result == 0) {
       break;

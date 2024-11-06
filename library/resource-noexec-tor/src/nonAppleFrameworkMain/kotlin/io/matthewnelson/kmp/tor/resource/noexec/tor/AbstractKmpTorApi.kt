@@ -17,17 +17,13 @@
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
-import io.matthewnelson.kmp.file.File
-import io.matthewnelson.kmp.file.IOException
-import io.matthewnelson.kmp.file.SysTempDir
-import io.matthewnelson.kmp.file.resolve
+import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_check_error_code
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_run_main
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_terminate_and_await_result
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.*
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT.Companion.toHandleTOrNull
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.MINGW_AF_UNIX_TMP_FILE_NAME
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.deleteOnExit
@@ -49,6 +45,7 @@ protected actual constructor(): TorApi2() {
     ): HandleT? = memScoped {
         val ptr = kmp_tor_run_main(
             lib_tor = libTor,
+            win32_af_unix_path = MINGW_AF_UNIX_PATH?.path,
             argc = args.size,
             argv = args.toCStringArray(autofreeScope = this)
         )
@@ -88,6 +85,14 @@ protected actual constructor(): TorApi2() {
             }
 
             tempDir
+        }
+
+        private val MINGW_AF_UNIX_PATH: File? by lazy {
+            if (!RESOURCE_CONFIG_LIB_TOR[ALIAS_LIB_TOR].platform.fsFileName.endsWith(".dll")) {
+                return@lazy null
+            }
+
+            TEMP_DIR.resolve(MINGW_AF_UNIX_TMP_FILE_NAME).also { it.deleteOnExit() }
         }
     }
 }

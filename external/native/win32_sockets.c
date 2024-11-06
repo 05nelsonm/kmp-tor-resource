@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+#include "win32_sockets.h"
 
-#ifndef KMP_TOR_JNI_H
-#define KMP_TOR_JNI_H
+#include <assert.h>
+#include <stdlib.h>
 
-#include <jni.h>
+int
+win32_socketpair(const char *af_unix_path, SOCKET fds[2])
+{
+  assert(af_unix_path != NULL);
+  assert(fds != NULL);
 
-JNIEXPORT jobject JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNIRunMain
-(JNIEnv *, jobject, jstring, jstring, jint, jobjectArray);
+  // TODO
 
-JNIEXPORT jint JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNICheckErrorCode
-(JNIEnv *, jobject, jobject);
-
-JNIEXPORT jint JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNITerminateAndAwaitResult
-(JNIEnv *, jobject, jobject);
-
-#endif /* !defined(KMP_TOR_JNI_H) */
+  return -1;
+}

@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.konan.target.Family
 import org.jetbrains.kotlin.konan.target.HostManager
+import org.jetbrains.kotlin.konan.target.KonanTarget
 import resource.validation.extensions.NoExecTorResourceValidationExtension
 import java.io.File
 
@@ -275,6 +276,12 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     srcDirs = project.files(externalNativeDir)
                     headersDirs = project.files(externalNativeDir)
                     includeFiles = listOf("lib_load.c", "kmp_tor.c")
+
+                    val kt = KonanTarget.predefinedTargets[target]!!
+
+                    if (kt.family == Family.MINGW) {
+                        includeFiles += listOf("win32_sockets.c")
+                    }
                 }
             }
 
@@ -289,19 +296,25 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
                 check(linkerOpts != null) { "Configuration needed for $target" }
 
-                target.compilations["main"].cinterops.create("kmp_tor") {
-                    if (isGpl) {
-                        // Windows does not like symbolic links. Always use the real path.
-                        project.projectDir.resolveSibling(project.name.substringBeforeLast("-gpl"))
-                    } else {
-                        project.projectDir
-                    }.resolve("src")
-                        .resolve("nativeInterop")
-                        .resolve("cinterop")
-                        .resolve("kmp_tor.def")
-                        .let { definitionFile.set(it) }
+                val cinteropDir = if (isGpl) {
+                    // Windows does not like symbolic links. Always use the real path.
+                    project.projectDir.resolveSibling(project.name.substringBeforeLast("-gpl"))
+                } else {
+                    project.projectDir
+                }.resolve("src")
+                    .resolve("nativeInterop")
+                    .resolve("cinterop")
 
+                target.compilations["main"].cinterops.create("kmp_tor") {
+                    definitionFile.set(cinteropDir.resolve("kmp_tor.def"))
                     includeDirs(externalNativeDir.path)
+                }
+
+                if (target.konanTarget.family == Family.MINGW) {
+                    target.compilations["test"].cinterops.create("win32_sockets") {
+                        definitionFile.set(cinteropDir.resolve("win32_sockets.def"))
+                        includeDirs(externalNativeDir.path)
+                    }
                 }
 
                 if (linkerOpts.isEmpty()) return@target
