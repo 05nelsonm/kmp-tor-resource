@@ -22,7 +22,6 @@ import org.gradle.api.Project
 import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.the
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.konan.target.Family
@@ -161,6 +160,67 @@ fun KmpConfigurationExtension.configureNoExecTor(
         }
 
         kotlin {
+            val externalNativeDir = project.rootDir
+                .resolve("external")
+                .resolve("native")
+
+            val nativeDir = generatedSourcesDir.resolve("native")
+            nativeDir.mkdirs()
+
+            val defFiles = listOf("lib_load", "win32_sockets", "kmp_tor").map { name ->
+                val h = externalNativeDir.resolve("$name.h")
+                val c = externalNativeDir.resolve("$name.c")
+
+                nativeDir.resolve("$name.h").writeBytes(h.readBytes())
+
+                val sb = StringBuilder().apply {
+                    appendLine("package = io.matthewnelson.kmp.tor.resource.noexec.tor.internal")
+                    appendLine("headers = $name.h")
+                    appendLine("headerFilter = $name.h")
+                    appendLine("---")
+                    append(c.readText())
+                }
+
+                val defFile = nativeDir.resolve("$name.def")
+                defFile.writeText(sb.toString())
+                defFile
+            }
+
+            targets.filterIsInstance<KotlinNativeTarget>().forEach target@ { target ->
+                val linkerOpts = when (target.konanTarget.family) {
+                    Family.LINUX,
+                    Family.IOS,
+                    Family.OSX -> "-lpthread -ldl"
+                    Family.MINGW -> ""
+                    else -> null
+                }
+
+                check(linkerOpts != null) { "Configuration needed for $target" }
+
+                defFiles.forEach interop@ { defFile ->
+                    if (defFile.name == "win32_sockets.def") {
+                        if (target.konanTarget.family != Family.MINGW) {
+                            return@interop
+                        }
+                    }
+
+                    target.compilations["main"].apply {
+                        cinterops.create(defFile.nameWithoutExtension) {
+                            defFile(defFile)
+                            includeDirs(nativeDir)
+                        }
+
+                        if (linkerOpts.isNotBlank()) {
+                            compilerOptions.configure {
+                                freeCompilerArgs.addAll("-linker-options", linkerOpts)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        kotlin {
             with(sourceSets) {
                 val noExecTest = findByName("noExecTest") ?: return@with
 
@@ -256,64 +316,6 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
                     srcSetTest.generateBuildConfig(isErrReportEmpty = isErrReportEmpty)
                 }
-            }
-        }
-
-        kotlin {
-            val externalNativeDir = project.rootDir
-                .resolve("external")
-                .resolve("native")
-
-            val nativeDir = generatedSourcesDir.resolve("native")
-            nativeDir.mkdirs()
-
-            val defFiles = listOf("lib_load", "win32_sockets", "kmp_tor").map { name ->
-                val h = externalNativeDir.resolve("$name.h")
-                val c = externalNativeDir.resolve("$name.c")
-
-                nativeDir.resolve("$name.h").writeBytes(h.readBytes())
-
-                val sb = StringBuilder().apply {
-                    appendLine("package = io.matthewnelson.kmp.tor.resource.noexec.tor.internal")
-                    appendLine("headers = $name.h")
-                    appendLine("headerFilter = $name.h")
-                    appendLine("---")
-                    append(c.readText())
-                }
-
-                val defFile = nativeDir.resolve("$name.def")
-                defFile.writeText(sb.toString())
-                defFile
-            }
-
-            targets.filterIsInstance<KotlinNativeTarget>().forEach target@ { target ->
-                val linkerOpts = when (target.konanTarget.family) {
-                    Family.LINUX,
-                    Family.IOS,
-                    Family.OSX -> "-lpthread -ldl"
-                    Family.MINGW -> ""
-                    else -> null
-                }
-
-                check(linkerOpts != null) { "Configuration needed for $target" }
-
-                defFiles.forEach interop@ { defFile ->
-                    if (defFile.name == "win32_sockets.def") {
-                        if (target.konanTarget.family != Family.MINGW) {
-                            return@interop
-                        }
-                    }
-
-                    target.compilations["main"].cinterops.create(defFile.nameWithoutExtension) {
-                        definitionFile.set(defFile)
-                        includeDirs(nativeDir)
-                    }
-                }
-
-                if (linkerOpts.isEmpty()) return@target
-
-                @OptIn(ExperimentalKotlinGradlePluginApi::class)
-                target.compilerOptions.freeCompilerArgs.addAll("-linker-options", linkerOpts)
             }
         }
 
