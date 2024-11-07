@@ -17,7 +17,6 @@
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
-import cnames.structs.kmp_tor_handle_t
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 

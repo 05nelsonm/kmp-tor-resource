@@ -21,7 +21,7 @@ import io.matthewnelson.kmp.file.path
 import io.matthewnelson.kmp.file.resolve
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.MINGW_AF_UNIX_TMP_FILE_NAME
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.deleteOnExit
-import io.matthewnelson.kmp.tor.resource.noexec.tor.testonly.win32_socketpair
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.win32_socketpair
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.usePinned

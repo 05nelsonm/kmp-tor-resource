@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-import co.touchlab.cklib.gradle.CompileToBitcode
-import co.touchlab.cklib.gradle.CompileToBitcodeExtension
 import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import org.gradle.accessors.dm.LibrariesForLibs
@@ -29,7 +27,6 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.konan.target.Family
 import org.jetbrains.kotlin.konan.target.HostManager
-import org.jetbrains.kotlin.konan.target.KonanTarget
 import resource.validation.extensions.NoExecTorResourceValidationExtension
 import java.io.File
 
@@ -50,6 +47,13 @@ fun KmpConfigurationExtension.configureNoExecTor(
             NoExecTorResourceValidationExtension::class.java
         }.let { project.extensions.getByType(it) }
     }
+    val buildDir = project.layout
+        .buildDirectory
+        .get()
+        .asFile
+    val generatedSourcesDir = buildDir
+        .resolve("generated")
+        .resolve("sources")
 
     configureShared(
         androidNamespace = packageName,
@@ -89,7 +93,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
         }
 
         common {
-            pluginIds("resource-validation", libs.plugins.cklib.get().pluginId)
+            pluginIds("resource-validation")
 
             sourceSetMain {
                 dependencies {
@@ -164,15 +168,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     project.evaluationDependsOn(":library:resource-lib-tor$suffix")
                 } catch (_: Throwable) {}
 
-                val buildDir = project.layout
-                    .buildDirectory
-                    .get()
-                    .asFile
-
-                val buildConfigDir = buildDir
-                    .resolve("generated")
-                    .resolve("sources")
-                    .resolve("buildConfig")
+                val buildConfigDir = generatedSourcesDir.resolve("buildConfig")
 
                 fun KotlinSourceSet.generateBuildConfig(isErrReportEmpty: () -> Boolean?) {
                     val kotlinSrcDir = buildConfigDir
@@ -268,21 +264,26 @@ fun KmpConfigurationExtension.configureNoExecTor(
                 .resolve("external")
                 .resolve("native")
 
-            project.extensions.configure<CompileToBitcodeExtension>("cklib") {
-                config.kotlinVersion = libs.versions.gradle.kotlin.get()
+            val nativeDir = generatedSourcesDir.resolve("native")
+            nativeDir.mkdirs()
 
-                create("kmp_tor") {
-                    language = CompileToBitcode.Language.C
-                    srcDirs = project.files(externalNativeDir)
-                    headersDirs = project.files(externalNativeDir)
-                    includeFiles = listOf("lib_load.c", "kmp_tor.c")
+            val defFiles = listOf("lib_load", "win32_sockets", "kmp_tor").map { name ->
+                val h = externalNativeDir.resolve("$name.h")
+                val c = externalNativeDir.resolve("$name.c")
 
-                    val kt = KonanTarget.predefinedTargets[target]!!
+                nativeDir.resolve("$name.h").writeBytes(h.readBytes())
 
-                    if (kt.family == Family.MINGW) {
-                        includeFiles += listOf("win32_sockets.c")
-                    }
+                val sb = StringBuilder().apply {
+                    appendLine("package = io.matthewnelson.kmp.tor.resource.noexec.tor.internal")
+                    appendLine("headers = $name.h")
+                    appendLine("headerFilter = $name.h")
+                    appendLine("---")
+                    append(c.readText())
                 }
+
+                val defFile = nativeDir.resolve("$name.def")
+                defFile.writeText(sb.toString())
+                defFile
             }
 
             targets.filterIsInstance<KotlinNativeTarget>().forEach target@ { target ->
@@ -296,24 +297,16 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
                 check(linkerOpts != null) { "Configuration needed for $target" }
 
-                val cinteropDir = if (isGpl) {
-                    // Windows does not like symbolic links. Always use the real path.
-                    project.projectDir.resolveSibling(project.name.substringBeforeLast("-gpl"))
-                } else {
-                    project.projectDir
-                }.resolve("src")
-                    .resolve("nativeInterop")
-                    .resolve("cinterop")
+                defFiles.forEach interop@ { defFile ->
+                    if (defFile.name == "win32_sockets.def") {
+                        if (target.konanTarget.family != Family.MINGW) {
+                            return@interop
+                        }
+                    }
 
-                target.compilations["main"].cinterops.create("kmp_tor") {
-                    definitionFile.set(cinteropDir.resolve("kmp_tor.def"))
-                    includeDirs(externalNativeDir.path)
-                }
-
-                if (target.konanTarget.family == Family.MINGW) {
-                    target.compilations["test"].cinterops.create("win32_sockets") {
-                        definitionFile.set(cinteropDir.resolve("win32_sockets.def"))
-                        includeDirs(externalNativeDir.path)
+                    target.compilations["main"].cinterops.create(defFile.nameWithoutExtension) {
+                        definitionFile.set(defFile)
+                        includeDirs(nativeDir)
                     }
                 }
 

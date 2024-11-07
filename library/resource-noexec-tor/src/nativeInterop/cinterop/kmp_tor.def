@@ -1,3 +1,0 @@
-package = io.matthewnelson.kmp.tor.resource.noexec.tor.internal
-headers = kmp_tor.h
-headerFilter = kmp_tor.h
