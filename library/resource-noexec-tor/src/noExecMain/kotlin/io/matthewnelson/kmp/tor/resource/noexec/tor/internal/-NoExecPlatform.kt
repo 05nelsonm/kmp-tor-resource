@@ -24,8 +24,6 @@ import kotlin.jvm.JvmSynthetic
 
 internal const val ALIAS_LIB_TOR: String = "libtor"
 
-internal const val MINGW_AF_UNIX_TMP_FILE_NAME: String = "ctrl.sock"
-
 @get:JvmSynthetic
 @OptIn(InternalKmpTorApi::class)
 internal val RESOURCE_CONFIG_GEOIPS: Resource.Config by lazy {

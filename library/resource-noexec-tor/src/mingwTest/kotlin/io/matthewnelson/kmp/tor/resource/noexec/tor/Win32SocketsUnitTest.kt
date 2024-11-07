@@ -15,57 +15,38 @@
  **/
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
-import io.matthewnelson.encoding.base16.Base16
-import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
-import io.matthewnelson.kmp.file.File
-import io.matthewnelson.kmp.file.SysTempDir
-import io.matthewnelson.kmp.file.path
-import io.matthewnelson.kmp.file.resolve
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.MINGW_AF_UNIX_TMP_FILE_NAME
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.deleteOnExit
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.win32_socketpair
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.usePinned
 import platform.posix.INVALID_SOCKET
-import kotlin.random.Random
-import kotlin.system.getTimeNanos
+import platform.posix.closesocket
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @OptIn(ExperimentalForeignApi::class)
 class Win32SocketsUnitTest {
 
-    private companion object {
-        val MINGW_AF_UNIX_PATH: File by lazy {
-            // TODO: Replace with Uuid (Kotlin 2.0.20+)
-            @Suppress("DEPRECATION")
-            val d = Random(getTimeNanos()).nextBytes(16).encodeToString(Base16).let { suffix ->
-                SysTempDir.resolve("kmp-tor_$suffix")
-            }
-            d.deleteOnExit()
-            d.mkdirs()
-            d.resolve(MINGW_AF_UNIX_TMP_FILE_NAME).also { it.deleteOnExit() }
-        }
-    }
-
     @Test
     fun givenFDS_whenSocketPair_thenReturnsExpected() {
         val fds = ULongArray(2) { INVALID_SOCKET }
 
         val result = fds.usePinned { pinned ->
-            win32_socketpair(
-                af_unix_path = MINGW_AF_UNIX_PATH.path,
-                fds = pinned.addressOf(0),
-            )
+            win32_socketpair(pinned.addressOf(0))
         }
 
         // TODO: Implement win32_sockets.c
-        assertEquals(-1, result)
-        assertEquals(INVALID_SOCKET, fds[0])
-        assertEquals(INVALID_SOCKET, fds[1])
-
-
-        // TODO: close sockets
+        try {
+            assertEquals(-1, result)
+            assertEquals(INVALID_SOCKET, fds[0])
+            assertEquals(INVALID_SOCKET, fds[1])
+        } finally {
+            if (fds[0] == INVALID_SOCKET) {
+                closesocket(fds[0])
+            }
+            if (fds[1] == INVALID_SOCKET) {
+                closesocket(fds[1])
+            }
+        }
     }
 }

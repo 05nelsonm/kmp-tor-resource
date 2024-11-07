@@ -28,7 +28,7 @@
 
 typedef struct kmp_tor_handle_t kmp_tor_handle_t;
 
-kmp_tor_handle_t *kmp_tor_run_main(const char *lib_tor, const char *win32_af_unix_path, int argc, char *argv[]);
+kmp_tor_handle_t *kmp_tor_run_main(const char *lib_tor, int argc, char *argv[]);
 
 int kmp_tor_check_error_code(kmp_tor_handle_t *handle_t);
 

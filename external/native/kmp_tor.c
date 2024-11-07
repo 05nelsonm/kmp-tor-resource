@@ -231,7 +231,7 @@ kmp_tor_configure_lib_t(const char * lib_tor, kmp_tor_handle_t *handle_t)
 }
 
 int
-kmp_tor_configure_tor(kmp_tor_handle_t *handle_t, const char *win32_af_unix_path)
+kmp_tor_configure_tor(kmp_tor_handle_t *handle_t)
 {
   handle_t->args_t->cfg = handle_t->tor_api_cfg_new();
   if (handle_t->args_t->cfg == NULL) {
@@ -247,7 +247,7 @@ kmp_tor_configure_tor(kmp_tor_handle_t *handle_t, const char *win32_af_unix_path
   char *s2 = NULL;
 
 #ifdef _WIN32
-  result = win32_socketpair(win32_af_unix_path, fds);
+  result = win32_socketpair(fds);
 #else
   result = socketpair(AF_UNIX, SOCK_STREAM, 0, fds);
 #endif // _WIN32
@@ -317,15 +317,11 @@ kmp_tor_configure_tor(kmp_tor_handle_t *handle_t, const char *win32_af_unix_path
     return -1;
   }
 
-#ifndef _WIN32
-  if (win32_af_unix_path != NULL) { /* ignore */ }
-#endif // _WIN32
-
   return 0;
 }
 
 kmp_tor_handle_t *
-kmp_tor_run_main(const char *lib_tor, const char *win32_af_unix_path, int argc, char *argv[])
+kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
 {
   kmp_tor_handle_t *handle_t = NULL;
   pthread_attr_t attrs_t;
@@ -338,11 +334,6 @@ kmp_tor_run_main(const char *lib_tor, const char *win32_af_unix_path, int argc, 
     handle_t->ctrl_socket = KMP_TOR_SOCKET_INVALID;
     handle_t->ctrl_socket_owned = KMP_TOR_SOCKET_INVALID;
 
-#ifdef _WIN32
-    if (win32_af_unix_path == NULL) {
-      handle_t->error_code = ERR_CODE_ARGS;
-    }
-#endif // _WIN32
     if (lib_tor == NULL) {
       handle_t->error_code = ERR_CODE_ARGS;
     }
@@ -411,7 +402,7 @@ kmp_tor_run_main(const char *lib_tor, const char *win32_af_unix_path, int argc, 
     return handle_t;
   }
 
-  if (kmp_tor_configure_tor(handle_t, win32_af_unix_path) != 0) {
+  if (kmp_tor_configure_tor(handle_t) != 0) {
     pthread_attr_destroy(&attrs_t);
     return handle_t;
   }

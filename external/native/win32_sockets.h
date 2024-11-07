@@ -17,8 +17,12 @@
 #ifndef WIN32_SOCKETS_H
 #define WIN32_SOCKETS_H
 
-#include <winsock2.h>
+#ifndef _WIN32
+error Only Win32 targets are supported!
+#endif // _WIN32
 
-int win32_socketpair(const char *af_unix_path, SOCKET fds[2]);
+#include <ws2tcpip.h>
+
+int win32_socketpair(SOCKET fds[2]);
 
 #endif /* !defined(WIN32_SOCKETS_H) */

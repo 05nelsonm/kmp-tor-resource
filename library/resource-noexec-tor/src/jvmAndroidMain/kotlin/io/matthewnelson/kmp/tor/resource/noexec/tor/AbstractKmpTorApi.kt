@@ -19,9 +19,7 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
-import io.matthewnelson.kmp.tor.common.core.OSHost
 import io.matthewnelson.kmp.tor.common.core.OSInfo
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.*
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT.Companion.toHandleTOrNull
@@ -38,7 +36,6 @@ protected actual constructor(): TorApi2() {
 
     private external fun torJNIRunMain(
         lib_tor: String,
-        win32_af_unix_path: String?,
         argc: Int,
         args: Array<String>,
     ): HandleT.Pointer?
@@ -54,7 +51,6 @@ protected actual constructor(): TorApi2() {
         args: Array<String>,
     ): HandleT? = torJNIRunMain(
         lib_tor = libTor,
-        win32_af_unix_path = MINGW_AF_UNIX_PATH?.path,
         argc = args.size,
         args = args,
     ).toHandleTOrNull()
@@ -129,12 +125,6 @@ protected actual constructor(): TorApi2() {
             }
 
             tempDir
-        }
-
-        private val MINGW_AF_UNIX_PATH: File? by lazy {
-            val temp = TEMP_DIR ?: return@lazy null
-            if (OSInfo.INSTANCE.osHost !is OSHost.Windows) return@lazy null
-            temp.resolve(MINGW_AF_UNIX_TMP_FILE_NAME).also { it.deleteOnExit() }
         }
     }
 }

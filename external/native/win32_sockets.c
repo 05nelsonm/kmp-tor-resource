@@ -19,9 +19,8 @@
 #include <stdlib.h>
 
 int
-win32_socketpair(const char *af_unix_path, SOCKET fds[2])
+win32_socketpair(SOCKET fds[2])
 {
-  assert(af_unix_path != NULL);
   assert(fds != NULL);
 
   // TODO

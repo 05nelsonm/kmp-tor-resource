@@ -21,7 +21,7 @@
 
 JNIEXPORT jobject JNICALL
 Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNIRunMain
-(JNIEnv *, jobject, jstring, jstring, jint, jobjectArray);
+(JNIEnv *, jobject, jstring, jint, jobjectArray);
 
 JNIEXPORT jint JNICALL
 Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNICheckErrorCode

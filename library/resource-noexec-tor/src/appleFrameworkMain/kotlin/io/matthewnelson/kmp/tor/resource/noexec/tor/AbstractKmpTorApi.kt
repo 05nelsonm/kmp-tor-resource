@@ -47,7 +47,6 @@ protected actual constructor(): TorApi2() {
     ): HandleT? = memScoped {
         val ptr = kmp_tor_run_main(
             lib_tor = libTor,
-            win32_af_unix_path = null,
             argc = args.size,
             argv = args.toCStringArray(autofreeScope = this),
         )
