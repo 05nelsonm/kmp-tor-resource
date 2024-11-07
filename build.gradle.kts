@@ -17,6 +17,7 @@ import kotlinx.validation.ApiValidationExtension
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
+import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
     alias(libs.plugins.android.library) apply(false)
@@ -55,6 +56,11 @@ plugins.withType<YarnPlugin> {
 
 @Suppress("LocalVariableName")
 extensions.configure(ApiValidationExtension::class.java) {
+    if (HostManager.hostIsMingw) {
+        validationDisabled = true
+        return@configure
+    }
+
     val KMP_TARGETS_ALL = System.getProperty("KMP_TARGETS_ALL") != null
     val KMP_TARGETS = (findProperty("KMP_TARGETS") as? String)?.split(',')
 
