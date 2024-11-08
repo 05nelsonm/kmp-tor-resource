@@ -17,22 +17,22 @@
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
-import io.matthewnelson.encoding.base16.Base16
-import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.*
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT.Companion.toHandleTOrNull
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.deleteOnExit
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_check_error_code
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_run_main
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_terminate_and_await_result
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.toCStringArray
-import kotlin.random.Random
-import kotlin.system.getTimeNanos
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 // nonAppleFramework
 @OptIn(ExperimentalForeignApi::class, InternalKmpTorApi::class)
@@ -73,11 +73,8 @@ protected actual constructor(): TorApi2() {
     private companion object {
 
         private val TEMP_DIR: File by lazy {
-            // TODO: Replace with Uuid (Kotlin 2.0.20+)
-            @Suppress("DEPRECATION")
-            val tempDir = Random(getTimeNanos()).nextBytes(16).encodeToString(Base16).let { suffix ->
-                SysTempDir.resolve("kmp-tor_$suffix")
-            }
+            @OptIn(ExperimentalUuidApi::class)
+            val tempDir = SysTempDir.resolve("kmp-tor_${Uuid.random()}")
 
             tempDir.deleteOnExit()
             RESOURCE_CONFIG_LIB_TOR.resources.forEach { resource ->

@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.konan.target.HostManager
 plugins {
     alias(libs.plugins.android.library) apply(false)
     alias(libs.plugins.binary.compat)
+    alias(libs.plugins.cklib) apply(false)
     alias(libs.plugins.kotlin.multiplatform) apply(false)
     alias(libs.plugins.publish.npm) apply(false)
 }
