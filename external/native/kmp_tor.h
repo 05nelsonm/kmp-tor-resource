@@ -17,14 +17,14 @@
 #ifndef KMP_TOR_H
 #define KMP_TOR_H
 
-#define ERR_CODE_NONE           -100
-#define ERR_CODE_ARGS           -10
-#define ERR_CODE_CFG            -11
-#define ERR_CODE_LIB_LOAD       -12
-#define ERR_CODE_THREAD         -13
-#define ERR_CODE_TOR_CFG_NEW    -14
-#define ERR_CODE_TOR_CFG_SET    -15
-#define ERR_CODE_TOR_CFG_SOCKET -16
+#define KMP_TOR_ERR_CODE_NONE        -100
+#define KMP_TOR_ERR_CODE_ARGS         -10
+#define KMP_TOR_ERR_CODE_CFG          -11
+#define KMP_TOR_ERR_CODE_LIB_LOAD     -12
+#define KMP_TOR_ERR_CODE_THREAD       -13
+#define KMP_TOR_ERR_CODE_CTRL_SOCKET  -14
+#define KMP_TOR_ERR_CODE_TOR_CFG_NEW  -15
+#define KMP_TOR_ERR_CODE_TOR_CFG_SET  -16
 
 typedef struct kmp_tor_handle_t kmp_tor_handle_t;
 

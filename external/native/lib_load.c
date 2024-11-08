@@ -44,7 +44,7 @@ struct lib_handle_t {
 };
 #endif // _WIN32
 
-void
+static void
 lib_load_assert(lib_handle_t *handle_t)
 {
   assert(handle_t != NULL);
@@ -56,7 +56,7 @@ lib_load_assert(lib_handle_t *handle_t)
   return;
 }
 
-char *
+static char *
 lib_load_error(lib_handle_t *handle_t)
 {
   assert(handle_t != NULL);
@@ -85,7 +85,7 @@ lib_load_error(lib_handle_t *handle_t)
 #endif // _WIN32
 }
 
-void
+static void
 lib_load_free(lib_handle_t *handle_t)
 {
   assert(handle_t != NULL);

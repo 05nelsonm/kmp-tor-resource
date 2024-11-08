@@ -19,6 +19,19 @@
 #include <stdlib.h>
 
 int
+win32_sockets_init()
+{
+  WSADATA wd;
+  return WSAStartup(0x101, &wd);
+}
+
+int
+win32_sockets_deinit()
+{
+  return WSACleanup();
+}
+
+int
 win32_socketpair(SOCKET fds[2])
 {
   assert(fds != NULL);

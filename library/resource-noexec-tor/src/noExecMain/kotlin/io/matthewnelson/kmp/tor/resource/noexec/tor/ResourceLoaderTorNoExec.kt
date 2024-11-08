@@ -112,9 +112,9 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
                 -11 -> "kmp_tor_run_main configuration failure"
                 -12 -> "Failed to load ${libTor.name}"
                 -13 -> "kmp_tor_run_main thread failure"
-                -14 -> "tor_main_configuration_new failure"
-                -15 -> "tor_main_configuration_set_command_line failure"
-                -16 -> "tor_main_configuration_setup_control_socket failure"
+                -14 -> "kmp_tor_run_main control socket failure"
+                -15 -> "tor_main_configuration_new failure"
+                -16 -> "tor_main_configuration_set_command_line failure"
                 else -> "kmp_tor_run_main experienced an unknown error code[$r]"
             }?.let { error ->
                 handle.terminateAndAwaitResult()

@@ -27,7 +27,7 @@ static jclass pointer_clazz = NULL;
 static jfieldID pointer_field = NULL;
 static jmethodID pointer_init = NULL;
 
-void *
+static void *
 JLongToPointer(jlong l)
 {
   if (l < 0) {
@@ -38,7 +38,7 @@ JLongToPointer(jlong l)
   return result;
 }
 
-jlong
+static jlong
 PointerToJLong(void *p)
 {
   if (p == NULL) {
@@ -49,7 +49,7 @@ PointerToJLong(void *p)
   return result;
 }
 
-char *
+static char *
 JStringDup(JNIEnv *env, jstring s)
 {
   if (s == NULL) {
@@ -68,7 +68,7 @@ JStringDup(JNIEnv *env, jstring s)
   return dup;
 }
 
-void
+static void
 ThrowIllegalState(JNIEnv *env, const char *fmt, ...)
 {
   jclass illegal_state = exception_clazz;

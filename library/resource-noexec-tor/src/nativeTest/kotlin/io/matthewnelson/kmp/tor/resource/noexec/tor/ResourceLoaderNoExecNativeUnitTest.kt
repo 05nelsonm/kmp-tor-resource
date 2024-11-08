@@ -21,8 +21,7 @@ import kotlin.test.Test
 @OptIn(ExperimentalNativeApi::class)
 class ResourceLoaderNoExecNativeUnitTest: ResourceLoaderNoExecBaseTest(
     runTorMainCount = when (Platform.osFamily) {
-        // TODO: Implement win32_sockets.c
-        OsFamily.WINDOWS -> 0
+        OsFamily.WINDOWS -> RUN_TOR_MAIN_COUNT_WINDOWS
         else -> RUN_TOR_MAIN_COUNT_UNIX
     }
 ) {

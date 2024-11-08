@@ -23,6 +23,10 @@ error Only Win32 targets are supported!
 
 #include <ws2tcpip.h>
 
+int win32_sockets_init();
+
+int win32_sockets_deinit();
+
 int win32_socketpair(SOCKET fds[2]);
 
 #endif /* !defined(WIN32_SOCKETS_H) */

@@ -62,6 +62,8 @@ struct kmp_tor_handle_t {
   int (*tor_api_cfg_set_command_line)(void *cfg, int argc, char **argv);
 #ifdef _WIN32
   kmp_tor_socket_t (*tor_api_cfg_set_ctrl_socket)(void *cfg);
+
+  int was_win32_sockets_initialized;
 #endif // _WIN32
 
   kmp_tor_socket_t ctrl_socket;
@@ -72,7 +74,7 @@ struct kmp_tor_handle_t {
   lib_handle_t *lib_t;
 };
 
-void
+static void
 kmp_tor_sleep(int millis)
 {
   assert(millis > 0);
@@ -87,7 +89,7 @@ kmp_tor_sleep(int millis)
   }
 }
 
-void
+static void
 kmp_tor_closesocket(kmp_tor_socket_t s)
 {
   int retries = 100;
@@ -100,7 +102,7 @@ kmp_tor_closesocket(kmp_tor_socket_t s)
   }
 }
 
-void *
+static void *
 kmp_tor_run_thread(void *arg)
 {
   int rv = -1;
@@ -122,7 +124,7 @@ kmp_tor_run_thread(void *arg)
   return res_t;
 }
 
-void
+static void
 kmp_tor_free(kmp_tor_handle_t *handle_t)
 {
   assert(handle_t != NULL);
@@ -177,17 +179,23 @@ kmp_tor_free(kmp_tor_handle_t *handle_t)
     handle_t->lib_t = NULL;
   }
 
+#ifdef _WIN32
+  if (handle_t->was_win32_sockets_initialized == 0) {
+    win32_sockets_deinit();
+  }
+#endif
+
   free(handle_t);
 }
 
-int
+static int
 kmp_tor_configure_pthread_attr_t(pthread_attr_t *attrs_t)
 {
   assert(attrs_t != NULL); // TODO
   return 0;
 }
 
-int
+static int
 kmp_tor_configure_lib_t(const char * lib_tor, kmp_tor_handle_t *handle_t)
 {
   handle_t->lib_t = lib_load_open(lib_tor);
@@ -230,12 +238,12 @@ kmp_tor_configure_lib_t(const char * lib_tor, kmp_tor_handle_t *handle_t)
   return 0;
 }
 
-int
+static int
 kmp_tor_configure_tor(kmp_tor_handle_t *handle_t)
 {
   handle_t->args_t->cfg = handle_t->tor_api_cfg_new();
   if (handle_t->args_t->cfg == NULL) {
-    handle_t->error_code = ERR_CODE_TOR_CFG_NEW;
+    handle_t->error_code = KMP_TOR_ERR_CODE_TOR_CFG_NEW;
     return -1;
   }
 
@@ -300,7 +308,7 @@ kmp_tor_configure_tor(kmp_tor_handle_t *handle_t)
   }
 
   if (handle_t->ctrl_socket == KMP_TOR_SOCKET_INVALID) {
-    handle_t->error_code = ERR_CODE_TOR_CFG_SOCKET;
+    handle_t->error_code = KMP_TOR_ERR_CODE_CTRL_SOCKET;
     return -1;
   }
 
@@ -308,12 +316,12 @@ kmp_tor_configure_tor(kmp_tor_handle_t *handle_t)
   // STRICTLY to asynchronously interrupt tor's main loop w/o having
   // to deal with multi-threaded signal handing which is sketch AF.
   if (shutdown(handle_t->ctrl_socket, KMP_TOR_SOCKET_SHUT_RDWR) != 0) {
-    handle_t->error_code = ERR_CODE_TOR_CFG_SOCKET;
+    handle_t->error_code = KMP_TOR_ERR_CODE_CTRL_SOCKET;
     return -1;
   }
 
   if (handle_t->tor_api_cfg_set_command_line(handle_t->args_t->cfg, handle_t->argc, handle_t->argv) != 0) {
-    handle_t->error_code = ERR_CODE_TOR_CFG_SET;
+    handle_t->error_code = KMP_TOR_ERR_CODE_TOR_CFG_SET;
     return -1;
   }
 
@@ -330,23 +338,34 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
   if (handle_t == NULL) {
     return NULL;
   } else {
-    handle_t->error_code = ERR_CODE_NONE;
+    handle_t->error_code = KMP_TOR_ERR_CODE_NONE;
     handle_t->ctrl_socket = KMP_TOR_SOCKET_INVALID;
     handle_t->ctrl_socket_owned = KMP_TOR_SOCKET_INVALID;
+#ifdef _WIN32
+    handle_t->was_win32_sockets_initialized = -1;
+#endif // _WIN32
 
     if (lib_tor == NULL) {
-      handle_t->error_code = ERR_CODE_ARGS;
+      handle_t->error_code = KMP_TOR_ERR_CODE_ARGS;
     }
     if (argc <= 0) {
-      handle_t->error_code = ERR_CODE_ARGS;
+      handle_t->error_code = KMP_TOR_ERR_CODE_ARGS;
     }
     if (argv == NULL) {
-      handle_t->error_code = ERR_CODE_ARGS;
+      handle_t->error_code = KMP_TOR_ERR_CODE_ARGS;
     }
-    if (handle_t->error_code != ERR_CODE_NONE) {
+    if (handle_t->error_code != KMP_TOR_ERR_CODE_NONE) {
       return handle_t;
     }
   }
+
+#ifdef _WIN32
+  handle_t->was_win32_sockets_initialized = win32_sockets_init();
+  if (handle_t->was_win32_sockets_initialized != 0) {
+    handle_t->error_code = KMP_TOR_ERR_CODE_CTRL_SOCKET;
+    return handle_t;
+  }
+#endif
 
   handle_t->args_t = malloc(sizeof(kmp_tor_run_thread_args_t));
   if (handle_t->args_t == NULL) {
@@ -365,7 +384,7 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
   handle_t->argv[argc + 1] = NULL;
 
   for (int i = 0; i < argc; i++) {
-    if (handle_t->error_code != ERR_CODE_NONE) {
+    if (handle_t->error_code != KMP_TOR_ERR_CODE_NONE) {
       handle_t->argv[i] = NULL;
       continue;
     }
@@ -377,27 +396,27 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
     }
 
     if (handle_t->argv[i] == NULL) {
-      handle_t->error_code = ERR_CODE_CFG;
+      handle_t->error_code = KMP_TOR_ERR_CODE_CFG;
     }
   }
 
-  if (handle_t->error_code != ERR_CODE_NONE) {
+  if (handle_t->error_code != KMP_TOR_ERR_CODE_NONE) {
     return handle_t;
   }
 
   if (pthread_attr_init(&attrs_t) != 0) {
-    handle_t->error_code = ERR_CODE_THREAD;
+    handle_t->error_code = KMP_TOR_ERR_CODE_THREAD;
     return handle_t;
   }
 
   if (kmp_tor_configure_pthread_attr_t(&attrs_t) != 0) {
-    handle_t->error_code = ERR_CODE_THREAD;
+    handle_t->error_code = KMP_TOR_ERR_CODE_THREAD;
     pthread_attr_destroy(&attrs_t);
     return handle_t;
   }
 
   if (kmp_tor_configure_lib_t(lib_tor, handle_t) != 0) {
-    handle_t->error_code = ERR_CODE_LIB_LOAD;
+    handle_t->error_code = KMP_TOR_ERR_CODE_LIB_LOAD;
     pthread_attr_destroy(&attrs_t);
     return handle_t;
   }
@@ -408,11 +427,11 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
   }
 
   if (pthread_create(&handle_t->thread_id, &attrs_t, kmp_tor_run_thread, (void *) handle_t->args_t) != 0) {
-    handle_t->error_code = ERR_CODE_THREAD;
+    handle_t->error_code = KMP_TOR_ERR_CODE_THREAD;
   }
   pthread_attr_destroy(&attrs_t);
 
-  if (handle_t->error_code == ERR_CODE_NONE) {
+  if (handle_t->error_code == KMP_TOR_ERR_CODE_NONE) {
     kmp_tor_sleep(50);
   }
 
@@ -432,7 +451,7 @@ kmp_tor_terminate_and_await_result(kmp_tor_handle_t *handle_t)
   assert(handle_t != NULL);
   int result = 1;
 
-  if (handle_t->error_code == ERR_CODE_NONE) {
+  if (handle_t->error_code == KMP_TOR_ERR_CODE_NONE) {
     void *res = NULL;
     int retries = 5;
 
@@ -443,11 +462,13 @@ kmp_tor_terminate_and_await_result(kmp_tor_handle_t *handle_t)
       if (pthread_join(handle_t->thread_id, &res) == 0) {
         retries = -1;
         break;
+      } else {
+        kmp_tor_sleep(1);
       }
     }
 
     if (retries == 0) {
-      kmp_tor_sleep(250);
+      kmp_tor_sleep(245);
     }
 
     if (res != NULL) {
