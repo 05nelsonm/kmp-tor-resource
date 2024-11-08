@@ -28,6 +28,10 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNICheckE
 (JNIEnv *, jobject, jobject);
 
 JNIEXPORT jint JNICALL
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNICheckState
+(JNIEnv *, jobject);
+
+JNIEXPORT jint JNICALL
 Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNITerminateAndAwaitResult
 (JNIEnv *, jobject, jobject);
 

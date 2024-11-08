@@ -42,6 +42,7 @@ protected actual constructor(): TorApi2() {
     private external fun torJNICheckErrorCode(
         pointer: HandleT.Pointer,
     ): Int
+    private external fun torJNICheckState(): Int
     private external fun torJNITerminateAndAwaitResult(
         pointer: HandleT.Pointer,
     ): Int
@@ -58,6 +59,8 @@ protected actual constructor(): TorApi2() {
     protected actual fun kmpTorCheckErrorCode(
         handle: HandleT,
     ): Int = torJNICheckErrorCode(handle.ptr)
+
+    protected actual fun kmpTorCheckState(): Int = torJNICheckState()
 
     protected actual fun kmpTorTerminateAndAwaitResult(
         handle: HandleT,

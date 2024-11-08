@@ -74,6 +74,19 @@ struct kmp_tor_handle_t {
   lib_handle_t *lib_t;
 };
 
+static int kmp_tor_state = KMP_TOR_STATE_NOT_RUNNING;
+static pthread_mutex_t kmp_tor_lock = PTHREAD_MUTEX_INITIALIZER;
+
+int
+kmp_tor_check_state()
+{
+  int result;
+  pthread_mutex_lock(&kmp_tor_lock);
+    result = kmp_tor_state + 1;
+  pthread_mutex_unlock(&kmp_tor_lock);
+  return result - 1;
+}
+
 static void
 kmp_tor_sleep(int millis)
 {
@@ -110,7 +123,18 @@ kmp_tor_run_thread(void *arg)
   kmp_tor_run_thread_res_t *res_t = NULL;
   res_t = malloc(sizeof(kmp_tor_run_thread_res_t));
 
+  pthread_mutex_lock(&kmp_tor_lock);
+    kmp_tor_state = KMP_TOR_STATE_RUNNING;
+  pthread_mutex_unlock(&kmp_tor_lock);
+
   rv = args_t->tor_api_run_main(args_t->cfg);
+
+  pthread_mutex_lock(&kmp_tor_lock);
+    if (kmp_tor_state == KMP_TOR_STATE_RUNNING) {
+      kmp_tor_state = KMP_TOR_STATE_STOPPING;
+    }
+  pthread_mutex_unlock(&kmp_tor_lock);
+
   if (rv < 0 || rv > 255) {
     rv = 1;
   }
@@ -186,6 +210,10 @@ kmp_tor_free(kmp_tor_handle_t *handle_t)
 #endif
 
   free(handle_t);
+
+  pthread_mutex_lock(&kmp_tor_lock);
+    kmp_tor_state = KMP_TOR_STATE_NOT_RUNNING;
+  pthread_mutex_unlock(&kmp_tor_lock);
 }
 
 static int
@@ -331,11 +359,23 @@ kmp_tor_configure_tor(kmp_tor_handle_t *handle_t)
 kmp_tor_handle_t *
 kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
 {
+  int check_state = -10;
   kmp_tor_handle_t *handle_t = NULL;
   pthread_attr_t attrs_t;
 
+  pthread_mutex_lock(&kmp_tor_lock);
+    check_state = kmp_tor_state + 1;
+    check_state = check_state - 1;
+    if (kmp_tor_state == KMP_TOR_STATE_NOT_RUNNING) {
+      kmp_tor_state = KMP_TOR_STATE_STARTING;
+    }
+  pthread_mutex_unlock(&kmp_tor_lock);
+
+  assert(check_state == KMP_TOR_STATE_NOT_RUNNING);
+
   handle_t = malloc(sizeof(kmp_tor_handle_t));
   if (handle_t == NULL) {
+    kmp_tor_state = KMP_TOR_STATE_NOT_RUNNING;
     return NULL;
   } else {
     handle_t->error_code = KMP_TOR_ERR_CODE_NONE;
@@ -432,7 +472,11 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
   pthread_attr_destroy(&attrs_t);
 
   if (handle_t->error_code == KMP_TOR_ERR_CODE_NONE) {
-    kmp_tor_sleep(50);
+    while (kmp_tor_check_state() == KMP_TOR_STATE_STARTING) {
+      kmp_tor_sleep(5);
+    }
+
+    kmp_tor_sleep(5);
   }
 
   return handle_t;
@@ -468,7 +512,13 @@ kmp_tor_terminate_and_await_result(kmp_tor_handle_t *handle_t)
     }
 
     if (retries == 0) {
-      kmp_tor_sleep(245);
+      retries = 50;
+      while (kmp_tor_check_state() != KMP_TOR_STATE_STOPPING) {
+        kmp_tor_sleep(5);
+        if (retries-- < 0) {
+          break;
+        }
+      }
     }
 
     if (res != NULL) {

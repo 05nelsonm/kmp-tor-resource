@@ -98,17 +98,21 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
 
             val result = LOADER.withApi(TestRuntimeBinder) {
                 val api = this as TorApi2
-                assertFalse(api.isRunning2)
+                assertEquals(TorApi2.State.NOT_RUNNING, api.state)
 
-                val rv = api.torRunMain2(
+                val handle = api.torRunMain2(
                     listOf(
                         "--SocksPort", "-1",
                         "--verify-config",
                         "--quiet",
                     )
-                ).terminateAndAwaitResult()
+                )
 
-                assertFalse(api.isRunning2)
+                assertNotEquals(TorApi2.State.NOT_RUNNING, api.state)
+
+                val rv = handle.terminateAndAwaitResult()
+
+                assertEquals(TorApi2.State.NOT_RUNNING, api.state)
 
                 rv
             }

@@ -104,7 +104,14 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
             check(handleT != null) { "Memory allocation failure" }
 
-            val handle = Handle { kmpTorTerminateAndAwaitResult(handleT) }
+            val handle = object : Handle {
+                override fun handleState(): State {
+                    return State.entries.elementAt(kmpTorCheckState())
+                }
+                override fun terminateAndAwaitResult(): Int {
+                    return kmpTorTerminateAndAwaitResult(handleT)
+                }
+            }
 
             when (val r = kmpTorCheckErrorCode(handleT)) {
                 -100 -> null // All good, running

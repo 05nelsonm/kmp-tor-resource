@@ -36,6 +36,8 @@ protected constructor(): TorApi2 {
         handle: HandleT,
     ): Int
 
+    protected fun kmpTorCheckState(): Int
+
     protected fun kmpTorTerminateAndAwaitResult(
         handle: HandleT,
     ): Int

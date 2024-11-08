@@ -34,10 +34,30 @@ internal abstract class TorApi2: TorApi() {
     @OptIn(InternalKmpTorApi::class)
     private val lock = SynchronizedObject()
 
-    @get:JvmName("isRunning2")
-    public val isRunning2: Boolean get() = _isStarting || _handle != null
+    @get:JvmName("state")
+    public val state: State get() {
+        if (_isStarting) {
+            return State.STARTING
+        }
 
-    public fun interface Handle {
+        _handle?.let { return it.handleState() }
+
+        return State.NOT_RUNNING
+    }
+
+    @get:JvmName("isActive")
+    public val isActive: Boolean get() = state != State.NOT_RUNNING
+
+    public enum class State {
+        STARTING,
+        RUNNING,
+        STOPPING,
+        NOT_RUNNING,
+    }
+
+    public interface Handle {
+
+        public fun handleState(): State
 
         @Throws(IllegalStateException::class)
         public fun terminateAndAwaitResult(): Int
@@ -45,11 +65,11 @@ internal abstract class TorApi2: TorApi() {
 
     @Throws(IllegalStateException::class, IOException::class)
     public fun torRunMain2(configuration: List<String>): Handle {
-        check(!isRunning2) { "tor is running" }
+        check(state == State.NOT_RUNNING) { "tor is running" }
 
         @OptIn(InternalKmpTorApi::class)
         val args = synchronized(lock) {
-            if (isRunning2) return@synchronized null
+            if (state != State.NOT_RUNNING) return@synchronized null
             Array(configuration.size + 1) { i ->
                 if (i == 0) "tor" else configuration[i - 1]
             }.also{ _isStarting = true }
@@ -78,6 +98,16 @@ internal abstract class TorApi2: TorApi() {
         @Volatile
         private var _result: Int? = null
 
+        public override fun handleState(): State {
+            if (_result != null) {
+                return State.NOT_RUNNING
+            }
+
+            _delegate?.let { return it.handleState() }
+
+            return State.STOPPING
+        }
+
         @Throws(IllegalStateException::class)
         public override fun terminateAndAwaitResult(): Int {
             _result?.let { return it }
@@ -104,7 +134,7 @@ internal abstract class TorApi2: TorApi() {
         }
     }
 
-    public final override fun toString(): String = "TorApi[isRunning=$isRunning2, handle=$_handle]"
+    public final override fun toString(): String = "TorApi[state=$state, handle=$_handle]"
 
     final override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
         val temp = args.toMutableList()

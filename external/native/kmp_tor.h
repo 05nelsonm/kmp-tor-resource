@@ -26,11 +26,18 @@
 #define KMP_TOR_ERR_CODE_TOR_CFG_NEW  -15
 #define KMP_TOR_ERR_CODE_TOR_CFG_SET  -16
 
+#define KMP_TOR_STATE_STARTING          0
+#define KMP_TOR_STATE_RUNNING           1
+#define KMP_TOR_STATE_STOPPING          2
+#define KMP_TOR_STATE_NOT_RUNNING       3
+
 typedef struct kmp_tor_handle_t kmp_tor_handle_t;
 
 kmp_tor_handle_t *kmp_tor_run_main(const char *lib_tor, int argc, char *argv[]);
 
 int kmp_tor_check_error_code(kmp_tor_handle_t *handle_t);
+
+int kmp_tor_check_state();
 
 int kmp_tor_terminate_and_await_result(kmp_tor_handle_t *handle_t);
 
