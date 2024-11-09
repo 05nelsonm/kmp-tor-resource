@@ -15,38 +15,89 @@
  **/
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.win32_socketpair
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.win32_af_unix_socketpair
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.win32_sockets_deinit
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.win32_sockets_init
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.usePinned
-import platform.posix.INVALID_SOCKET
-import platform.posix.closesocket
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import kotlinx.coroutines.*
+import kotlinx.coroutines.test.runTest
+import platform.posix.*
+import kotlin.test.*
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(DelicateCoroutinesApi::class, ExperimentalForeignApi::class)
 class Win32SocketsUnitTest {
 
+    private companion object {
+
+        private val AF_UNIX_SUPPORTED by lazy {
+            val s = socket(AF_UNIX, SOCK_STREAM, 0)
+            if (s == INVALID_SOCKET) {
+                false
+            } else {
+                closesocket(s)
+                true
+            }
+        }
+    }
+
+    @BeforeTest
+    fun setup() {
+        assertEquals(0, win32_sockets_init())
+    }
+
+    @AfterTest
+    fun tearDown() {
+        win32_sockets_deinit()
+    }
+
     @Test
-    fun givenFDS_whenSocketPair_thenReturnsExpected() {
+    fun givenWin32Sockets_whenAfUnixSocketPair_thenReturnsConnectedSockets() = runTest {
+        if (!AF_UNIX_SUPPORTED) {
+            println("Skipping...")
+            return@runTest
+        }
+
+        assertEquals(-1, win32_af_unix_socketpair(null))
+
         val fds = ULongArray(2) { INVALID_SOCKET }
 
         val result = fds.usePinned { pinned ->
-            win32_socketpair(pinned.addressOf(0))
+            win32_af_unix_socketpair(pinned.addressOf(0))
         }
 
-        // TODO: Implement win32_sockets.c
         try {
-            assertEquals(-1, result)
-            assertEquals(INVALID_SOCKET, fds[0])
-            assertEquals(INVALID_SOCKET, fds[1])
+            assertEquals(0, result)
+            assertNotEquals(INVALID_SOCKET, fds[0])
+            assertNotEquals(INVALID_SOCKET, fds[1])
+
+            val expected: Byte = 5
+            val job = Job()
+            currentCoroutineContext().job.invokeOnCompletion { job.cancel() }
+
+            GlobalScope.launch {
+                val buf = ByteArray(1)
+                buf.usePinned { pinned ->
+                    recv(fds[1], pinned.addressOf(0), buf.size, 0)
+                }
+
+                if (buf[0] == expected) {
+                    job.complete()
+                } else {
+                    job.cancel()
+                }
+            }
+
+            ByteArray(1) { expected }.usePinned { pinned ->
+                send(fds[0], pinned.addressOf(0), 1, 0)
+            }
+
+            job.join()
+            assertFalse(job.isCancelled)
         } finally {
-            if (fds[0] == INVALID_SOCKET) {
-                closesocket(fds[0])
-            }
-            if (fds[1] == INVALID_SOCKET) {
-                closesocket(fds[1])
-            }
+            closesocket(fds[0])
+            closesocket(fds[1])
         }
     }
 }

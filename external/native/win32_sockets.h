@@ -27,6 +27,6 @@ int win32_sockets_init();
 
 int win32_sockets_deinit();
 
-int win32_socketpair(SOCKET fds[2]);
+int win32_af_unix_socketpair(SOCKET fds[2]);
 
 #endif /* !defined(WIN32_SOCKETS_H) */

@@ -105,6 +105,10 @@ kmp_tor_sleep(int millis)
 static void
 kmp_tor_closesocket(kmp_tor_socket_t s)
 {
+  if (s == KMP_TOR_SOCKET_INVALID) {
+    return;
+  }
+
   int retries = 100;
   while (retries-- > 0) {
     if (__closesocket(s) == 0) {
@@ -153,15 +157,10 @@ kmp_tor_free(kmp_tor_handle_t *handle_t)
 {
   assert(handle_t != NULL);
 
-  if (handle_t->ctrl_socket != KMP_TOR_SOCKET_INVALID) {
-    kmp_tor_closesocket(handle_t->ctrl_socket);
-    handle_t->ctrl_socket = KMP_TOR_SOCKET_INVALID;
-  }
-
-  if (handle_t->ctrl_socket_owned != KMP_TOR_SOCKET_INVALID) {
-    kmp_tor_closesocket(handle_t->ctrl_socket_owned);
-    handle_t->ctrl_socket_owned = KMP_TOR_SOCKET_INVALID;
-  }
+  kmp_tor_closesocket(handle_t->ctrl_socket);
+  kmp_tor_closesocket(handle_t->ctrl_socket_owned);
+  handle_t->ctrl_socket = KMP_TOR_SOCKET_INVALID;
+  handle_t->ctrl_socket_owned = KMP_TOR_SOCKET_INVALID;
 
   handle_t->tor_api_cfg_new = NULL;
   handle_t->tor_api_cfg_set_command_line = NULL;
@@ -197,15 +196,19 @@ kmp_tor_free(kmp_tor_handle_t *handle_t)
     handle_t->OPENSSL_cleanup = NULL;
   }
 
-  if (handle_t->lib_t != NULL) {
-    kmp_tor_sleep(50);
-    lib_load_close(handle_t->lib_t);
-    handle_t->lib_t = NULL;
+  lib_handle_t *lib_t = handle_t->lib_t;
+  handle_t->lib_t = NULL;
+  if (lib_t != NULL) {
+    if (handle_t->error_code == KMP_TOR_ERR_CODE_NONE) {
+      kmp_tor_sleep(50);
+    }
+    lib_load_close(lib_t);
   }
 
 #ifdef _WIN32
   if (handle_t->was_win32_sockets_initialized == 0) {
     win32_sockets_deinit();
+    handle_t->was_win32_sockets_initialized = -1;
   }
 #endif
 
@@ -276,14 +279,12 @@ kmp_tor_configure_tor(kmp_tor_handle_t *handle_t)
   }
 
   int result = 0;
-  kmp_tor_socket_t fds[2];
-  fds[0] = KMP_TOR_SOCKET_INVALID;
-  fds[1] = KMP_TOR_SOCKET_INVALID;
+  kmp_tor_socket_t fds[2] = { KMP_TOR_SOCKET_INVALID };
   char *s1 = NULL;
   char *s2 = NULL;
 
 #ifdef _WIN32
-  result = win32_socketpair(fds);
+  result = win32_af_unix_socketpair(fds);
 #else
   result = socketpair(AF_UNIX, SOCK_STREAM, 0, fds);
 #endif // _WIN32
@@ -317,12 +318,8 @@ kmp_tor_configure_tor(kmp_tor_handle_t *handle_t)
     if (s2 != NULL) {
       free(s2);
     }
-    if (fds[0] != KMP_TOR_SOCKET_INVALID) {
-      kmp_tor_closesocket(fds[0]);
-    }
-    if (fds[1] != KMP_TOR_SOCKET_INVALID) {
-      kmp_tor_closesocket(fds[1]);
-    }
+    kmp_tor_closesocket(fds[0]);
+    kmp_tor_closesocket(fds[1]);
 #ifdef _WIN32
     // Windows will try tor's implementation to obtain an owned
     // controller socket. Disregard the last 2 slots that were
