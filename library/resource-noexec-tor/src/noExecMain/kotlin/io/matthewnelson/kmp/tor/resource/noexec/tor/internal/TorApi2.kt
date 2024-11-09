@@ -42,17 +42,26 @@ internal abstract class TorApi2: TorApi() {
 
         _handle?.let { return it.handleState() }
 
-        return State.NOT_RUNNING
+        return State.OFF
     }
 
+    @get:JvmName("isOff")
+    public val isOff: Boolean get() = state == State.OFF
+
     @get:JvmName("isActive")
-    public val isActive: Boolean get() = state != State.NOT_RUNNING
+    public val isActive: Boolean get() = when (state) {
+        State.STARTING, State.STARTED -> true
+        else -> false
+    }
+
+    @get:JvmName("isStopped")
+    public val isStopped: Boolean get() = state == State.STOPPED
 
     public enum class State {
+        OFF,
         STARTING,
-        RUNNING,
-        STOPPING,
-        NOT_RUNNING,
+        STARTED,
+        STOPPED,
     }
 
     public interface Handle {
@@ -65,11 +74,11 @@ internal abstract class TorApi2: TorApi() {
 
     @Throws(IllegalStateException::class, IOException::class)
     public fun torRunMain2(configuration: List<String>): Handle {
-        check(state == State.NOT_RUNNING) { "tor is running" }
+        check(state == State.OFF) { "tor is running" }
 
         @OptIn(InternalKmpTorApi::class)
         val args = synchronized(lock) {
-            if (state != State.NOT_RUNNING) return@synchronized null
+            if (state != State.OFF) return@synchronized null
             Array(configuration.size + 1) { i ->
                 if (i == 0) "tor" else configuration[i - 1]
             }.also{ _isStarting = true }
@@ -100,12 +109,12 @@ internal abstract class TorApi2: TorApi() {
 
         public override fun handleState(): State {
             if (_result != null) {
-                return State.NOT_RUNNING
+                return State.OFF
             }
 
             _delegate?.let { return it.handleState() }
 
-            return State.STOPPING
+            return State.STOPPED
         }
 
         @Throws(IllegalStateException::class)

@@ -26,10 +26,10 @@
 #define KMP_TOR_ERR_CODE_TOR_CFG_NEW  -15
 #define KMP_TOR_ERR_CODE_TOR_CFG_SET  -16
 
-#define KMP_TOR_STATE_STARTING          0
-#define KMP_TOR_STATE_RUNNING           1
-#define KMP_TOR_STATE_STOPPING          2
-#define KMP_TOR_STATE_NOT_RUNNING       3
+#define KMP_TOR_STATE_OFF               0
+#define KMP_TOR_STATE_STARTING          1
+#define KMP_TOR_STATE_STARTED           2
+#define KMP_TOR_STATE_STOPPED           3
 
 typedef struct kmp_tor_handle_t kmp_tor_handle_t;
 
