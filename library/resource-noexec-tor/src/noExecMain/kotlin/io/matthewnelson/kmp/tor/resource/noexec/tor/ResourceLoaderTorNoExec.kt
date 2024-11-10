@@ -19,7 +19,6 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.IOException
-import io.matthewnelson.kmp.file.name
 import io.matthewnelson.kmp.file.path
 import io.matthewnelson.kmp.tor.common.api.GeoipFiles
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
@@ -98,38 +97,15 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
     private class KmpTorApi: AbstractKmpTorApi() {
 
         @Throws(IllegalStateException::class, IOException::class)
-        override fun torRunMainProtected(args: Array<String>): Handle {
+        override fun torRunMain(args: Array<String>) {
             val libTor = libTor()
-            val handleT = kmpTorRunMain(libTor.path, args)
-
-            check(handleT != null) { "Memory allocation failure" }
-
-            val handle = object : Handle {
-                override fun handleState(): State {
-                    return State.entries.elementAt(kmpTorCheckState())
-                }
-                override fun terminateAndAwaitResult(): Int {
-                    return kmpTorTerminateAndAwaitResult(handleT)
-                }
-            }
-
-            when (val r = kmpTorCheckErrorCode(handleT)) {
-                -100 -> null // All good, running
-                -10 -> "kmp_tor_run_main invalid arguments"
-                -11 -> "kmp_tor_run_main configuration failure"
-                -12 -> "Failed to load ${libTor.name}"
-                -13 -> "kmp_tor_run_main thread failure"
-                -14 -> "kmp_tor_run_main control socket failure"
-                -15 -> "tor_main_configuration_new failure"
-                -16 -> "tor_main_configuration_set_command_line failure"
-                else -> "kmp_tor_run_main experienced an unknown error code[$r]"
-            }?.let { error ->
-                handle.terminateAndAwaitResult()
-                throw IllegalStateException(error)
-            }
-
-            return handle
+            val error = kmpTorRunMain(libTor.path, args) ?: return
+            throw IllegalStateException(error)
         }
+
+        override fun state(): State = State.entries.elementAt(kmpTorState())
+
+        override fun terminateAndAwaitResult(): Int = kmpTorTerminateAndAwaitResult()
     }
 
     @Throws(IllegalStateException::class)

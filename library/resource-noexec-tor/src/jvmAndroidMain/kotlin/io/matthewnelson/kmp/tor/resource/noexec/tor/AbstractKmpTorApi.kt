@@ -21,8 +21,6 @@ import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT.Companion.toHandleTOrNull
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
 import java.util.UUID
@@ -34,37 +32,9 @@ internal actual sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
 protected actual constructor(): TorApi2() {
 
-    private external fun torJNIRunMain(
-        lib_tor: String,
-        argc: Int,
-        args: Array<String>,
-    ): HandleT.Pointer?
-    private external fun torJNICheckErrorCode(
-        pointer: HandleT.Pointer,
-    ): Int
-    private external fun torJNICheckState(): Int
-    private external fun torJNITerminateAndAwaitResult(
-        pointer: HandleT.Pointer,
-    ): Int
-
-    protected actual fun kmpTorRunMain(
-        libTor: String,
-        args: Array<String>,
-    ): HandleT? = torJNIRunMain(
-        lib_tor = libTor,
-        argc = args.size,
-        args = args,
-    ).toHandleTOrNull()
-
-    protected actual fun kmpTorCheckErrorCode(
-        handle: HandleT,
-    ): Int = torJNICheckErrorCode(handle.ptr)
-
-    protected actual fun kmpTorCheckState(): Int = torJNICheckState()
-
-    protected actual fun kmpTorTerminateAndAwaitResult(
-        handle: HandleT,
-    ): Int = torJNITerminateAndAwaitResult(handle.ptr)
+    protected actual external fun kmpTorRunMain(libTor: String, args: Array<String>): String?
+    protected actual external fun kmpTorState(): Int
+    protected actual external fun kmpTorTerminateAndAwaitResult(): Int
 
     @Throws(IllegalStateException::class, IOException::class)
     protected actual fun libTor(): File = extractLibTor(loadTorJni = false)

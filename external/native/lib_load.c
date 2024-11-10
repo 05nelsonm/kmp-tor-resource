@@ -116,6 +116,12 @@ lib_load_open(const char *lib)
   if (handle_t == NULL) {
     fprintf(stderr, "KmpTor: Failed to allocate memory to lib_handle_t for lib[%s]\n", lib);
     return NULL;
+  } else {
+    handle_t->lib = NULL;
+#ifdef _WIN32
+    handle_t->err_buf = NULL;
+#endif
+    handle_t->handle = NULL;
   }
 
   handle_t->lib = strdup(lib);

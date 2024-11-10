@@ -81,7 +81,9 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         if (skipTorRunMain) return
 
         val result = LOADER.withApi(TestRuntimeBinder) {
-            (this as TorApi2).torRunMain2(listOf("--version")).terminateAndAwaitResult()
+            (this as TorApi2).torRunMain2(listOf("--version"))
+
+            terminateAndAwaitResult()
         }
 
         assertEquals(0, result)
@@ -98,9 +100,9 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
 
             val result = LOADER.withApi(TestRuntimeBinder) {
                 val api = this as TorApi2
-                assertEquals(TorApi2.State.OFF, api.state)
+                assertEquals(TorApi2.State.OFF, api.state())
 
-                val handle = api.torRunMain2(
+                api.torRunMain2(
                     listOf(
                         "--SocksPort", "-1",
                         "--verify-config",
@@ -108,11 +110,11 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
                     )
                 )
 
-                assertNotEquals(TorApi2.State.OFF, api.state)
+                assertNotEquals(TorApi2.State.OFF, api.state())
 
-                val rv = handle.terminateAndAwaitResult()
+                val rv = terminateAndAwaitResult()
 
-                assertEquals(TorApi2.State.OFF, api.state)
+                assertEquals(TorApi2.State.OFF, api.state())
 
                 rv
             }
@@ -186,19 +188,16 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
                 println("RUN_TOR[${index + 1}]")
             }
 
-            val handle = LOADER.withApi(TestRuntimeBinder) {
+            val api = LOADER.withApi(TestRuntimeBinder) {
                 (this as TorApi2).torRunMain2(args)
+                this
             }
 
-            val completion = job.invokeOnCompletion {
-                try {
-                    handle.terminateAndAwaitResult()
-                } catch (_: IllegalStateException) {}
-            }
+            val completion = job.invokeOnCompletion { api.terminateAndAwaitResult() }
 
             withContext(bgDispatcher) {
                 delay(1.seconds)
-                assertEquals(0, handle.terminateAndAwaitResult())
+                assertEquals(0, api.terminateAndAwaitResult())
             }
 
             completion.dispose()

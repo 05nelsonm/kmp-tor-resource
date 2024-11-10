@@ -22,16 +22,14 @@ import io.matthewnelson.kmp.file.resolve
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.IOException
 import io.matthewnelson.kmp.file.toFile
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_check_error_code
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_check_state
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_run_main
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_state
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_terminate_and_await_result
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT.Companion.toHandleTOrNull
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.toCStringArray
+import kotlinx.cinterop.toKString
 import platform.Foundation.NSBundle
 
 // appleFramework
@@ -45,25 +43,17 @@ protected actual constructor(): TorApi2() {
     protected actual fun kmpTorRunMain(
         libTor: String,
         args: Array<String>,
-    ): HandleT? = memScoped {
-        val ptr = kmp_tor_run_main(
+    ): String? = memScoped {
+        kmp_tor_run_main(
             lib_tor = libTor,
             argc = args.size,
             argv = args.toCStringArray(autofreeScope = this),
-        )
-
-        ptr.toHandleTOrNull()
+        )?.toKString()
     }
 
-    protected actual fun kmpTorCheckErrorCode(
-        handle: HandleT,
-    ): Int = kmp_tor_check_error_code(handle.ptr)
+    protected actual fun kmpTorState(): Int = kmp_tor_state()
 
-    protected actual fun kmpTorCheckState(): Int = kmp_tor_check_state()
-
-    protected actual fun kmpTorTerminateAndAwaitResult(
-        handle: HandleT,
-    ): Int = kmp_tor_terminate_and_await_result(handle.ptr)
+    protected actual fun kmpTorTerminateAndAwaitResult(): Int = kmp_tor_terminate_and_await_result()
 
     @Throws(IllegalStateException::class, IOException::class)
     protected actual fun libTor(): File {

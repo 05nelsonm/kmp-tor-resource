@@ -19,7 +19,6 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.IOException
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.HandleT
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
 
 // noExec
@@ -27,20 +26,9 @@ internal expect sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
 protected constructor(): TorApi2 {
 
-    protected fun kmpTorRunMain(
-        libTor: String,
-        args: Array<String>,
-    ): HandleT?
-
-    protected fun kmpTorCheckErrorCode(
-        handle: HandleT,
-    ): Int
-
-    protected fun kmpTorCheckState(): Int
-
-    protected fun kmpTorTerminateAndAwaitResult(
-        handle: HandleT,
-    ): Int
+    protected fun kmpTorRunMain(libTor: String, args: Array<String>): String?
+    protected fun kmpTorState(): Int
+    protected fun kmpTorTerminateAndAwaitResult(): Int
 
     @Throws(IllegalStateException::class, IOException::class)
     protected fun libTor(): File

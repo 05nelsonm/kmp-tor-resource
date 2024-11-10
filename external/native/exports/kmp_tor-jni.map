@@ -1,11 +1,8 @@
 {
     global:
-        Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNIRunMain;
-        Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNICheckErrorCode;
-        Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNICheckState;
-        Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_torJNITerminateAndAwaitResult;
-        JNI_OnLoad;
-        JNI_OnUnload;
+        Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMain;
+        Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorState;
+        Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorTerminateAndAwaitResult;
     local:
         *;
 };

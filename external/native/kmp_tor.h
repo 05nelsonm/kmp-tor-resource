@@ -17,28 +17,40 @@
 #ifndef KMP_TOR_H
 #define KMP_TOR_H
 
-#define KMP_TOR_ERR_CODE_NONE        -100
-#define KMP_TOR_ERR_CODE_ARGS         -10
-#define KMP_TOR_ERR_CODE_CFG          -11
-#define KMP_TOR_ERR_CODE_LIB_LOAD     -12
-#define KMP_TOR_ERR_CODE_THREAD       -13
-#define KMP_TOR_ERR_CODE_CTRL_SOCKET  -14
-#define KMP_TOR_ERR_CODE_TOR_CFG_NEW  -15
-#define KMP_TOR_ERR_CODE_TOR_CFG_SET  -16
+#define KMP_TOR_STATE_OFF       0
+#define KMP_TOR_STATE_STARTING  1
+#define KMP_TOR_STATE_STARTED   2
+#define KMP_TOR_STATE_STOPPED   3
 
-#define KMP_TOR_STATE_OFF               0
-#define KMP_TOR_STATE_STARTING          1
-#define KMP_TOR_STATE_STARTED           2
-#define KMP_TOR_STATE_STOPPED           3
+/**
+ * Returns NULL on successful startup. Otherwise, an error message.
+ *
+ * After successful startup, `kmp_tor_terminate_and_await_result` can
+ * be called to interrupt tor's main loop.
+ *
+ * `kmp_tor_terminate_and_await_result` MUST be called when done to
+ * release resources.
+ **/
+const char *kmp_tor_run_main(const char *lib_tor, int argc, char *argv[]);
 
-typedef struct kmp_tor_handle_t kmp_tor_handle_t;
+/**
+ * Returns current state.
+ *  - (0) KMP_TOR_STATE_OFF: Nothing happening. Free to call `kmp_tor_run_main`
+ *  - (1) KMP_TOR_STATE_STARTING: `kmp_tor_run_main` was called and awaiting return
+ *  - (2) KMP_TOR_STATE_STARTED: tor's `tor_run_main` is running in it's thread
+ *  - (3) KMP_TOR_STATE_STOPPED: tor's `tor_run_main` returned and the thread is ready
+ *                               for cleanup via `kmp_tor_terminate_and_await_result`.
+ **/
+int kmp_tor_state();
 
-kmp_tor_handle_t *kmp_tor_run_main(const char *lib_tor, int argc, char *argv[]);
-
-int kmp_tor_check_error_code(kmp_tor_handle_t *handle_t);
-
-int kmp_tor_check_state();
-
-int kmp_tor_terminate_and_await_result(kmp_tor_handle_t *handle_t);
+/**
+ * This MUST be called to release resources before calling `kmp_tor_run_main`
+ * again. It should be called as soon as possible (i.e. when `kmp_tor_state`
+ * is `KMP_TOR_STATE_STOPPED`).
+ *
+ * Returns -1 if state is `KMP_TOR_STATE_OFF`. Otherwise, will return whatever
+ * `tor_run_main` completed with.
+ **/
+int kmp_tor_terminate_and_await_result();
 
 #endif /* !defined(KMP_TOR_H) */

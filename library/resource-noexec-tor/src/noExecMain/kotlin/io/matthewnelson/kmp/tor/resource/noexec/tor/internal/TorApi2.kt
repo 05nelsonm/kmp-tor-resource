@@ -16,46 +16,9 @@
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
 import io.matthewnelson.kmp.file.IOException
-import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
-import io.matthewnelson.kmp.tor.common.core.SynchronizedObject
-import io.matthewnelson.kmp.tor.common.core.synchronized
-import kotlin.concurrent.Volatile
-import kotlin.jvm.JvmName
-
-internal expect fun TorApi2.registerOnShutdownHook(handle: () -> TorApi2.Handle?)
 
 internal abstract class TorApi2: TorApi() {
-
-    @Volatile
-    private var _handle: SynchronizedHandle? = null
-    @Volatile
-    private var _isStarting: Boolean = false
-    @OptIn(InternalKmpTorApi::class)
-    private val lock = SynchronizedObject()
-
-    @get:JvmName("state")
-    public val state: State get() {
-        if (_isStarting) {
-            return State.STARTING
-        }
-
-        _handle?.let { return it.handleState() }
-
-        return State.OFF
-    }
-
-    @get:JvmName("isOff")
-    public val isOff: Boolean get() = state == State.OFF
-
-    @get:JvmName("isActive")
-    public val isActive: Boolean get() = when (state) {
-        State.STARTING, State.STARTED -> true
-        else -> false
-    }
-
-    @get:JvmName("isStopped")
-    public val isStopped: Boolean get() = state == State.STOPPED
 
     public enum class State {
         OFF,
@@ -64,92 +27,25 @@ internal abstract class TorApi2: TorApi() {
         STOPPED,
     }
 
-    public interface Handle {
+    public abstract fun state(): State
 
-        public fun handleState(): State
+    public abstract fun terminateAndAwaitResult(): Int
 
-        @Throws(IllegalStateException::class)
-        public fun terminateAndAwaitResult(): Int
+    @Throws(IllegalStateException::class, IOException::class)
+    public fun torRunMain2(configuration: List<String>) {
+        val args = Array(configuration.size + 1) { i ->
+            if (i == 0) "tor" else configuration[i - 1]
+        }
+
+        torRunMain(args)
     }
 
     @Throws(IllegalStateException::class, IOException::class)
-    public fun torRunMain2(configuration: List<String>): Handle {
-        check(state == State.OFF) { "tor is running" }
+    protected abstract fun torRunMain(args: Array<String>)
 
-        @OptIn(InternalKmpTorApi::class)
-        val args = synchronized(lock) {
-            if (state != State.OFF) return@synchronized null
-            Array(configuration.size + 1) { i ->
-                if (i == 0) "tor" else configuration[i - 1]
-            }.also{ _isStarting = true }
-        }
-
-        check(args != null) { "tor is running" }
-
-        val handle = try {
-            torRunMainProtected(args).let { handle ->
-                SynchronizedHandle(handle).also { _handle = it }
-            }
-        } finally {
-            _isStarting = false
-        }
-
-        return handle
-    }
-
-    @Throws(IllegalStateException::class, IOException::class)
-    protected abstract fun torRunMainProtected(args: Array<String>): Handle
-
-    private inner class SynchronizedHandle(delegate: Handle): Handle {
-
-        @Volatile
-        private var _delegate: Handle? = delegate
-        @Volatile
-        private var _result: Int? = null
-
-        public override fun handleState(): State {
-            if (_result != null) {
-                return State.OFF
-            }
-
-            _delegate?.let { return it.handleState() }
-
-            return State.STOPPED
-        }
-
-        @Throws(IllegalStateException::class)
-        public override fun terminateAndAwaitResult(): Int {
-            _result?.let { return it }
-
-            @OptIn(InternalKmpTorApi::class)
-            val delegate = synchronized(lock) {
-                val d = _delegate
-                _delegate = null
-                d
-            }
-
-            if (delegate == null) {
-                _result?.let { return it }
-                throw IllegalStateException("terminateAndAwaitResult has already been invoked. Waiting for result")
-            }
-
-            val result = try {
-                delegate.terminateAndAwaitResult().also { _result = it }
-            } finally {
-                _handle = null
-            }
-
-            return result
-        }
-    }
-
-    public final override fun toString(): String = "TorApi[state=$state, handle=$_handle]"
+    public final override fun toString(): String = "TorApi[state=${state()}]"
 
     final override fun torRunMainProtected(args: Array<String>, log: Logger): Int {
-        val temp = args.toMutableList()
-        temp.removeFirstOrNull()
-        return torRunMain2(temp).terminateAndAwaitResult()
+        throw IllegalStateException("TODO")
     }
-
-    init { registerOnShutdownHook { _handle } }
 }
