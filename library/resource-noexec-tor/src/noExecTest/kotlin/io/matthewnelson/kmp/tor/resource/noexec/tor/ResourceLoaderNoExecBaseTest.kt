@@ -20,10 +20,10 @@ import io.matthewnelson.kmp.file.path
 import io.matthewnelson.kmp.file.readBytes
 import io.matthewnelson.kmp.file.readUtf8
 import io.matthewnelson.kmp.file.resolve
+import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.LOADER
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.TEST_DIR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.WORK_DIR
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
@@ -81,7 +81,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         if (skipTorRunMain) return
 
         val result = LOADER.withApi(TestRuntimeBinder) {
-            (this as TorApi2).torRunMain2(listOf("--version"))
+            torRunMain(listOf("--version"))
 
             terminateAndAwaitResult()
         }
@@ -99,10 +99,9 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
             }
 
             val result = LOADER.withApi(TestRuntimeBinder) {
-                val api = this as TorApi2
-                assertEquals(TorApi2.State.OFF, api.state())
+                assertEquals(TorApi.State.OFF, state())
 
-                api.torRunMain2(
+                torRunMain(
                     listOf(
                         "--SocksPort", "-1",
                         "--verify-config",
@@ -110,11 +109,11 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
                     )
                 )
 
-                assertNotEquals(TorApi2.State.OFF, api.state())
+                assertNotEquals(TorApi.State.OFF, state())
 
                 val rv = terminateAndAwaitResult()
 
-                assertEquals(TorApi2.State.OFF, api.state())
+                assertEquals(TorApi.State.OFF, state())
 
                 rv
             }
@@ -189,7 +188,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
             }
 
             val api = LOADER.withApi(TestRuntimeBinder) {
-                (this as TorApi2).torRunMain2(args)
+                torRunMain(args)
                 this
             }
 

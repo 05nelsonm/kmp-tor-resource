@@ -19,10 +19,10 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
+import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.*
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.deleteOnExit
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.memScoped
@@ -35,7 +35,7 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalForeignApi::class, InternalKmpTorApi::class)
 internal actual sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
-protected actual constructor(): TorApi2() {
+protected actual constructor(registerShutdownHook: Boolean): TorApi() {
 
     protected actual fun kmpTorRunMain(
         libTor: String,

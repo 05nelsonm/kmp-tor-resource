@@ -22,10 +22,10 @@ import io.matthewnelson.kmp.file.resolve
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.IOException
 import io.matthewnelson.kmp.file.toFile
+import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_run_main
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_state
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_terminate_and_await_result
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.toCStringArray
@@ -36,7 +36,7 @@ import platform.Foundation.NSBundle
 @OptIn(ExperimentalForeignApi::class)
 internal actual sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
-protected actual constructor(): TorApi2() {
+protected actual constructor(registerShutdownHook: Boolean): TorApi() {
 
     private val bundle: NSBundle
 
