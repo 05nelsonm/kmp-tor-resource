@@ -17,9 +17,7 @@
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
-import io.matthewnelson.kmp.file.IOException
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
-import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.geoip.configureGeoipResources
 import kotlin.jvm.JvmSynthetic
@@ -41,6 +39,3 @@ internal val RESOURCE_CONFIG_LIB_TOR: Resource.Config by lazy {
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
 internal expect inline fun Resource.Config.Builder.configureLibTorResources()
-
-@Throws(IllegalStateException::class, IOException::class)
-internal expect fun loadTorApi(): TorApi

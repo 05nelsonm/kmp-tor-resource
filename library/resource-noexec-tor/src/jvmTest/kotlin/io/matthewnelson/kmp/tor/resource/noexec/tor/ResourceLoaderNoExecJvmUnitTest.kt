@@ -18,6 +18,7 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSHost
 import io.matthewnelson.kmp.tor.common.core.OSInfo
+import kotlin.test.Ignore
 import kotlin.test.Test
 
 @OptIn(InternalKmpTorApi::class)
@@ -29,5 +30,6 @@ class ResourceLoaderNoExecJvmUnitTest: ResourceLoaderNoExecBaseTest(
 ) {
 
     @Test
+    @Ignore("stub")
     fun stub() {}
 }

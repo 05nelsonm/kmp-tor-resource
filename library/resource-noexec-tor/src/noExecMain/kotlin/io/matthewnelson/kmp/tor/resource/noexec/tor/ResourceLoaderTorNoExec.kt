@@ -18,6 +18,8 @@
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.file.IOException
+import io.matthewnelson.kmp.file.path
 import io.matthewnelson.kmp.tor.common.api.GeoipFiles
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
@@ -25,7 +27,6 @@ import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_GEO
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP6
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.loadTorApi
 import kotlin.concurrent.Volatile
 import kotlin.jvm.JvmStatic
 
@@ -41,7 +42,7 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
             return NoExec.getOrCreate(
                 resourceDir = resourceDir,
                 extract = ::extractGeoips,
-                load = ::loadTorApi,
+                load = ::KmpTorApi,
                 toString = ::toString
             )
         }
@@ -91,6 +92,20 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
             append(']')
         }
+    }
+
+    private class KmpTorApi: AbstractKmpTorApi() {
+
+        @Throws(IllegalStateException::class, IOException::class)
+        override fun torRunMain(args: Array<String>) {
+            val libTor = libTor()
+            val error = kmpTorRunMain(libTor.path, args) ?: return
+            throw IllegalStateException(error)
+        }
+
+        override fun state(): State = State.entries.elementAt(kmpTorState())
+
+        override fun terminateAndAwaitResult(): Int = kmpTorTerminateAndAwaitResult()
     }
 
     @Throws(IllegalStateException::class)

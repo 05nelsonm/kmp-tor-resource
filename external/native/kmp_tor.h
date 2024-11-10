@@ -17,18 +17,40 @@
 #ifndef KMP_TOR_H
 #define KMP_TOR_H
 
-// TODO: Return handle to thread
+#define KMP_TOR_STATE_OFF       0
+#define KMP_TOR_STATE_STARTING  1
+#define KMP_TOR_STATE_STARTED   2
+#define KMP_TOR_STATE_STOPPED   3
 
-/*
- * Returns the following integer value depending on case:
- *  -10    : invalid arguments
- *  -11    : configuration failure
- *  -12    : dlopen/dlsym failure
- *  -13    : tor_main_configuration_new failure
- *  -14    : tor_main_configuration_set_command_line failure
- *  0      : tor_run_main returned success
- *  1 - 255: tor_run_main returned failure
- */
-int kmp_tor_run_main(int shutdown_delay_millis, const char *libtor, int argc, char *argv[]);
+/**
+ * Returns NULL on successful startup. Otherwise, an error message.
+ *
+ * After successful startup, `kmp_tor_terminate_and_await_result` can
+ * be called to interrupt tor's main loop.
+ *
+ * `kmp_tor_terminate_and_await_result` MUST be called when done to
+ * release resources.
+ **/
+const char *kmp_tor_run_main(const char *lib_tor, int argc, char *argv[]);
+
+/**
+ * Returns current state.
+ *  - (0) KMP_TOR_STATE_OFF: Nothing happening. Free to call `kmp_tor_run_main`
+ *  - (1) KMP_TOR_STATE_STARTING: `kmp_tor_run_main` was called and awaiting return
+ *  - (2) KMP_TOR_STATE_STARTED: tor's `tor_run_main` is running in it's thread
+ *  - (3) KMP_TOR_STATE_STOPPED: tor's `tor_run_main` returned and the thread is ready
+ *                               for cleanup via `kmp_tor_terminate_and_await_result`.
+ **/
+int kmp_tor_state();
+
+/**
+ * This MUST be called to release resources before calling `kmp_tor_run_main`
+ * again. It should be called as soon as possible (i.e. when `kmp_tor_state`
+ * is `KMP_TOR_STATE_STOPPED`).
+ *
+ * Returns -1 if state is `KMP_TOR_STATE_OFF`. Otherwise, will return whatever
+ * `tor_run_main` completed with.
+ **/
+int kmp_tor_terminate_and_await_result();
 
 #endif /* !defined(KMP_TOR_H) */

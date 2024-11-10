@@ -76,6 +76,7 @@ npmPublish {
     packages {
         vPublications.forEach { version ->
             register(
+                isGpl = false,
                 version = version,
                 dirName = NpmjsDirName("resource-geoip"),
                 configureFiles = {
@@ -201,6 +202,7 @@ private fun NpmPackages.registerAll(
             val npmjsDirName = NpmjsDirName("$npmjsDirBaseName.$target")
 
             register(
+                isGpl = isGpl,
                 version = version,
                 dirName = npmjsDirName,
                 configureFiles = { from(targetDirLib, targetDirExec) },
@@ -210,6 +212,7 @@ private fun NpmPackages.registerAll(
         }
 
         register(
+            isGpl = isGpl,
             version = version,
             dirName = NpmjsDirName("$npmjsDirBaseName.all"),
             configurePkg = {
@@ -227,6 +230,7 @@ private fun NpmPackages.registerAll(
 }
 
 private fun NpmPackages.register(
+    isGpl: Boolean,
     version: PublicationVersion,
     dirName: NpmjsDirName,
     configureFiles: Action<ConfigurableFileCollection> = Action {},
@@ -250,14 +254,18 @@ private fun NpmPackages.register(
 
         configurePkg.execute(this)
 
-        applyPackageInfoJson()
+        applyPackageInfoJson(isGpl)
     }
 }
 
-private fun NpmPackage.applyPackageInfoJson() {
+private fun NpmPackage.applyPackageInfoJson(isGpl: Boolean) {
     packageJson {
         homepage.set("https://github.com/05nelsonm/${rootProject.name}")
-        license.set("Apache 2.0")
+        if (isGpl) {
+            "GPL v3"
+        } else {
+            "Apache 2.0"
+        }.let { license.set(it) }
 
         repository {
             type.set("git")

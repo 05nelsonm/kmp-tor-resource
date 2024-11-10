@@ -142,7 +142,7 @@ Once that work is complete a Release will be made for `kmp-tor-resource`.
 [url-bundletool]: https://github.com/google/bundletool
 [url-build-env]: https://github.com/05nelsonm/build-env
 [url-latest-release]: https://github.com/05nelsonm/kmp-tor-resource/releases/latest
-[url-license]: https://www.apache.org/licenses/LICENSE-2.0
+[url-license]: https://www.apache.org/licenses/LICENSE-2.0.html
 [url-kotlin]: https://kotlinlang.org
 [url-kmp-tor]: https://github.com/05nelsonm/kmp-tor
 [url-kmp-tor-common]: https://github.com/05nelsonm/kmp-tor-common

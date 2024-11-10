@@ -20,80 +20,128 @@
 #include <stdlib.h>
 #include <string.h>
 
-char *
-jstring_dup(JNIEnv *env, jstring arg)
+static jstring null = NULL;
+
+static char *
+JStringDup(JNIEnv *env, jstring s)
 {
-  const char *_arg = (*env)->GetStringUTFChars(env, arg, NULL);
-  char *dup = strdup(_arg);
-  (*env)->ReleaseStringUTFChars(env, arg, _arg);
+  if (s == NULL) {
+    return NULL;
+  }
+
+  char *dup = NULL;
+  const char *c_arg = NULL;
+
+  c_arg = (*env)->GetStringUTFChars(env, s, NULL);
+  if (c_arg != NULL) {
+    dup = strdup(c_arg);
+    (*env)->ReleaseStringUTFChars(env, s, c_arg);
+  }
+
   return dup;
 }
 
-/*
- * Class:     io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi
- * Method:    kmpTorRunMain
- * Signature: (I;String;[Ljava/lang/String;)I
- *
- * Returns the following integer value depending on case:
- *  -9     : JNI to C conversion failure
- *  -10    : invalid arguments
- *  -11    : configuration failure
- *  -12    : dlopen/dlsym failure
- *  -13    : tor_main_configuration_new failure
- *  -14    : tor_main_configuration_set_command_line failure
- *  0      : tor_run_main returned success
- *  1 - 255: tor_run_main returned failure
- */
-JNIEXPORT jint JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMain
-(JNIEnv *env, jobject thiz, jint shutdown_delay_millis, jstring libtor, jobjectArray args)
+static void
+ThrowIllegalState(JNIEnv *env, const char *fmt, ...)
 {
-  int result = -1;
-  int argc = -1;
-  char **argv = NULL;
-  char *libtor_cstr = NULL;
+  jclass illegal_state = (*env)->FindClass(env, "java/lang/IllegalStateException");
+  char msg[512];
+  va_list args;
+  va_start (args, fmt);
+  vsnprintf(msg, sizeof(msg), fmt, args);
+  va_end (args);
+  (*env)->ThrowNew(env, illegal_state, msg);
+}
 
-  argc = (*env)->GetArrayLength(env, args);
+JNIEXPORT jstring JNICALL
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMain
+(JNIEnv *env, jobject thiz, jstring lib_tor, jobjectArray args)
+{
+  if (lib_tor == NULL) {
+    ThrowIllegalState(env, "lib_tor cannot be NULL");
+    return null;
+  }
+  if (args == NULL) {
+    ThrowIllegalState(env, "args cannot be NULL");
+    return null;
+  }
+
+  jsize argc = (*env)->GetArrayLength(env, args);
   if (argc <= 0) {
-    return -9;
+    ThrowIllegalState(env, "args cannot be empty");
+    return null;
   }
 
-  libtor_cstr = jstring_dup(env, libtor);
-  if (libtor_cstr == NULL) {
-    return -9;
+  int copy_args = 0;
+  int c_argc = 0;
+  char **c_argv = NULL;
+  char *c_lib_tor = NULL;
+  const char *error = NULL;
+
+  c_lib_tor = JStringDup(env, lib_tor);
+  if (c_lib_tor == NULL) {
+    ThrowIllegalState(env, "JStringDup failed to copy lib_tor");
+    return null;
   }
 
-  argv = malloc(argc * sizeof(char *));
-  if (argv == NULL) {
-    free(libtor_cstr);
-    return -9;
+  c_argv = malloc(argc * sizeof(char *));
+  if (c_argv == NULL) {
+    free(c_lib_tor);
+    ThrowIllegalState(env, "Failed to create c_argv");
+    return null;
   }
 
-  for (int i = 0; i < argc; i++) {
-    if (result != -1) {
-      argv[i] = NULL;
+  for (jsize i = 0; i < argc; i++) {
+    if (copy_args != 0) {
+      c_argv[c_argc++] = NULL;
       continue;
     }
 
-    jstring arg = (jstring) (*env)->GetObjectArrayElement(env, args, i);
-    argv[i] = jstring_dup(env, arg);
+    jstring j_arg = (jstring) (*env)->GetObjectArrayElement(env, args, i);
+    if (j_arg == NULL) {
+      c_argv[c_argc] = NULL;
+    } else {
+      c_argv[c_argc] = JStringDup(env, j_arg);
+      (*env)->DeleteLocalRef(env, j_arg);
+    }
 
-    if (argv[i] == NULL) {
-      result = -9;
+    if (c_argv[c_argc] == NULL) {
+      copy_args = -1;
+    }
+
+    c_argc++;
+  }
+
+  if (copy_args == 0) {
+    error = kmp_tor_run_main(c_lib_tor, c_argc, c_argv);
+  } else {
+    error = "Failed to copy arguments to C";
+  }
+
+  for (int i = 0; i < c_argc; i++) {
+    if (c_argv[i] != NULL) {
+      free(c_argv[i]);
     }
   }
+  free(c_argv);
+  free(c_lib_tor);
 
-  if (result == -1) {
-    result = kmp_tor_run_main(shutdown_delay_millis, libtor_cstr, argc, argv);
+  if (error != NULL) {
+    ThrowIllegalState(env, error);
   }
+  return null;
+}
 
-  for (int i = 0; i < argc; i++) {
-    if (argv[i] != NULL) {
-      free(argv[i]);
-    }
-  }
-  free(argv);
-  free(libtor_cstr);
+JNIEXPORT jint JNICALL
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorState
+(JNIEnv *env, jobject thiz)
+{
+  return kmp_tor_state();
+}
 
-  return result;
+JNIEXPORT jint JNICALL
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorTerminateAndAwaitResult
+(JNIEnv *env, jobject thiz)
+{
+  return kmp_tor_terminate_and_await_result();
 }

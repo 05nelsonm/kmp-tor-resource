@@ -140,7 +140,7 @@ public abstract class KmpTorResourceFrameworksPlugin internal constructor(): Plu
     <key>CFBundleExecutable</key>
     <string>LibTor</string>
     <key>CFBundleIdentifier</key>
-    <string>io.matthewnelson.kmp.tor.resource.noexec.tor</string>
+    <string>io.matthewnelson.kmp.tor.resource.lib.tor</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>

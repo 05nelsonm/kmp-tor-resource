@@ -15,20 +15,44 @@
  **/
 @file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 
-package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
+package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
-import io.matthewnelson.kmp.tor.common.api.TorApi
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.*
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.deleteOnExit
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.toCStringArray
+import kotlinx.cinterop.toKString
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 // nonAppleFramework
-@OptIn(InternalKmpTorApi::class)
-internal actual sealed class LibTor
+@OptIn(ExperimentalForeignApi::class, InternalKmpTorApi::class)
+internal actual sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
-protected actual constructor(): TorApi() {
+protected actual constructor(): TorApi2() {
 
+    protected actual fun kmpTorRunMain(
+        libTor: String,
+        args: Array<String>,
+    ): String? = memScoped {
+        kmp_tor_run_main(
+            lib_tor = libTor,
+            argc = args.size,
+            argv = args.toCStringArray(autofreeScope = this)
+        )?.toKString()
+    }
+
+    protected actual fun kmpTorState(): Int = kmp_tor_state()
+
+    protected actual fun kmpTorTerminateAndAwaitResult(): Int = kmp_tor_terminate_and_await_result()
+
+    @Throws(IllegalStateException::class, IOException::class)
     protected actual fun libTor(): File {
         return RESOURCE_CONFIG_LIB_TOR
             .extractTo(TEMP_DIR, onlyIfDoesNotExist = true)

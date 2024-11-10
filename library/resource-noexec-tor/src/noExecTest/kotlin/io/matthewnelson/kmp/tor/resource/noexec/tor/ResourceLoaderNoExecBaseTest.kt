@@ -15,11 +15,20 @@
  **/
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
+import io.matthewnelson.immutable.collections.toImmutableList
+import io.matthewnelson.kmp.file.path
 import io.matthewnelson.kmp.file.readBytes
+import io.matthewnelson.kmp.file.readUtf8
+import io.matthewnelson.kmp.file.resolve
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.LOADER
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.TEST_DIR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.WORK_DIR
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
+import kotlinx.coroutines.*
+import kotlinx.coroutines.test.runTest
 import kotlin.test.*
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Implemented in given source sets such that tests do not run
@@ -34,7 +43,15 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
 
     protected companion object {
         const val RUN_TOR_MAIN_COUNT_UNIX: Int = 500
-        const val RUN_TOR_MAIN_COUNT_WINDOWS: Int = 125
+        const val RUN_TOR_MAIN_COUNT_WINDOWS: Int = 200
+    }
+
+    private val skipTorRunMain: Boolean get() {
+        val skip = runTorMainCount <= 0 || !CAN_RUN_FULL_TESTS
+        if (skip) {
+            println("Skipping...")
+        }
+        return skip
     }
 
     @AfterTest
@@ -61,13 +78,12 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
 
     @Test
     fun givenResourceLoaderNoExec_whenWithApi_thenLoadsSuccessfully() {
-        if (runTorMainCount <= 0 || !CAN_RUN_FULL_TESTS) {
-            println("Skipping...")
-            return
-        }
+        if (skipTorRunMain) return
 
         val result = LOADER.withApi(TestRuntimeBinder) {
-            torRunMain(listOf("--version"))
+            (this as TorApi2).torRunMain2(listOf("--version"))
+
+            terminateAndAwaitResult()
         }
 
         assertEquals(0, result)
@@ -75,10 +91,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
 
     @Test
     fun givenResourceLoaderNoExec_whenMultipleRuns_thenLibTorIsUnloaded() {
-        if (runTorMainCount <= 0 || !CAN_RUN_FULL_TESTS) {
-            println("Skipping...")
-            return
-        }
+        if (skipTorRunMain) return
 
         repeat(runTorMainCount) { index ->
             if ((index + 1) % 10 == 0) {
@@ -86,22 +99,124 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
             }
 
             val result = LOADER.withApi(TestRuntimeBinder) {
-                assertFalse(isRunning)
+                val api = this as TorApi2
+                assertEquals(TorApi2.State.OFF, api.state())
 
-                val rv = torRunMain(
+                api.torRunMain2(
                     listOf(
                         "--SocksPort", "-1",
                         "--verify-config",
-                        "--quiet"
+                        "--quiet",
                     )
                 )
 
-                assertFalse(isRunning)
+                assertNotEquals(TorApi2.State.OFF, api.state())
+
+                val rv = terminateAndAwaitResult()
+
+                assertEquals(TorApi2.State.OFF, api.state())
 
                 rv
             }
 
             assertEquals(1, result)
+        }
+    }
+
+    @Test
+    @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+    fun givenHandle_whenTerminateAndAwait_thenTorExits() = runTest(timeout = 5.minutes) {
+        if (skipTorRunMain) return@runTest
+
+        val job = currentCoroutineContext().job
+
+        val geoipFiles = LOADER.extract().let { files ->
+            job.invokeOnCompletion {
+                files.geoip.delete()
+                files.geoip6.delete()
+            }
+
+            if (files.geoip.readBytes().size < 50_000) {
+                // Mock resources...
+                println("Skipping...")
+                return@runTest
+            }
+
+            files
+        }
+
+        val logFile = LOADER.resourceDir.resolve("test.log")
+        job.invokeOnCompletion { logFile.delete() }
+
+        val args = ArrayList<String>(10).apply {
+            add("--ignore-missing-torrc")
+            add("--quiet")
+
+            val dataDir = LOADER.resourceDir.resolve("data")
+
+            job.invokeOnCompletion { dataDir.resolve("lock").delete() }
+            job.invokeOnCompletion { dataDir.resolve("state").delete() }
+            job.invokeOnCompletion { dataDir.resolve("keys").delete() }
+
+            listOf(
+                "--DataDirectory" to dataDir,
+                "--CacheDirectory" to LOADER.resourceDir.resolve("cache"),
+            ).forEach { (option, argument) ->
+                argument.mkdirs()
+                job.invokeOnCompletion { argument.delete() }
+                add(option); add(argument.path)
+            }
+
+            add("--GeoIPFile"); add(geoipFiles.geoip.toString())
+            add("--GeoIPv6File"); add(geoipFiles.geoip6.toString())
+
+            add("--Log"); add("notice file $logFile")
+            add("--TruncateLogFile"); add("1")
+
+            add("--DormantCanceledByStartup"); add("1")
+            add("--SocksPort"); add("0")
+
+            add("--DisableNetwork"); add("1")
+            add("--RunAsDaemon"); add("0")
+        }.toImmutableList()
+
+        val bgDispatcher = newSingleThreadContext("bg-tor-terminate")
+        job.invokeOnCompletion { bgDispatcher.close() }
+
+        repeat(runTorMainCount / 10) { index ->
+            if ((index + 1) % 5 == 0) {
+                println("RUN_TOR[${index + 1}]")
+            }
+
+            val api = LOADER.withApi(TestRuntimeBinder) {
+                (this as TorApi2).torRunMain2(args)
+                this
+            }
+
+            val completion = job.invokeOnCompletion { api.terminateAndAwaitResult() }
+
+            withContext(bgDispatcher) {
+                delay(1.seconds)
+                assertEquals(0, api.terminateAndAwaitResult())
+            }
+
+            completion.dispose()
+
+            val logText = logFile.readUtf8()
+            logFile.delete()
+
+            listOf(
+                "Tor can't help you if you use it wrong!",
+                "Delaying directory fetches: DisableNetwork is set.",
+                "Owning controller connection has closed -- exiting now.",
+                "Catching signal TERM, exiting cleanly.",
+            ).mapNotNull { expected ->
+                if (logText.contains(expected)) return@mapNotNull null
+
+                "Logs did not contain EXPECTED[$expected]. RUN_TOR[${index + 1}]"
+            }.takeIf { it.isNotEmpty() }?.joinToString(separator = "\n")?.let { errors ->
+                throw AssertionError(errors + "\n\n" + logText)
+            }
         }
     }
 }

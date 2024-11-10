@@ -19,23 +19,16 @@
 
 #include <jni.h>
 
-/*
- * Class:     io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi
- * Method:    kmpTorRunMain
- * Signature: (I;String;[Ljava/lang/String;)I
- *
- * Returns the following integer value depending on case:
- *  -9     : JNI to C conversion failure
- *  -10    : invalid arguments
- *  -11    : configuration failure
- *  -12    : dlopen/dlsym failure
- *  -13    : tor_main_configuration_new failure
- *  -14    : tor_main_configuration_set_command_line failure
- *  0      : tor_run_main returned success
- *  1 - 255: tor_run_main returned failure
- */
+JNIEXPORT jstring JNICALL
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMain
+(JNIEnv *, jobject, jstring, jobjectArray);
+
 JNIEXPORT jint JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMain
-(JNIEnv *, jobject, jint, jstring, jobjectArray);
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorState
+(JNIEnv *, jobject);
+
+JNIEXPORT jint JNICALL
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorTerminateAndAwaitResult
+(JNIEnv *, jobject);
 
 #endif /* !defined(KMP_TOR_JNI_H) */

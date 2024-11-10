@@ -58,20 +58,20 @@ open class LibTorResourceValidationExtension private constructor(
     protected open val jvmLinuxLibcX86: String = "70b063f22b868558c5c72301f9a6c5c20d16cd851b09ff202533ba87cf107c42"
     protected open val jvmLinuxLibcX86_64: String = "92831a1a51b33582f32f3654b6033c3681b3632573471a116bdd92d08b408e55"
 
-    protected open val jvmMacosAarch64: String = "30a02e2aa31d6e35626223307a1b1a89106cf29ea732d17a165497fab30927f3"
-    protected open val jvmMacosX86_64: String = "d8aeb8a92a1541f0644d19cd75f8568e54d6e2aea7d5de93990496caf1467987"
+    protected open val jvmMacosAarch64: String = "b0f1d2d819f966a46fb065e3a7a024e2548cdb6beb991ea1eb9fc2a74db01df1"
+    protected open val jvmMacosX86_64: String = "9120636bc2ad2d2b736c4da40bc133f4897d0f2b0265060cd3abd7434e8da4ee"
 
-    protected open val jvmMingwX86: String = "2bca08ee9414f236eb505dadd928fcd32f61eb62836a111d684f50b923770a62"
-    protected open val jvmMingwX86_64: String = "9dfb7676292d37819fc7167217068b4bb3c31cc83c1edfd59bcc739c1e6fffab"
+    protected open val jvmMingwX86: String = "e994efe9d35211f8fe365140744860d011f8769e0336656426d85f98469987ae"
+    protected open val jvmMingwX86_64: String = "aac806629a21463baea6411210a9fce40fb46e4c9e0b19aa56803431efe37614"
 
     private val nativeLinuxArm64: String by lazy { jvmLinuxLibcAarch64 }
     private val nativeLinuxX64: String by lazy { jvmLinuxLibcX86_64 }
 
-    protected open val nativeIosSimulatorArm64: String = "e78d4ddd80bd059065a3f6ccdc3705b927e3476057514a05cf9fb6f889dfbe6c"
-    protected open val nativeIosX64: String = "585411602f818e7c8c1ab9ae75cd0f2bdbaae1ada4423a9208d6c7a7b5ce8f06"
+    protected open val nativeIosSimulatorArm64: String = "79e31e109306fd95e1f63d41f4122dc68bdc8c4ca447749b5ce5ca51e38b0a0e"
+    protected open val nativeIosX64: String = "258f51f7f045ab432a925fb0d1a304c20abf3516b280509848695bff6e867961"
 
-    protected open val nativeMacosArm64: String = "44756a54a68e0535f75fd9bff09cfb96a75c5bf71ac2627f7e88695a4cc54db9"
-    protected open val nativeMacosX64: String = "71b007b2e233bee56a493a6d0083f1ed6e0d6fb3dcce1330c0b8e313f2045527"
+    protected open val nativeMacosArm64: String = "622d9c6a230bb7b4998cc75da72f226c2c462a36536c52c5584ea201be1c3f0a"
+    protected open val nativeMacosX64: String = "a82af6e7712dd8398c2c2b4a9bbd4b8c713c88c4691b73606dec19c4fee10a64"
 
     private val nativeMingwX64: String by lazy { jvmMingwX86_64 }
 
@@ -99,17 +99,17 @@ open class LibTorResourceValidationExtension private constructor(
         override val jvmLinuxLibcX86: String = "6300a5eee783717e3dc6bcbdf7d5633b55d656c0c295074821c8d417c1812a45"
         override val jvmLinuxLibcX86_64: String = "77bbb26d4dfcd4223e2a99beee4e05b26acbf23ec8e6dc9add7eff25f1c37564"
 
-        override val jvmMacosAarch64: String = "bf6e4a2c321a8e1d891efab02a2dee980243afb63b5133ac7c933545bcd4a72b"
-        override val jvmMacosX86_64: String = "5faeac7e58333f505143d03248789efc3b708eadd4efeea3880145d25f52f146"
+        override val jvmMacosAarch64: String = "446b02506d3195cb4f5d642448a251442558c0c1fd9a2d64436a429b250511a3"
+        override val jvmMacosX86_64: String = "3a05917ef4a9c09053fedeb225026a4107d4728c7d8d01d7f74744b94c51d8ae"
 
-        override val jvmMingwX86: String = "9f1a9fa6d2267155cadb3537ade9fbd53c0fedce7f219a7385cb5a48732ed0b6"
-        override val jvmMingwX86_64: String = "7a3bfd0691b849292313b968a24c0bd511c034ce592f56884d5ccf0e4def7ef3"
+        override val jvmMingwX86: String = "869b5f9e8d320eb9c606b47845e5aa366147572a9a438e8815ec769e48f99cf9"
+        override val jvmMingwX86_64: String = "5115af8f790ec153cbb5a94b35e5d334ab1d43e94f633075135ba544c76bc8ea"
 
-        override val nativeIosSimulatorArm64: String = "c33cd85b0d549570e9bca3f91a429c558f8cbca5ab328717253cecf3966eb1a7"
-        override val nativeIosX64: String = "4902e8af754f987f00a318c34999c5146e83c5d2baa6b9289dacf69caadf0296"
+        override val nativeIosSimulatorArm64: String = "692da92c774c8e470802236f939fd7b673028c4221e8aa395cfc776a28b82b7a"
+        override val nativeIosX64: String = "0ccd702158e9c37c999988ba71dd1ac1abc281e11da12f5eccceb0192a175585"
 
-        override val nativeMacosArm64: String = "35283bfb7b5964de78f7791b666c08f845dbec52a9b95db240de0a8a9ccc77a8"
-        override val nativeMacosX64: String = "c4802d41e8ef06f25d595c785f7034a401613452ad59fe206016e4d2b4514eca"
+        override val nativeMacosArm64: String = "401cf4a45ea889c58b48a13810d3f9fa6faaf426063e7743dd71da249992f777"
+        override val nativeMacosX64: String = "66ce1d96e2d83b0103505067922f4e620743c4087d23bf503da61a7b5d7c701c"
 
         internal companion object {
             internal const val NAME = "libTorGPLResourceValidation"

@@ -20,6 +20,7 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.lib.tor.configureNoExecTorResource
+import io.matthewnelson.kmp.tor.resource.noexec.tor.AbstractKmpTorApi.Companion.ALIAS_LIB_TOR_JNI
 import io.matthewnelson.kmp.tor.resource.noexec.tor.ResourceLoaderTorNoExec
 
 @Suppress("NOTHING_TO_INLINE")
