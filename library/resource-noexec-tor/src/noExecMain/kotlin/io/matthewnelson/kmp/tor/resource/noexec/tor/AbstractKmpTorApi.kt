@@ -19,12 +19,12 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.IOException
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
+import io.matthewnelson.kmp.tor.common.api.TorApi
 
 // noExec
 internal expect sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
-protected constructor(): TorApi2 {
+protected constructor(registerShutdownHook: Boolean): TorApi {
 
     protected fun kmpTorRunMain(libTor: String, args: Array<String>): String?
     protected fun kmpTorState(): Int

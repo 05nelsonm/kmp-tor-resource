@@ -19,10 +19,10 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
+import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorApi2
 import java.util.UUID
 import kotlin.concurrent.Volatile
 
@@ -30,7 +30,7 @@ import kotlin.concurrent.Volatile
 @OptIn(InternalKmpTorApi::class)
 internal actual sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
-protected actual constructor(): TorApi2() {
+protected actual constructor(registerShutdownHook: Boolean): TorApi() {
 
     protected actual external fun kmpTorRunMain(libTor: String, args: Array<String>): String?
     protected actual external fun kmpTorState(): Int
@@ -77,6 +77,13 @@ protected actual constructor(): TorApi2() {
             if (_isLoaded) return@synchronized
             extractLibTor(loadTorJni = true)
             _isLoaded = true
+        }
+
+        if (registerShutdownHook) {
+            val t = Thread { terminateAndAwaitResult() }
+            try {
+                Runtime.getRuntime().addShutdownHook(t)
+            } catch (_: Throwable) {}
         }
     }
 
