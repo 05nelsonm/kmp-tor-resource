@@ -29,14 +29,12 @@
 
 typedef SOCKET kmp_tor_socket_t;
 #define KMP_TOR_SOCKET_INVALID INVALID_SOCKET
-#define KMP_TOR_SOCKET_SHUT_RDWR SD_BOTH
 #define __closesocket closesocket
 #else
 #include <sys/socket.h>
 
 typedef int kmp_tor_socket_t;
 #define KMP_TOR_SOCKET_INVALID (-1)
-#define KMP_TOR_SOCKET_SHUT_RDWR SHUT_RDWR
 #define __closesocket close
 #endif // _WIN32
 
@@ -327,13 +325,6 @@ kmp_tor_configure_tor(kmp_tor_handle_t *handle_t)
 
   if (handle_t->ctrl_socket == KMP_TOR_SOCKET_INVALID) {
     return "Failed to setup controller socket";
-  }
-
-  // Shutdown ability to send/receive. This owned controller socket is
-  // STRICTLY to asynchronously interrupt tor's main loop w/o having
-  // to deal with multi-threaded signal handing which is sketch AF.
-  if (shutdown(handle_t->ctrl_socket, KMP_TOR_SOCKET_SHUT_RDWR) != 0) {
-    return "Failed to shutdown send/receive capability for controller socket";
   }
 
   if (handle_t->tor_api_cfg_set_command_line(handle_t->args_t->cfg, handle_t->argc, handle_t->argv) != 0) {
