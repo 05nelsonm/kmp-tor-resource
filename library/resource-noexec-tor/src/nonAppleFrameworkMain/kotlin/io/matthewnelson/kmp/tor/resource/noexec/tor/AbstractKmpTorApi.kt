@@ -17,6 +17,8 @@
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
+import io.matthewnelson.encoding.base16.Base16
+import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
@@ -28,8 +30,8 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.toCStringArray
 import kotlinx.cinterop.toKString
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
+import kotlin.random.Random
+import kotlin.system.getTimeNanos
 
 // nonAppleFramework
 @OptIn(ExperimentalForeignApi::class, InternalKmpTorApi::class)
@@ -64,8 +66,11 @@ protected actual constructor(registerShutdownHook: Boolean): TorApi() {
     private companion object {
 
         private val TEMP_DIR: File by lazy {
-            @OptIn(ExperimentalUuidApi::class)
-            val tempDir = SysTempDir.resolve("kmp-tor_${Uuid.random()}")
+            // TODO: Replace with Uuid (Kotlin 2.0.21+)
+            @Suppress("DEPRECATION")
+            val tempDir = Random(getTimeNanos()).nextBytes(16).encodeToString(Base16).let { suffix ->
+                SysTempDir.resolve("kmp-tor_$suffix")
+            }
 
             tempDir.deleteOnExit()
             RESOURCE_CONFIG_LIB_TOR.resources.forEach { resource ->
