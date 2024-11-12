@@ -56,7 +56,20 @@ More details about how things are compiled can be found [HERE](docs/COMPILATION_
 
 ### Types (`exec` & `noexec`)
 
-TODO
+2 types of resources are available; `exec` and `noexec`. This is to support platforms where process
+execution is not allowed (e.g. `iOS`). 
+
+- `resource-exec-tor` and its `-gpl` variant:
+    - Provide an implementation of `ResourceLoader.Tor.Exec`
+    - Supports for all platforms **except** `iOS`
+
+- `resource-noexec-tor` and its `-gpl` variant:
+    - Provide an implementation of `ResourceLoader.Tor.NoExec`
+    - Supports for all platforms **except** `Node.js`
+
+Even though tremendous work has gone into making the `noexec` dependencies as safe as possible by 
+unloading `tor` after each invocation of `tor_run_main`, there is no safer way to run `tor` than in 
+its own process (as it was designed). The `exec` dependency should be utilized whenever possible.
 
 ### Variants (`tor` & `tor-gpl`)
 
