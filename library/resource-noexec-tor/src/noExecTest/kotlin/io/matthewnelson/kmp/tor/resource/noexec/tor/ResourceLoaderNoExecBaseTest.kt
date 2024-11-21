@@ -20,10 +20,13 @@ import io.matthewnelson.kmp.file.path
 import io.matthewnelson.kmp.file.readBytes
 import io.matthewnelson.kmp.file.readUtf8
 import io.matthewnelson.kmp.file.resolve
+import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.LOADER
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.TEST_DIR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.WORK_DIR
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_GEOIPS
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
@@ -56,6 +59,12 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
 
     @AfterTest
     fun cleanUp() {
+        @OptIn(InternalKmpTorApi::class)
+        listOf(RESOURCE_CONFIG_GEOIPS, RESOURCE_CONFIG_LIB_TOR).forEach { config ->
+            config.resources.forEach { resource ->
+                LOADER.resourceDir.resolve(resource.platform.fsFileName).delete()
+            }
+        }
         WORK_DIR.delete()
         TEST_DIR.delete()
     }
@@ -67,13 +76,8 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         val geoips = LOADER.extract()
         println(geoips)
 
-        try {
-            assertTrue(geoips.geoip.readBytes().isNotEmpty())
-            assertTrue(geoips.geoip6.readBytes().isNotEmpty())
-        } finally {
-            geoips.geoip.delete()
-            geoips.geoip6.delete()
-        }
+        assertTrue(geoips.geoip.readBytes().isNotEmpty())
+        assertTrue(geoips.geoip6.readBytes().isNotEmpty())
     }
 
     @Test
@@ -130,11 +134,6 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         val job = currentCoroutineContext().job
 
         val geoipFiles = LOADER.extract().let { files ->
-            job.invokeOnCompletion {
-                files.geoip.delete()
-                files.geoip6.delete()
-            }
-
             if (files.geoip.readBytes().size < 50_000) {
                 // Mock resources...
                 println("Skipping...")

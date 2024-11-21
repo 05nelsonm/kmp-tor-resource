@@ -17,27 +17,25 @@
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
-import io.matthewnelson.encoding.base16.Base16
-import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.*
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.deleteOnExit
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.toCStringArray
 import kotlinx.cinterop.toKString
-import kotlin.random.Random
-import kotlin.system.getTimeNanos
 
 // nonAppleFramework
 @OptIn(ExperimentalForeignApi::class, InternalKmpTorApi::class)
 internal actual sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
-protected actual constructor(registerShutdownHook: Boolean): TorApi() {
+protected actual constructor(
+    private val resourceDir: File,
+    registerShutdownHook: Boolean,
+): TorApi() {
 
     protected actual fun kmpTorRunMain(
         libTor: String,
@@ -55,32 +53,13 @@ protected actual constructor(registerShutdownHook: Boolean): TorApi() {
     protected actual fun kmpTorTerminateAndAwaitResult(): Int = kmp_tor_terminate_and_await_result()
 
     @Throws(IllegalStateException::class, IOException::class)
-    protected actual fun libTor(): File {
+    protected actual fun libTor(): File = extractLibTor(isInit = false)
+
+    private fun extractLibTor(isInit: Boolean): File {
         return RESOURCE_CONFIG_LIB_TOR
-            .extractTo(TEMP_DIR, onlyIfDoesNotExist = true)
+            .extractTo(resourceDir, onlyIfDoesNotExist = !isInit)
             .getValue(ALIAS_LIB_TOR)
     }
 
-    init { libTor() }
-
-    private companion object {
-
-        private val TEMP_DIR: File by lazy {
-            // TODO: Replace with Uuid (Kotlin 2.0.21+)
-            @Suppress("DEPRECATION")
-            val tempDir = Random(getTimeNanos()).nextBytes(16).encodeToString(Base16).let { suffix ->
-                SysTempDir.resolve("kmp-tor_$suffix")
-            }
-
-            tempDir.deleteOnExit()
-            RESOURCE_CONFIG_LIB_TOR.resources.forEach { resource ->
-                if (resource.platform.isGzipped) {
-                    tempDir.resolve(resource.platform.fsFileName + ".gz").deleteOnExit()
-                }
-                tempDir.resolve(resource.platform.fsFileName).deleteOnExit()
-            }
-
-            tempDir
-        }
-    }
+    init { extractLibTor(isInit = true) }
 }

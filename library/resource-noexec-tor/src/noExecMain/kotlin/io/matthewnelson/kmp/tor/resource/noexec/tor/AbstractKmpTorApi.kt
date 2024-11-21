@@ -24,7 +24,10 @@ import io.matthewnelson.kmp.tor.common.api.TorApi
 // noExec
 internal expect sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
-protected constructor(registerShutdownHook: Boolean): TorApi {
+protected constructor(
+    resourceDir: File,
+    registerShutdownHook: Boolean,
+): TorApi {
 
     protected fun kmpTorRunMain(libTor: String, args: Array<String>): String?
     protected fun kmpTorState(): Int
