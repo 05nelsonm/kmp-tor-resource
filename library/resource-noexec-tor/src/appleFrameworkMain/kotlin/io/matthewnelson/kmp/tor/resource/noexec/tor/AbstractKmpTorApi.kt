@@ -36,7 +36,10 @@ import platform.Foundation.NSBundle
 @OptIn(ExperimentalForeignApi::class)
 internal actual sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
-protected actual constructor(registerShutdownHook: Boolean): TorApi() {
+protected actual constructor(
+    resourceDir: File,
+    registerShutdownHook: Boolean,
+): TorApi() {
 
     private val bundle: NSBundle
 

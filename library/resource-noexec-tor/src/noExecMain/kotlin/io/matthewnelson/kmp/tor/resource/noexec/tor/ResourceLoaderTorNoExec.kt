@@ -51,8 +51,8 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
             return NoExec.getOrCreate(
                 resourceDir = resourceDir,
                 extract = ::extractGeoips,
-                create = { KmpTorApi(registerShutdownHook) },
-                toString = ::toString
+                create = { dir -> KmpTorApi(dir, registerShutdownHook) },
+                toString = ::toString,
             )
         }
 
@@ -103,7 +103,10 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
         }
     }
 
-    private class KmpTorApi(registerShutdownHook: Boolean): AbstractKmpTorApi(registerShutdownHook) {
+    private class KmpTorApi(
+        resourceDir: File,
+        registerShutdownHook: Boolean,
+    ): AbstractKmpTorApi(resourceDir, registerShutdownHook) {
 
         @Throws(IllegalStateException::class, IOException::class)
         override fun torRunMain(args: Array<String>) {
