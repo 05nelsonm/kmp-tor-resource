@@ -6,7 +6,7 @@ gradle-kotlin = "1.9.24"
 gradle-publish-maven = "0.29.0"
 gradle-publish-npm = "3.4.1"
 
-kmp-tor-common = "2.1.0-SNAPSHOT"
+kmp-tor-common = "2.1.0"
 
 # tests & tools
 androidx-test-core = "1.5.0"

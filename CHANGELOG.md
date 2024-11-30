@@ -1,4 +1,4 @@
 # CHANGELOG
 
-## Version 408.10.0 (2024-01-05)
- - Unreleased
+## Version 408.12.0 (2024-11-30)
+ - Initial Release

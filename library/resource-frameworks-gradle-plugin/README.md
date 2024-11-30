@@ -1,6 +1,6 @@
 # resource-frameworks-gradle-plugin
 
-This plugin is for the sole purpose of delivering Apple Frameworks to a project 
+This plugin is for the sole purpose of delivering Apple Framework(s) to a project 
 such that they can be included in the final Xcode project. Unfortunately, there 
 is no way around it; the final code signatures must match that of the application's 
 in order to load `tor`.
@@ -12,7 +12,7 @@ in order to load `tor`.
 - Add the plugin to your **root project's** `build.gradle(.kts)` file 
   ```kotlin
   plugins {
-    id("io.matthewnelson.kmp.tor.resource-frameworks") version("408.12.0-SNAPSHOT")
+    id("io.matthewnelson.kmp.tor.resource-frameworks") version("408.12.0")
   }
   ```
 
@@ -23,7 +23,7 @@ in order to load `tor`.
   }
   ```
 
-- Re-sync your project; framework(s) should now be located in `build/kmp-tor-resource`  
+- Re-sync your project; framework(s) should now be located in the root project's `build/kmp-tor-resource` directory  
   ![image](../../docs/assets/frameworks-gradle-plugin/build-dir.png)
 
 - Add `LibTor.xcframework` to your `Xcode` project:
@@ -45,4 +45,4 @@ in order to load `tor`.
     - Things should look like the following now:  
       ![image](../../docs/assets/frameworks-gradle-plugin/xcode-embed-complete.png)
       
-- That's it. When you update the plugin version, it will automatically update the frameworks.  
+- That's it. When you update the plugin version, it will automatically update the framework(s).  

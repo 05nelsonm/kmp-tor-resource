@@ -2,15 +2,15 @@
 
 <!-- TODO -->
 
-`tor` is compiled via the `external/task.sh` script using `Docker` in order to maintain
+`tor` is compiled via the `external/task.sh` script using `Docker` in order to maintain 
 reproducibility.
 
-Detached code signatures are generated for Apple/Windows builds which are checked into
-`git`; this is so others wishing to verify reproducibility of the compiled output they
+Detached code signatures are generated for Apple/Windows builds which are checked into 
+`git`; this is so others wishing to verify reproducibility of the compiled output they 
 are running (or providing to their users) can do so.
 
-You can view the `help` output of `task.sh` by running `./external/task.sh` from the project's
-root directory.
+You can view the `help` output of `task.sh` by running `./external/task.sh` from the 
+project's root directory.
 
 ```
 $ git clone https://github.com/05nelsonm/kmp-tor-resource.git
@@ -27,23 +27,30 @@ $ ./external/task.sh
 
 ### Packaging
 
-The compiled output from `task.sh`'s `build` tasks are "packaged" for the given platforms and
-moved to their designated package module's resource directories
-(e.g. `external/build/package/resource-lib-tor/src/jvmMain/resources`).
+The compiled output from `task.sh`'s `build` tasks are "packaged" for the given platforms and 
+moved to their designated package module's resource directories (e.g. 
+`external/build/package/resource-lib-tor/src/jvmMain/resources`).
 
 Running `./external/task.sh package:all` after a `build` task will do the following.
 
-**Android/Jvm/Node.js:**
-- Android compilations are moved to the `src/androidMain/jniLibs/{ABI}` directory.
-- `geoip` & `geoip6` files are `gzipped` and moved to the `src/jvmMain/resources` directory.
-- Detached code signatures for `macOS` and `Windows` are applied to the compilations (if needed).
-- All compilations are `gzipped` and moved to the `src/jvmMain/resources` directory for their respective
-  hosts and architectures.
+- Android:
+    - Move compilations to their respective `external/build/package/resource-{name}/src/androidMain/jniLibs/{ABI}` 
+      directories.
+- Jvm:
+    - Apply detached code signatures (`macOS`, `Windows` only) via [diff-cli][path-diff-cli]
+    - Gzip all compilations.
+    - Move compilations to their respective `external/build/package/resource-{name}/src/jvmMain/resource` 
+      directories.
+- Native:
+    - Apply detached code signatures (`macOS`, `iOS Simulator`, `Windows` only) via [diff-cli][path-diff-cli].
+    - Gzip all compilations.
+    - Convert compilations to `NativeResource` via [resource-cli][path-resource-cli].
+    - Move Apple Framework compilations to `external/build/package/resource-frameworks-gradle-plugin/src/jvmMain/resources`
+      directories.
 
-**Native:**
-- The same process occurs as above, but after being `gzipped` each resource is transformed into
-  a `NativeResource` (e.g. `resource_tor_gz.kt`).
+After "packaging" all resources, an additional step for `Node.js` is performed. `geoip`, `geoip6`, and all 
+compilations are published to `Npmjs` via the [npmjs][path-npmjs] module.
 
-After "packaging" all resources, an additional step for Node.js is performed.
-- `geoip`, `geoip6`, and all compilations are published to `Npmjs` via the `:library:npmjs` module.
-    - See https://www.npmjs.com/search?q=kmp-tor.resource-exec
+[path-diff-cli]: ../tools/diff-cli/README.md
+[path-resource-cli]: ../tools/resource-cli/README.md
+[path-npmjs]: ../library/npmjs/README.md

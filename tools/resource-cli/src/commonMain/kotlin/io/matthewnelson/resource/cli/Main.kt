@@ -46,7 +46,7 @@ private class KMPResourceCLIRuntime: CLIRuntime(parser = ArgParser(PROGRAM_NAME.
     val packageName by parser.argument(
         type = ArgType.String,
         fullName = "package-name",
-        description = "The package name for the resource (e.g. io.matthewnelson.kmp.tor.binary)"
+        description = "The package name for the resource (e.g. io.matthewnelson.kmp.tor.resource.geoip)"
     )
 
     val pathSourceSet by parser.argument(

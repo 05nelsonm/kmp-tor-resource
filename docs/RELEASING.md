@@ -27,6 +27,8 @@ git checkout -b release_"$VERSION_NAME"
 
 - Update `VERSION_NAME` (remove `-SNAPSHOT`) and `VERSION_CODE` in root project's `gradle.properties` file
 
+- Set `NPMJS_SNAPSHOT_VERSION` to `0` in root project's `gradle.properties` file
+
 - Update `version` in project's `README.md` documentation
 
 - Update `version` in project's `docs/DETERMINISTIC_BUILDS.md` documentation
