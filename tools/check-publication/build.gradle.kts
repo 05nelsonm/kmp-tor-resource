@@ -89,6 +89,8 @@ kmpConfiguration {
             listOf(
                 "jvmAndroid",
                 "js",
+                "iosSimulatorArm64",
+                "iosX64",
                 "linux",
                 "macos",
                 "mingw",
