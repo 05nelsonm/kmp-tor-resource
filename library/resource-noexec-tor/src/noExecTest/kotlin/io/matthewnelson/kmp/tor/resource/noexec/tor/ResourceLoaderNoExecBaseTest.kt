@@ -87,6 +87,8 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         val result = LOADER.withApi(TestRuntimeBinder) {
             torRunMain(listOf("--version"))
 
+            assertFailsWith<IllegalStateException> { torRunMain(listOf("--version")) }
+
             terminateAndAwaitResult()
         }
 
