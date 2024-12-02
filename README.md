@@ -61,11 +61,11 @@ execution is not allowed (e.g. `iOS`).
 
 - `resource-exec-tor` and its `-gpl` variant:
     - Provides an implementation of `ResourceLoader.Tor.Exec`
-    - Supports for all platforms **except** `iOS`
+    - Support for all platforms **except** `iOS`
 
 - `resource-noexec-tor` and its `-gpl` variant:
     - Provides an implementation of `ResourceLoader.Tor.NoExec`
-    - Supports for all platforms **except** `Node.js`
+    - Support for all platforms **except** `Node.js`
 
 Even though tremendous work has gone into making the `noexec` dependencies as safe as possible by 
 unloading `tor` after each invocation of `tor_run_main`, there is no safer way to run `tor` than in 
@@ -126,7 +126,7 @@ have a `GPL` license are able to take advantage of the new functionality, and pr
 ```kotlin
 // build.gradle.kts
 dependencies {
-    val vKmpTorResource = "408.12.0"
+    val vKmpTorResource = "408.13.0"
     implementation("io.matthewnelson.kmp-tor:resource-exec-tor:$vKmpTorResource")
     implementation("io.matthewnelson.kmp-tor:resource-noexec-tor:$vKmpTorResource")
 
@@ -231,7 +231,7 @@ val env = TorRuntime.Environment.Builder(myWorkDir, myCacheDir, ResourceLoaderTo
 See [kmp-tor-samples][url-kmp-tor-samples] for more details.
 
 <!-- TAG_VERSION -->
-[badge-latest-release]: https://img.shields.io/badge/latest--release-408.12.0-5d2f68.svg?logo=torproject&style=flat&logoColor=5d2f68
+[badge-latest-release]: https://img.shields.io/badge/latest--release-408.13.0-5d2f68.svg?logo=torproject&style=flat&logoColor=5d2f68
 [badge-license]: https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat
 
 <!-- TAG_DEPENDENCIES -->
