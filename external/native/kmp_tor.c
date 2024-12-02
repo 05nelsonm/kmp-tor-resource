@@ -337,6 +337,16 @@ kmp_tor_configure_tor(kmp_tor_handle_t *handle_t)
 const char *
 kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
 {
+  if (lib_tor == NULL) {
+    return "lib_tor cannot be NULL";
+  }
+  if (argc <= 0) {
+    return "argc must be greater than 0";
+  }
+  if (argv == NULL) {
+    return "argv cannot be NULL";
+  }
+
   int i_result = 0;
   const char *c_result = NULL;
   kmp_tor_handle_t *handle_t = NULL;
@@ -350,14 +360,18 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
     }
   pthread_mutex_unlock(&kmp_tor_lock);
 
-  if (i_result == KMP_TOR_STATE_STARTING) {
-    return "tor is already starting up";
-  }
-  if (i_result == KMP_TOR_STATE_STARTED) {
-    return "tor is already started";
-  }
-  if (i_result == KMP_TOR_STATE_STOPPED) {
-    return "tor is stopped and awaiting termination";
+  if (i_result != KMP_TOR_STATE_OFF) {
+    if (i_result == KMP_TOR_STATE_STARTING) {
+      return "tor is already starting up";
+    }
+    if (i_result == KMP_TOR_STATE_STARTED) {
+      return "tor is already started";
+    }
+    if (i_result == KMP_TOR_STATE_STOPPED) {
+      return "tor is stopped and awaiting termination";
+    }
+    // catch-all
+    return "tor state is not KMP_TOR_STATE_OFF";
   }
 
   handle_t = malloc(sizeof(kmp_tor_handle_t));
@@ -382,21 +396,6 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
     handle_t->was_pthread_created = -1;
     handle_t->args_t = NULL;
     handle_t->lib_t = NULL;
-
-    i_result = 0;
-    if (lib_tor == NULL) {
-      i_result = -1;
-    }
-    if (argc <= 0) {
-      i_result = -1;
-    }
-    if (argv == NULL) {
-      i_result = -1;
-    }
-    if (i_result != 0) {
-      kmp_tor_free(handle_t);
-      return "Invalid arguments";
-    }
   }
 
 #ifdef _WIN32
