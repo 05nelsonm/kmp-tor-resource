@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+import co.touchlab.cklib.gradle.CompileToBitcode
+import co.touchlab.cklib.gradle.CompileToBitcodeExtension
 import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import org.gradle.accessors.dm.LibrariesForLibs
@@ -20,13 +22,14 @@ import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.configurationcache.extensions.capitalized
+import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.the
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.konan.target.Family
 import org.jetbrains.kotlin.konan.target.HostManager
+import org.jetbrains.kotlin.konan.target.KonanTarget
 import resource.validation.extensions.NoExecTorResourceValidationExtension
 import java.io.File
 
@@ -54,6 +57,12 @@ fun KmpConfigurationExtension.configureNoExecTor(
     val generatedSourcesDir = buildDir
         .resolve("generated")
         .resolve("sources")
+
+    // TODO: CKLIB 0.3.3 remove
+    //  Current version of cklib being utilized cannot be
+    //  used on Windows, and cannot currently update to
+    //  latest version (0.3.3) because it uses Kotlin 2.0.0.
+    val useCKLib = !HostManager.hostIsMingw
 
     configureShared(
         androidNamespace = packageName,
@@ -94,6 +103,11 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
         common {
             pluginIds("resource-validation")
+
+            // TODO: CKLIB 0.3.3 remove if statement
+            if (useCKLib) {
+                pluginIds(libs.plugins.cklib.get().pluginId)
+            }
 
             sourceSetMain {
                 dependencies {
@@ -160,7 +174,6 @@ fun KmpConfigurationExtension.configureNoExecTor(
             }
         }
 
-        // TODO: Transition to CKLib (Kotlin 2.0.0+)
         kotlin {
             val externalNativeDir = project.rootDir
                 .resolve("external")
@@ -169,21 +182,54 @@ fun KmpConfigurationExtension.configureNoExecTor(
             val generatedNativeDir = generatedSourcesDir.resolve("native")
             generatedNativeDir.mkdirs()
 
-            val defFiles = listOf("lib_load", "win32_sockets", "kmp_tor").map { name ->
-                val h = externalNativeDir.resolve("$name.h")
-                val c = externalNativeDir.resolve("$name.c")
+            val files = listOf("lib_load", "win32_sockets", "kmp_tor").map { name ->
+                val sb = StringBuilder()
+                sb.appendLine("package = $packageName.internal")
 
-                generatedNativeDir.resolve("$name.h").writeBytes(h.readBytes())
+                // TODO: CKLIB 0.3.3 remove
+                if (!useCKLib) {
+                    val h = externalNativeDir.resolve("$name.h")
+                    val c = externalNativeDir.resolve("$name.c")
 
-                val sb = StringBuilder().apply {
-                    appendLine("package = $packageName.internal")
-                    appendLine("---")
-                    append(c.readText())
+                    generatedNativeDir.resolve("$name.h").writeBytes(h.readBytes())
+
+                    sb.apply {
+                        appendLine("---")
+                        append(c.readText())
+                    }
+
+                    val defFile = generatedNativeDir.resolve("$name.def")
+                    defFile.writeText(sb.toString())
+                    return@map defFile
                 }
 
-                val defFile = generatedNativeDir.resolve("$name.def")
-                defFile.writeText(sb.toString())
-                defFile
+                sb.appendLine("headers = $name.h")
+                sb.appendLine("headerFilter = $name.h")
+                generatedNativeDir.resolve("$name.def").writeText(sb.toString())
+
+                return@map File("$name.c")
+            }
+
+            // TODO: CKLIB 0.3.3 remove if statement
+            if (useCKLib) {
+                project.extensions.configure<CompileToBitcodeExtension> {
+                    config.kotlinVersion = libs.versions.gradle.kotlin.get()
+
+                    create("kmp_tor") {
+                        language = CompileToBitcode.Language.C
+                        srcDirs = project.files(externalNativeDir)
+
+                        val kt = KonanTarget.predefinedTargets[target]!!
+
+                        files.mapNotNull { cFile ->
+                            val name = cFile.name
+                            if (name == "win32_sockets.c" && kt.family != Family.MINGW) {
+                                return@mapNotNull null
+                            }
+                            name
+                        }.let { includeFiles = it }
+                    }
+                }
             }
 
             targets.filterIsInstance<KotlinNativeTarget>().forEach target@ { target ->
@@ -197,24 +243,40 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
                 check(linkerOpts != null) { "Configuration needed for $target" }
 
-                val compilation = target.compilations["main"]
+                val compilationMain = target.compilations["main"]
 
-                defFiles.forEach interop@ { defFile ->
-                    if (defFile.name == "win32_sockets.def") {
-                        if (target.konanTarget.family != Family.MINGW) {
-                            return@interop
-                        }
+                // TODO: CKLIB 0.3.3 remove if statement
+                if (useCKLib) {
+                    compilationMain.cinterops.create("kmp_tor") {
+                        defFile(generatedNativeDir.resolve("$name.def"))
+                        includeDirs(externalNativeDir)
                     }
 
-                    compilation.cinterops.create(defFile.nameWithoutExtension) {
-                        defFile(defFile)
-                        includeDirs(generatedNativeDir)
+                    if (target.konanTarget.family == Family.MINGW) {
+                        target.compilations["test"].cinterops.create("win32_sockets") {
+                            defFile(generatedNativeDir.resolve("$name.def"))
+                            includeDirs(externalNativeDir)
+                        }
+                    }
+                } else {
+                    // TODO: CKLIB 0.3.3 remove
+                    files.forEach interop@{ defFile ->
+                        if (defFile.name == "win32_sockets.def") {
+                            if (target.konanTarget.family != Family.MINGW) {
+                                return@interop
+                            }
+                        }
+
+                        compilationMain.cinterops.create(defFile.nameWithoutExtension) {
+                            defFile(defFile)
+                            includeDirs(generatedNativeDir)
+                        }
                     }
                 }
 
                 if (linkerOpts.isBlank()) return@target
 
-                compilation.compilerOptions.configure {
+                compilationMain.compilerOptions.configure {
                     freeCompilerArgs.addAll("-linker-options", linkerOpts)
                 }
             }
