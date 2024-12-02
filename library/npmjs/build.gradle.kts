@@ -126,8 +126,8 @@ private fun Project.createPublicationVersions(): List<PublicationVersion> {
             vProject.substring(0, i + 1) + increment
         }
 
-        // Always put release publication first
-        listOf(vProject, "$vNext-SNAPSHOT.$vSnapshot")
+        // Always put release publication last
+        listOf("$vNext-SNAPSHOT.$vSnapshot", vProject)
     }.map { PublicationVersion(it) }
 }
 
