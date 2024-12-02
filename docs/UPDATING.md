@@ -17,8 +17,8 @@
 
 5) Generate code signatures
    ```shell
-   ./external/task.sh sign:macos "<yubikey slot>" "</path/to/api_key.json>"
    ./external/task.sh sign:mingw
+   ./external/task.sh sign:macos "<yubikey slot>" "</path/to/api_key.json>"
    ```
 
 6) Package compilations
