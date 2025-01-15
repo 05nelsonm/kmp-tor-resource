@@ -1,4 +1,9 @@
 [versions]
+androidx-test-core = "1.5.0"
+androidx-test-runner = "1.5.2"
+
+encoding = "2.3.1"
+
 gradle-android = "8.2.2"
 gradle-binary-compat = "0.16.3"
 gradle-cklib = "0.3.1"
@@ -7,15 +12,8 @@ gradle-kotlin = "1.9.24"
 gradle-publish-maven = "0.29.0"
 gradle-publish-npm = "3.4.1"
 
-kmp-tor-common = "2.1.0"
-
-# tests & tools
-androidx-test-core = "1.5.0"
-androidx-test-runner = "1.5.2"
-
-encoding = "2.2.2"
-
-kotlincrypto-hash = "0.5.3"
+kmp-tor-common = "2.1.1"
+kotlincrypto-catalog = "0.6.0" # Utilized from settings.gradle.kts
 kotlinx-cli = "0.3.6"
 kotlinx-coroutines = "1.8.1"
 kotlinx-datetime = "0.5.0"
@@ -40,7 +38,6 @@ androidx-test-runner = { module = "androidx.test:runner", version.ref = "android
 encoding-base16 = { module = "io.matthewnelson.encoding:base16", version.ref = "encoding" }
 encoding-base64 = { module = "io.matthewnelson.encoding:base64", version.ref = "encoding" }
 
-kotlincrypto-hash-sha2 = { module = "org.kotlincrypto.hash:sha2", version.ref = "kotlincrypto-hash" }
 kotlinx-cli = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
