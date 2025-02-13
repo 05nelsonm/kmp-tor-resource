@@ -12,7 +12,7 @@ gradle-kotlin               = "1.9.24"
 gradle-publish-maven        = "0.29.0"
 gradle-publish-npm          = "3.4.1"
 
-kmp-tor-common              = "2.1.1"
+kmp-tor-common              = "2.1.2-SNAPSHOT"
 kotlincrypto-catalog        = "0.6.1" # Utilized from settings.gradle.kts
 kotlinx-cli                 = "0.3.6"
 kotlinx-coroutines          = "1.8.1"
