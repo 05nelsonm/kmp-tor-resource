@@ -15,7 +15,6 @@
  **/
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
-import io.matthewnelson.immutable.collections.toImmutableList
 import io.matthewnelson.kmp.file.path
 import io.matthewnelson.kmp.file.readBytes
 import io.matthewnelson.kmp.file.readUtf8
@@ -178,7 +177,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
 
             add("--DisableNetwork"); add("1")
             add("--RunAsDaemon"); add("0")
-        }.toImmutableList()
+        }
 
         val bgDispatcher = newSingleThreadContext("bg-tor-terminate")
         job.invokeOnCompletion { bgDispatcher.close() }
