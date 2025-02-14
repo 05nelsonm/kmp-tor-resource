@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Version 408.13.2 (2025-02-13)
+ - Update `openssl` to `3.4.1` [[#103]][103]
+ - Update `xz` to `5.6.4` [[#103]][103]
+ - Update `kmp-tor-common` to `2.1.2`
+
 ## Version 408.13.1 (2025-01-15)
  - Update `kmp-tor-common` to `2.1.1` [[#99]][99]
 
@@ -15,5 +20,6 @@
 [97]: https://github.com/05nelsonm/kmp-tor-resource/pull/97
 [98]: https://github.com/05nelsonm/kmp-tor-resource/pull/98
 [99]: https://github.com/05nelsonm/kmp-tor-resource/pull/99
+[103]: https://github.com/05nelsonm/kmp-tor-resource/pull/103
 
 [url-cklib]: https://github.com/touchlab/cklib
