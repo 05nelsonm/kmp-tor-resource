@@ -16,7 +16,6 @@ gradle-publish-npm          = "3.4.1"
 
 kmp-tor-common              = "2.1.2"
 kotlincrypto-catalog        = "0.6.1" # Utilized from settings.gradle.kts
-kotlinx-cli                 = "0.3.6"
 kotlinx-coroutines          = "1.8.1"
 kotlinx-datetime            = "0.5.0"
 
@@ -42,7 +41,6 @@ clikt                       = { module = "com.github.ajalt.clikt:clikt", version
 encoding-base16             = { module = "io.matthewnelson.encoding:base16", version.ref = "encoding" }
 encoding-base64             = { module = "io.matthewnelson.encoding:base64", version.ref = "encoding" }
 
-kotlinx-cli                 = { module = "org.jetbrains.kotlinx:kotlinx-cli", version.ref = "kotlinx-cli" }
 kotlinx-coroutines-test     = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlinx-datetime            = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
