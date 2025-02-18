@@ -13,18 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
 plugins {
     id("configuration")
 }
 
 kmpConfiguration {
-    configureTool(project, mainKtPath = "io.matthewnelson.diff.cli", enableNative = false) {
+    configure {
+        jvm {
+            target {
+                @OptIn(ExperimentalKotlinGradlePluginApi::class)
+                mainRun {
+                    mainClass.set("io.matthewnelson.diff.cli.MainKt")
+                }
+            }
+
+            kotlinJvmTarget = JavaVersion.VERSION_1_8
+            compileSourceCompatibility = JavaVersion.VERSION_1_8
+            compileTargetCompatibility = JavaVersion.VERSION_1_8
+        }
+
         common {
             sourceSetMain {
                 dependencies {
+                    implementation(libs.clikt)
                     implementation(project(":tools:diff-cli:core"))
                 }
             }
+            sourceSetTest {
+                dependencies {
+                    implementation(kotlin("test"))
+                }
+            }
         }
+
+        kotlin { explicitApi() }
     }
 }

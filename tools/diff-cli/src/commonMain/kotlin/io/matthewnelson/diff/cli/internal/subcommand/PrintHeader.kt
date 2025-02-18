@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Matthew Nelson
+ * Copyright (c) 2025 Matthew Nelson
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-package io.matthewnelson.diff.cli
+package io.matthewnelson.diff.cli.internal.subcommand
 
-import com.github.ajalt.clikt.core.subcommands
-import io.matthewnelson.diff.cli.internal.subcommand.Apply
+import com.github.ajalt.clikt.parameters.arguments.argument
 import io.matthewnelson.diff.cli.internal.DiffCLICommand
-import io.matthewnelson.diff.cli.internal.subcommand.Create
-import io.matthewnelson.diff.cli.internal.subcommand.PrintHeader
+import io.matthewnelson.diff.core.Diff
 
-public fun main(args: Array<String>): Unit = DiffCLI().main(args)
+internal class PrintHeader: DiffCLICommand(
+    name = "print-header",
+    subcommandDescription = """
+        Prints a prettily formatted diff file's header contents.
+    """.trimIndent(),
+) {
 
-private class DiffCLI: DiffCLICommand(name = "diff-cli") {
-    init { subcommands(Create(), Apply(), PrintHeader()) }
-    override fun run() {}
+    private val diffFile by argument(name = "diff-file")
+
+    override fun run() {
+        echo(Diff.readHeader(diffFile))
+    }
 }
