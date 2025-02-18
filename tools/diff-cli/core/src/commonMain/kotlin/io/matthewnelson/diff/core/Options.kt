@@ -18,7 +18,6 @@ package io.matthewnelson.diff.core
 import io.matthewnelson.diff.core.Diff.Companion.create
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import kotlinx.datetime.toInstant
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmName
 
@@ -165,7 +164,7 @@ public sealed class Options {
 
         internal fun time(): Instant {
             return if (useStaticTime) {
-                STATIC_TIME.toInstant()
+                Instant.parse(STATIC_TIME)
             } else {
                 Clock.System.now()
             }

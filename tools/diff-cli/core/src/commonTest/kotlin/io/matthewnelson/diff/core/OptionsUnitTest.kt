@@ -16,7 +16,7 @@
 package io.matthewnelson.diff.core
 
 import io.matthewnelson.diff.core.internal.InternalDiffApi
-import kotlinx.datetime.toInstant
+import kotlinx.datetime.Instant
 import okio.Path.Companion.toPath
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -33,7 +33,7 @@ class OptionsUnitTest: DiffCoreTestHelper() {
             useStaticTime = true
         })
         val header = Diff.readHeader(fs, diffFile)
-        assertEquals(Options.Create.STATIC_TIME.toInstant(), header.createdAtInstant)
+        assertEquals(Instant.parse(Options.Create.STATIC_TIME), header.createdAtInstant)
     }
 
     @Test
