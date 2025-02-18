@@ -19,7 +19,7 @@ kotlincrypto-catalog        = "0.7.0-SNAPSHOT" # Utilized from settings.gradle.k
 kotlinx-coroutines          = "1.8.1"
 kotlinx-datetime            = "0.6.2"
 
-okio                        = "3.7.0"
+okio                        = "3.10.2"
 
 [libraries]
 gradle-android              = { module = "com.android.tools.build:gradle", version.ref = "gradle-android" }
