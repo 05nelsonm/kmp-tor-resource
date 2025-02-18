@@ -18,7 +18,6 @@ package io.matthewnelson.diff.core
 import io.matthewnelson.diff.core.internal.LINE_BREAK
 import io.matthewnelson.diff.core.internal.writeNewLine
 import kotlinx.datetime.Instant
-import kotlinx.datetime.toInstant
 import okio.BufferedSink
 import okio.BufferedSource
 import kotlin.jvm.JvmField
@@ -123,7 +122,7 @@ internal constructor(
                 ?: throw IllegalStateException("Failed to read Diff createdAt")
 
             val createdAt = try {
-                createdAtString.toInstant()
+                Instant.parse(createdAtString)
             } catch (e: IllegalArgumentException) {
                 throw IllegalStateException("Failed to read Diff createdAt", e)
             }

@@ -58,12 +58,6 @@ fun KmpConfigurationExtension.configureNoExecTor(
         .resolve("generated")
         .resolve("sources")
 
-    // TODO: CKLIB 0.3.3 remove
-    //  Current version of cklib being utilized cannot be
-    //  used on Windows, and cannot currently update to
-    //  latest version (0.3.3) because it uses Kotlin 2.0.0.
-    val useCKLib = !HostManager.hostIsMingw
-
     configureShared(
         androidNamespace = packageName,
         java9ModuleName = packageName,
@@ -102,12 +96,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
         }
 
         common {
-            pluginIds("resource-validation")
-
-            // TODO: CKLIB 0.3.3 remove if statement
-            if (useCKLib) {
-                pluginIds(libs.plugins.cklib.get().pluginId)
-            }
+            pluginIds("resource-validation", libs.plugins.cklib.get().pluginId)
 
             sourceSetMain {
                 dependencies {
@@ -185,50 +174,29 @@ fun KmpConfigurationExtension.configureNoExecTor(
             val files = listOf("lib_load", "win32_sockets", "kmp_tor").map { name ->
                 val sb = StringBuilder()
                 sb.appendLine("package = $packageName.internal")
-
-                // TODO: CKLIB 0.3.3 remove
-                if (!useCKLib) {
-                    val h = externalNativeDir.resolve("$name.h")
-                    val c = externalNativeDir.resolve("$name.c")
-
-                    generatedNativeDir.resolve("$name.h").writeBytes(h.readBytes())
-
-                    sb.apply {
-                        appendLine("---")
-                        append(c.readText())
-                    }
-
-                    val defFile = generatedNativeDir.resolve("$name.def")
-                    defFile.writeText(sb.toString())
-                    return@map defFile
-                }
-
                 sb.appendLine("headers = $name.h")
                 sb.appendLine("headerFilter = $name.h")
                 generatedNativeDir.resolve("$name.def").writeText(sb.toString())
 
-                return@map File("$name.c")
+                File("$name.c")
             }
 
-            // TODO: CKLIB 0.3.3 remove if statement
-            if (useCKLib) {
-                project.extensions.configure<CompileToBitcodeExtension> {
-                    config.kotlinVersion = libs.versions.gradle.kotlin.get()
+            project.extensions.configure<CompileToBitcodeExtension> {
+                config.kotlinVersion = libs.versions.gradle.kotlin.get()
 
-                    create("kmp_tor") {
-                        language = CompileToBitcode.Language.C
-                        srcDirs = project.files(externalNativeDir)
+                create("kmp_tor") {
+                    language = CompileToBitcode.Language.C
+                    srcDirs = project.files(externalNativeDir)
 
-                        val kt = KonanTarget.predefinedTargets[target]!!
+                    val kt = KonanTarget.predefinedTargets[target]!!
 
-                        files.mapNotNull { cFile ->
-                            val name = cFile.name
-                            if (name == "win32_sockets.c" && kt.family != Family.MINGW) {
-                                return@mapNotNull null
-                            }
-                            name
-                        }.let { includeFiles = it }
-                    }
+                    files.mapNotNull { cFile ->
+                        val name = cFile.name
+                        if (name == "win32_sockets.c" && kt.family != Family.MINGW) {
+                            return@mapNotNull null
+                        }
+                        name
+                    }.let { includeFiles = it }
                 }
             }
 
@@ -243,42 +211,21 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
                 check(linkerOpts != null) { "Configuration needed for $target" }
 
-                val compilationMain = target.compilations["main"]
+                target.compilations["main"].cinterops.create("kmp_tor") {
+                    defFile(generatedNativeDir.resolve("$name.def"))
+                    includeDirs(externalNativeDir)
+                }
 
-                // TODO: CKLIB 0.3.3 remove if statement
-                if (useCKLib) {
-                    compilationMain.cinterops.create("kmp_tor") {
+                if (target.konanTarget.family == Family.MINGW) {
+                    target.compilations["test"].cinterops.create("win32_sockets") {
                         defFile(generatedNativeDir.resolve("$name.def"))
                         includeDirs(externalNativeDir)
-                    }
-
-                    if (target.konanTarget.family == Family.MINGW) {
-                        target.compilations["test"].cinterops.create("win32_sockets") {
-                            defFile(generatedNativeDir.resolve("$name.def"))
-                            includeDirs(externalNativeDir)
-                        }
-                    }
-                } else {
-                    // TODO: CKLIB 0.3.3 remove
-                    files.forEach interop@{ defFile ->
-                        if (defFile.name == "win32_sockets.def") {
-                            if (target.konanTarget.family != Family.MINGW) {
-                                return@interop
-                            }
-                        }
-
-                        compilationMain.cinterops.create(defFile.nameWithoutExtension) {
-                            defFile(defFile)
-                            includeDirs(generatedNativeDir)
-                        }
                     }
                 }
 
                 if (linkerOpts.isBlank()) return@target
 
-                compilationMain.compilerOptions.configure {
-                    freeCompilerArgs.addAll("-linker-options", linkerOpts)
-                }
+                target.compilerOptions.freeCompilerArgs.addAll("-linker-options", linkerOpts)
             }
         }
 
@@ -312,6 +259,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
                             "internal actual val CAN_RUN_FULL_TESTS: Boolean = $isErrReportEmptyResult"
                         }
 
+                        @Suppress("DEPRECATION")
                         dir.resolve("BuildConfig${this.name.capitalized()}.kt").writeText("""
                             package $packageName
     

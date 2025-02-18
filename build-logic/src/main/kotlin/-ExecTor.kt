@@ -200,6 +200,7 @@ fun KmpConfigurationExtension.configureExecTor(
                             lineTestDir = "internal actual val TEST_DIR: String = \"\""
                         }
 
+                        @Suppress("DEPRECATION")
                         dir.resolve("BuildConfig${this.name.capitalized()}.kt").writeText("""
                             package $packageName
     
