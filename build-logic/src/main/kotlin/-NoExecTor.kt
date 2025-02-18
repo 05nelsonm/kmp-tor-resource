@@ -276,9 +276,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
                 if (linkerOpts.isBlank()) return@target
 
-                compilationMain.compilerOptions.configure {
-                    freeCompilerArgs.addAll("-linker-options", linkerOpts)
-                }
+                target.compilerOptions.freeCompilerArgs.addAll("-linker-options", linkerOpts)
             }
         }
 
