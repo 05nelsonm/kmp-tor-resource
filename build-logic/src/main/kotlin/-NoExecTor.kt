@@ -312,6 +312,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
                             "internal actual val CAN_RUN_FULL_TESTS: Boolean = $isErrReportEmptyResult"
                         }
 
+                        @Suppress("DEPRECATION")
                         dir.resolve("BuildConfig${this.name.capitalized()}.kt").writeText("""
                             package $packageName
     
