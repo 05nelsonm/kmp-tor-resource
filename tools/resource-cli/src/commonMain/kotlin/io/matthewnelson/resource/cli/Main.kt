@@ -15,69 +15,70 @@
  **/
 package io.matthewnelson.resource.cli
 
-import io.matthewnelson.cli.core.CLIRuntime
-import io.matthewnelson.cli.core.OptQuiet
-import io.matthewnelson.cli.core.OptQuiet.Companion.quietOption
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.Context
+import com.github.ajalt.clikt.core.theme
+import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.arguments.help
+import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.help
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.transform.theme
+import com.github.ajalt.clikt.parameters.types.boolean
 import io.matthewnelson.resource.cli.internal.ResourceWriter
 import io.matthewnelson.resource.cli.internal.write
-import kotlinx.cli.ArgParser
-import kotlinx.cli.ArgType
 
-public fun main(args: Array<String>) {
-    val runtime = KMPResourceCLIRuntime()
-    runtime.run(args)
+public fun main(args: Array<String>): Unit = ResourceCLI().main(args)
 
-    val resourcePath = ResourceWriter(
-        packageName = runtime.packageName,
-        pathSourceSet = runtime.pathSourceSet,
-        pathFile = runtime.pathFile
-    ).write()
+private class ResourceCLI: CliktCommand(name = "resource-cli", printHelpOnEmptyArgs = true) {
 
-    if (runtime.quietOpt) return
-    println("transformed '${runtime.pathFile}' -> '$resourcePath'")
-}
+    private val packageName by argument(name = "package-name")
+        .help {
+            theme.info("The package name for the resource (e.g. io.matthewnelson.kmp.tor.resource.geoip)")
+        }
 
-private class KMPResourceCLIRuntime: CLIRuntime(parser = ArgParser(PROGRAM_NAME.lowercase())), OptQuiet {
+    private val pathSourceSet by argument(name = "path-source-set")
+        .help {
+            theme.info("The absolute path to the target source set to place the resource_{name}.kt file (e.g. /some/path/project/src/nativeMain)")
+        }
 
-    private companion object {
-        private const val PROGRAM_NAME = "Resource-CLI"
+    private val pathFile by argument(name = "path-file")
+        .help {
+            theme.info("The absolute path of the file to transform into a resource_{name}.kt file")
+        }
+
+    private val quiet by option()
+        .boolean()
+        .default(false)
+        .help {
+            theme.info("Silences the terminal output")
+        }
+
+    override fun run() {
+        val resourcePath = ResourceWriter(
+            packageName = packageName,
+            pathSourceSet = pathSourceSet,
+            pathFile = pathFile,
+        ).write()
+
+        if (quiet) return
+        echo("transformed '$pathFile' -> '$resourcePath'")
     }
 
-    val packageName by parser.argument(
-        type = ArgType.String,
-        fullName = "package-name",
-        description = "The package name for the resource (e.g. io.matthewnelson.kmp.tor.resource.geoip)"
-    )
+    override fun commandHelp(context: Context): String = """
+        v$VERSION
 
-    val pathSourceSet by parser.argument(
-        type = ArgType.String,
-        fullName = "path-source-set",
-        description = "The absolute path to the target source set to place the resource_{name}.kt file"
-    )
+        Copyright (C) 2023 Matthew Nelson
 
-    val pathFile by parser.argument(
-        type = ArgType.String,
-        fullName = "path-file",
-        description = "The absolute path of the file to transform into a resource_{name}.kt file"
-    )
+        Utility for converting files to resource_{name}.kt files since
+        non-jvm Kotlin Multiplatform source sets do not have a way to
+        package and distribute resources.
 
-    override val quietOpt: Boolean by parser.quietOption()
+        Project: $URL
+    """.trimIndent()
 
-    override fun printHeader() {
-        val versionName = "0.1.0"
-        val url = "https://github.com/05nelsonm/kmp-tor-binary/tree/master/tools/kmp-resource-cli"
-
-        println("""
-            $PROGRAM_NAME v$versionName
-            Copyright (C) 2023 Matthew Nelson
-            Apache License, Version 2.0
-
-            Utility for converting files to resource_{name}.kt files since
-            non-jvm Kotlin Multiplatform source sets do not have a way to
-            package and distribute resources.
-            
-            Project: $url
-    
-        """.trimIndent())
+    private companion object {
+        private const val VERSION = "0.1.0"
+        private const val URL = "https://github.com/05nelsonm/kmp-tor-resource/tree/master/tools/resource-cli"
     }
 }
