@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Matthew Nelson
+ * Copyright (c) 2025 Matthew Nelson
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-package io.matthewnelson.cli.core
+package io.matthewnelson.diff.cli.internal.subcommand
 
-import kotlinx.cli.*
+import com.github.ajalt.clikt.parameters.arguments.argument
+import io.matthewnelson.diff.cli.internal.DiffCLICommand
+import io.matthewnelson.diff.core.Diff
 
-public interface OptQuiet {
-    public val quietOpt: Boolean
+internal class PrintHeader: DiffCLICommand(
+    name = "print-header",
+    subcommandDescription = """
+        Prints a prettily formatted diff file's header contents.
+    """.trimIndent(),
+) {
 
-    public companion object {
-        public const val NAME_OPT: String = "quiet"
+    private val diffFile by argument(name = "diff-file")
 
-        public fun ArgParser.quietOption(): SingleOption<Boolean, DefaultRequiredType.Default> {
-            return option(
-                type = ArgType.Boolean,
-                fullName = NAME_OPT,
-                description = "Silences the terminal output"
-            ).default(false)
-        }
+    override fun run() {
+        echo(Diff.readHeader(diffFile))
     }
 }

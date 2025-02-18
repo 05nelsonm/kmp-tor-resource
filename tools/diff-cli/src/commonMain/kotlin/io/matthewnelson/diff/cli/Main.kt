@@ -15,42 +15,15 @@
  **/
 package io.matthewnelson.diff.cli
 
-import io.matthewnelson.cli.core.CLIRuntime
-import io.matthewnelson.diff.cli.internal.apply.Apply
-import io.matthewnelson.diff.cli.internal.create.Create
-import io.matthewnelson.diff.cli.internal.header.PrintHeader
-import kotlinx.cli.ArgParser
-import kotlinx.cli.ExperimentalCli
+import com.github.ajalt.clikt.core.subcommands
+import io.matthewnelson.diff.cli.internal.subcommand.Apply
+import io.matthewnelson.diff.cli.internal.DiffCLICommand
+import io.matthewnelson.diff.cli.internal.subcommand.Create
+import io.matthewnelson.diff.cli.internal.subcommand.PrintHeader
 
-public fun main(args: Array<String>) { DiffCLIRuntime().run(args) }
+public fun main(args: Array<String>): Unit = DiffCLI().main(args)
 
-private class DiffCLIRuntime: CLIRuntime(parser = ArgParser(PROGRAM_NAME.lowercase())) {
-
-    private companion object {
-        private const val PROGRAM_NAME = "Diff-CLI"
-    }
-
-    init {
-        @OptIn(ExperimentalCli::class)
-        parser.subcommands(Create(), Apply(), PrintHeader())
-    }
-
-    override fun printHeader() {
-        val versionName = "0.1.0"
-        val url = "https://github.com/05nelsonm/kmp-tor-binary/tree/master/tools/diff-cli"
-
-        println("""
-            $PROGRAM_NAME v$versionName
-            Copyright (C) 2023 Matthew Nelson
-            Apache License, Version 2.0
-
-            Compares files byte for byte and creates diffs
-            which can be applied at a later date and time.
-            Was created primarily for applying code signatures
-            to reproducibly built software.
-
-            Project: $url
-
-        """.trimIndent())
-    }
+private class DiffCLI: DiffCLICommand(name = "diff-cli") {
+    init { subcommands(Create(), Apply(), PrintHeader()) }
+    override fun run() {}
 }

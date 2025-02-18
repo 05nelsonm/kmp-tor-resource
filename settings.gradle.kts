@@ -72,7 +72,6 @@ if (CHECK_PUBLICATION != null) {
     }
 
     listOf(
-        "cli-core",
         "diff-cli",
         "diff-cli:core",
         "resource-cli",
