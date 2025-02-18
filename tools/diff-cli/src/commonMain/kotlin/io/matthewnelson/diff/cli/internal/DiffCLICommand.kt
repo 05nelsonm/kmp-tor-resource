@@ -21,12 +21,11 @@ import com.github.ajalt.clikt.core.Context
 internal abstract class DiffCLICommand(
     name: String,
     private val subcommandDescription: String = "",
-): CliktCommand(
-    name = name,
-    printHelpOnEmptyArgs = true,
-) {
+): CliktCommand(name) {
 
-    final override fun commandHelp(context: Context): String = """
+    final override val printHelpOnEmptyArgs: Boolean = true
+
+    final override fun help(context: Context): String = """
         v$VERSION
 
         Copyright (C) 2023 Matthew Nelson

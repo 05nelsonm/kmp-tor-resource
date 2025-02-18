@@ -17,7 +17,7 @@ package io.matthewnelson.resource.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.Context
-import com.github.ajalt.clikt.core.theme
+import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.help
 import com.github.ajalt.clikt.parameters.options.default
@@ -30,7 +30,9 @@ import io.matthewnelson.resource.cli.internal.write
 
 public fun main(args: Array<String>): Unit = ResourceCLI().main(args)
 
-private class ResourceCLI: CliktCommand(name = "resource-cli", printHelpOnEmptyArgs = true) {
+private class ResourceCLI: CliktCommand(name = "resource-cli") {
+
+    override val printHelpOnEmptyArgs: Boolean = true
 
     private val packageName by argument(name = "package-name")
         .help {
@@ -65,7 +67,7 @@ private class ResourceCLI: CliktCommand(name = "resource-cli", printHelpOnEmptyA
         echo("transformed '$pathFile' -> '$resourcePath'")
     }
 
-    override fun commandHelp(context: Context): String = """
+    override fun help(context: Context): String = """
         v$VERSION
 
         Copyright (C) 2023 Matthew Nelson

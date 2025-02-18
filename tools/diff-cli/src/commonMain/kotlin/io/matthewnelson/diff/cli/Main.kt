@@ -15,6 +15,7 @@
  **/
 package io.matthewnelson.diff.cli
 
+import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.core.subcommands
 import io.matthewnelson.diff.cli.internal.subcommand.Apply
 import io.matthewnelson.diff.cli.internal.DiffCLICommand

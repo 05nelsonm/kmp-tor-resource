@@ -2,7 +2,7 @@
 androidx-test-core          = "1.6.1"
 androidx-test-runner        = "1.6.2"
 
-clikt                       = "4.4.0"
+clikt                       = "5.0.3"
 
 encoding                    = "2.4.0"
 
