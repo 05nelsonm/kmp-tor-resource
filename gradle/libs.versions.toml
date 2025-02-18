@@ -14,7 +14,7 @@ gradle-kotlin               = "2.1.10"
 gradle-publish-maven        = "0.30.0"
 gradle-publish-npm          = "3.4.3" # TODO: Update to 3.5.3 (Issue #107)
 
-kmp-tor-common              = "2.1.2"
+kmp-tor-common              = "2.2.0-SNAPSHOT"
 kotlincrypto-catalog        = "0.7.0-SNAPSHOT" # Utilized from settings.gradle.kts
 kotlinx-coroutines          = "1.10.1"
 kotlinx-datetime            = "0.6.2"
