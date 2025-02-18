@@ -14,7 +14,7 @@
 # limitations under the License.
 TOOL="$1"; shift 1
 
-readonly DIR_SCRIPT=$( cd "$( dirname "$0" )" >/dev/null && pwd )
+readonly DIR_SCRIPT="$( cd "$( dirname "$0" )" >/dev/null && pwd )"
 
 if [ -z "${TOOL}" ] ||
   [ "${TOOL}" = "cli-core" ] ||

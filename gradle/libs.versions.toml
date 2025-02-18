@@ -2,6 +2,8 @@
 androidx-test-core          = "1.5.0"
 androidx-test-runner        = "1.5.2"
 
+clikt                       = "4.4.0"
+
 encoding                    = "2.3.1"
 
 gradle-android              = "8.2.2"
@@ -34,6 +36,8 @@ kmp-tor-common-lib-locator  = { module = "io.matthewnelson.kmp-tor:common-lib-lo
 # tests & tools
 androidx-test-core          = { module = "androidx.test:core", version.ref = "androidx-test-core" }
 androidx-test-runner        = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
+
+clikt                       = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 
 encoding-base16             = { module = "io.matthewnelson.encoding:base16", version.ref = "encoding" }
 encoding-base64             = { module = "io.matthewnelson.encoding:base64", version.ref = "encoding" }
