@@ -16,7 +16,6 @@
 #include "kmp_tor-jni.h"
 #include "kmp_tor.h"
 
-#include <jni.h>
 #include <stdlib.h>
 #include <string.h>
 
