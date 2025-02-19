@@ -334,11 +334,6 @@ kmp-tor.resource-exec-tor.mingw@408.14.0-SNAPSHOT.0:
   resolved "https://registry.yarnpkg.com/kmp-tor.resource-exec-tor.mingw/-/kmp-tor.resource-exec-tor.mingw-408.14.0-SNAPSHOT.0.tgz#80720fe1191723e356affae68a019c3f63cc33c5"
   integrity sha512-ZdG3WuVTMHnqGkKyIGsIxq1A0PzEpZonQPE34W8ViKotgB1v8S59FnmFPjdG85ch92u4x6k0WURXQNdKy0yfkg==
 
-kmp-tor.resource-geoip@408.13.3-SNAPSHOT.0:
-  version "408.13.3-SNAPSHOT.0"
-  resolved "https://registry.yarnpkg.com/kmp-tor.resource-geoip/-/kmp-tor.resource-geoip-408.13.3-SNAPSHOT.0.tgz#819b0a8eebc9e39bab4148b30c0cea5cc2841f61"
-  integrity sha512-Fbg9FoxDPKFhtyKO4q3XsRGf9x12h/rLELjMsCh4mTQlg8U+GAQnbRnw1cJDG0tI4cyrYTdmq60FwcLdWUNCtQ==
-
 kmp-tor.resource-geoip@408.14.0-SNAPSHOT.0:
   version "408.14.0-SNAPSHOT.0"
   resolved "https://registry.yarnpkg.com/kmp-tor.resource-geoip/-/kmp-tor.resource-geoip-408.14.0-SNAPSHOT.0.tgz#722f1292b34c86f3018f3dbcec9f2024d3b3a207"
