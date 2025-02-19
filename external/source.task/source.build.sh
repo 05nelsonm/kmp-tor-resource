@@ -461,7 +461,7 @@ export LZMA_LIBS="$DIR_SCRIPT/xz/lib/liblzma.a"'
       "ios"|"macos"|"tvos"|"watchos")
         # PATCH
         __build:SCRIPT '  # https://trac.macports.org/ticket/65838#no1'
-        __build:SCRIPT "  sed -i 's+\"\${AR:-ar}\" x \"\$abs\"+\"\${AR:-ar}\" x \"\$abs\"; rm -f \"__.SYMDEF SORTED\"+' \"scripts/build/combine_libs\""
+        __build:SCRIPT "  sed -i 's+\"\${AR:-ar}\" x \"\$abs\"+\"\${AR:-ar}\" x \"\$abs\"; rm -f \"__.SYMDEF SORTED\"; rm -f \"__.SYMDEF\"+' \"scripts/build/combine_libs\""
         __build:SCRIPT ''
         ;;
     esac
@@ -721,7 +721,7 @@ function __build:configure:target:finalize:output:shared {
     __build:SCRIPT "  \$CC \$CFLAGS -I\"\${JNI_H}\"/$jni_java_version/include -c kmp_tor-jni.c"
     __build:SCRIPT "  \$CC \$CFLAGS $lib_load_cflags -c lib_load.c"
     if [ "$os_name" = "mingw" ]; then
-      __build:SCRIPT '  $CC $CFLAGS -c win32_sockets.c'
+      __build:SCRIPT '  $CC $CFLAGS -DHAVE_AF_UNIX_H -c win32_sockets.c'
     fi
     __build:SCRIPT ''
     __build:SCRIPT "  \$CC \$CFLAGS $jni_cflags \\"
@@ -876,19 +876,19 @@ function __build:docker:execute {
     "ppc64") docker_arch="ppc64le" ;;
   esac
 
-  case "$os_name" in
-    "ios"|"tvos"|"watchos")
-      # Currently have to build containers locally until they
-      # are moved to the build-env project
-      __docker:build "$DIR_TASK/docker/Dockerfile.$os_name.base" \
-        "05nelsonm/build-env.$os_name.base" \
-        "$DIR_TASK/docker"
-
-      __docker:build "$DIR_TASK/docker/Dockerfile.$os_name$os_subtype.$docker_arch" \
-        "05nelsonm/build-env.$os_name$os_subtype.$docker_arch" \
-        "$DIR_TASK/docker"
-      ;;
-  esac
+#  case "$os_name" in
+#    "ios"|"tvos"|"watchos")
+#      # Currently have to build containers locally until they
+#      # are moved to the build-env project
+#      __docker:build "$DIR_TASK/docker/Dockerfile.$os_name.base" \
+#        "05nelsonm/build-env.$os_name.base" \
+#        "$DIR_TASK/docker"
+#
+#      __docker:build "$DIR_TASK/docker/Dockerfile.$os_name$os_subtype.$docker_arch" \
+#        "05nelsonm/build-env.$os_name$os_subtype.$docker_arch" \
+#        "$DIR_TASK/docker"
+#      ;;
+#  esac
 
   local rebuild=""
   if $REBUILD; then
