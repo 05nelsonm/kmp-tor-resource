@@ -35,7 +35,7 @@ Tor and its dependencies are compiled from source using the following versions
 |----------|-------------------------|
 | libevent | `release-2.1.12-stable` |
 | openssl  | `openssl-3.4.1`         |
-| tor      | `tor-0.4.8.13`          |
+| tor      | `tor-0.4.8.14`          |
 | xz       | `v5.6.4`                |
 | zlib     | `v1.3.1`                |
 
@@ -126,7 +126,7 @@ have a `GPL` license are able to take advantage of the new functionality, and pr
 ```kotlin
 // build.gradle.kts
 dependencies {
-    val vKmpTorResource = "408.13.2"
+    val vKmpTorResource = "408.14.0"
     implementation("io.matthewnelson.kmp-tor:resource-exec-tor:$vKmpTorResource")
     implementation("io.matthewnelson.kmp-tor:resource-noexec-tor:$vKmpTorResource")
 
@@ -231,13 +231,13 @@ val env = TorRuntime.Environment.Builder(myWorkDir, myCacheDir, ResourceLoaderTo
 See [kmp-tor-samples][url-kmp-tor-samples] for more details.
 
 <!-- TAG_VERSION -->
-[badge-latest-release]: https://img.shields.io/badge/latest--release-408.13.2-5d2f68.svg?logo=torproject&style=flat&logoColor=5d2f68
+[badge-latest-release]: https://img.shields.io/badge/latest--release-408.14.0-5d2f68.svg?logo=torproject&style=flat&logoColor=5d2f68
 [badge-license]: https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat
 
 <!-- TAG_DEPENDENCIES -->
-[badge-kotlin]: https://img.shields.io/badge/kotlin-1.9.24-blue.svg?logo=kotlin
-[badge-build-env]: https://img.shields.io/badge/build--env-0.2.0-blue.svg?logo=docker
-[badge-kmp-tor-common]: https://img.shields.io/badge/kmp--tor--common-2.1.2-blue.svg?style=flat
+[badge-kotlin]: https://img.shields.io/badge/kotlin-2.1.10-blue.svg?logo=kotlin
+[badge-build-env]: https://img.shields.io/badge/build--env-0.3.0-blue.svg?logo=docker
+[badge-kmp-tor-common]: https://img.shields.io/badge/kmp--tor--common-2.2.0-blue.svg?style=flat
 
 <!-- TAG_PLATFORMS -->
 [badge-platform-android]: http://img.shields.io/badge/-android-6EDB8D.svg?style=flat

@@ -1,18 +1,27 @@
 # CHANGELOG
 
+## Version 408.14.0 (2025-02-26)
+ - Updates `kotin` to `2.1.10` [[#108]][108]
+ - Updates `kmp-tor-common` to `0.2.0` [[#108]][108]
+ - Updates `android-gradle-plugin` to `8.7.3` [[#108]][108]
+ - Updates `tor` to `0.4.8.14` [[#110]][110]
+ - Updates [build-env][url-build-env] to `0.3.0` [[#110]][110]
+ - Migrates `external/docker` files for `iOS` to [build-env][url-build-env] repository [[#110]][110]
+ - Migrates `CLI` tooling from `kotlinx.cli` to `clikt` library [[#106]][106]
+
 ## Version 408.13.2 (2025-02-13)
- - Update `openssl` to `3.4.1` [[#103]][103]
- - Update `xz` to `5.6.4` [[#103]][103]
- - Update `kmp-tor-common` to `2.1.2`
+ - Updates `openssl` to `3.4.1` [[#103]][103]
+ - Updates `xz` to `5.6.4` [[#103]][103]
+ - Updates `kmp-tor-common` to `2.1.2`
 
 ## Version 408.13.1 (2025-01-15)
- - Update `kmp-tor-common` to `2.1.1` [[#99]][99]
+ - Updates `kmp-tor-common` to `2.1.1` [[#99]][99]
 
 ## Version 408.13.0 (2024-12-02)
  - Use [cklib][url-cklib] when compiling `external/native` C code for Kotlin/Native targets [[#97]][97]
- - Update `tor` to `0.4.8.13` [[#98]][98]
- - Update `openssl` to `3.4.0` [[#98]][98]
- - Update `xz` to `5.6.3` [[#98]][98]
+ - Updates `tor` to `0.4.8.13` [[#98]][98]
+ - Updates `openssl` to `3.4.0` [[#98]][98]
+ - Updates `xz` to `5.6.3` [[#98]][98]
 
 ## Version 408.12.0 (2024-11-30)
  - Initial Release
@@ -21,5 +30,9 @@
 [98]: https://github.com/05nelsonm/kmp-tor-resource/pull/98
 [99]: https://github.com/05nelsonm/kmp-tor-resource/pull/99
 [103]: https://github.com/05nelsonm/kmp-tor-resource/pull/103
+[106]: https://github.com/05nelsonm/kmp-tor-resource/pull/106
+[108]: https://github.com/05nelsonm/kmp-tor-resource/pull/106
+[110]: https://github.com/05nelsonm/kmp-tor-resource/pull/110
 
+[url-build-env]: https://github.com/05nelsonm/build-env
 [url-cklib]: https://github.com/touchlab/cklib
