@@ -72,7 +72,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
                         project.projectDir
                             .resolve("src")
                             .resolve("androidMain")
-                            .resolve("proguard.txt")
+                            .resolve("resource_noexec_tor.pro")
                     )
                 }
 
