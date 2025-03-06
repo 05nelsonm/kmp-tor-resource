@@ -67,6 +67,15 @@ fun KmpConfigurationExtension.configureNoExecTor(
             android {
                 noExecResourceValidation.configureAndroidJniResources()
 
+                defaultConfig {
+                    consumerProguardFiles(
+                        project.projectDir
+                            .resolve("src")
+                            .resolve("androidMain")
+                            .resolve("proguard.txt")
+                    )
+                }
+
                 sourceSets["androidTest"].manifest.srcFile(
                     project.projectDir
                         .resolve("src")
