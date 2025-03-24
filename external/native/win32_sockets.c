@@ -15,7 +15,6 @@
  **/
 #include "win32_sockets.h"
 
-#include <assert.h>
 #include <stdlib.h>
 #include <windows.h>
 
