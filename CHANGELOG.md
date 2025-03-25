@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Version 408.15.0 (2025-03-25)
+ - Updates `tor` to `0.4.8.15` [[#113]][113]
+ - Adds `proguard` rules to `resource-noexec-tor` and `resource-noexec-tor-gpl` android publications [[#111]][111]
+
 ## Version 408.14.0 (2025-02-26)
  - Updates `kotin` to `2.1.10` [[#108]][108]
  - Updates `kmp-tor-common` to `0.2.0` [[#108]][108]
@@ -33,6 +37,8 @@
 [106]: https://github.com/05nelsonm/kmp-tor-resource/pull/106
 [108]: https://github.com/05nelsonm/kmp-tor-resource/pull/106
 [110]: https://github.com/05nelsonm/kmp-tor-resource/pull/110
+[111]: https://github.com/05nelsonm/kmp-tor-resource/pull/111
+[113]: https://github.com/05nelsonm/kmp-tor-resource/pull/113
 
 [url-build-env]: https://github.com/05nelsonm/build-env
 [url-cklib]: https://github.com/touchlab/cklib
