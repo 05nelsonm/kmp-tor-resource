@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Version 408.16.0 (2025-04-21)
+ - Updates `tor` to `0.4.8.16` [[#117]][117]
+ - Fixes `JPMS` module access error [[#115]][115]
+
 ## Version 408.15.0 (2025-03-25)
  - Updates `tor` to `0.4.8.15` [[#113]][113]
  - Adds `proguard` rules to `resource-noexec-tor` and `resource-noexec-tor-gpl` android publications [[#111]][111]
@@ -39,6 +43,8 @@
 [110]: https://github.com/05nelsonm/kmp-tor-resource/pull/110
 [111]: https://github.com/05nelsonm/kmp-tor-resource/pull/111
 [113]: https://github.com/05nelsonm/kmp-tor-resource/pull/113
+[115]: https://github.com/05nelsonm/kmp-tor-resource/pull/115
+[117]: https://github.com/05nelsonm/kmp-tor-resource/pull/117
 
 [url-build-env]: https://github.com/05nelsonm/build-env
 [url-cklib]: https://github.com/touchlab/cklib
