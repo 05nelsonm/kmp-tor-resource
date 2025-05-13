@@ -9,6 +9,7 @@ encoding                    = "2.4.0"
 gradle-android              = "8.7.3"
 gradle-binary-compat        = "0.17.0"
 gradle-cklib                = "0.3.3"
+gradle-filterjar            = "0.1.0"
 gradle-kmp-configuration    = "0.4.0"
 gradle-kotlin               = "2.1.10"
 gradle-publish-maven        = "0.30.0"
@@ -24,6 +25,7 @@ okio                        = "3.10.2"
 [libraries]
 gradle-android              = { module = "com.android.tools.build:gradle", version.ref = "gradle-android" }
 gradle-cklib                = { module = "co.touchlab:cklib-gradle-plugin", version.ref = "gradle-cklib" }
+gradle-filterjar            = { module = "io.matthewnelson:gradle-filterjar-plugin", version.ref = "gradle-filterjar" }
 gradle-kmp-configuration    = { module = "io.matthewnelson:gradle-kmp-configuration-plugin", version.ref = "gradle-kmp-configuration" }
 gradle-kotlin               = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "gradle-kotlin" }
 gradle-publish-maven        = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "gradle-publish-maven" }

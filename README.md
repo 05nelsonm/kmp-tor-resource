@@ -193,20 +193,9 @@ dependencies {
 </details>
 
 <details>
-    <summary>Configure Jvm</summary>
+    <summary>Configure Jvm/Java</summary>
 
-### Exclude unnecessary resources from platform distributions
-- `Linux` distributions exclude:
-    - `**/tor/native/macos/**`
-    - `**/tor/native/mingw/**`
-- `macOS` distributions exclude:
-    - `**/tor/native/linux-*/**`
-    - `**/tor/native/mingw/**`
-- `Windows` distributions exclude:
-    - `**/tor/native/linux-*/**`
-    - `**/tor/native/macos/**`
-
-TODO: Add `build.gradle.kts` task example
+### See the [filterjar gradle plugin README](library/resource-filterjar-gradle-plugin/README.md) for more details.
 
 </details>
 
