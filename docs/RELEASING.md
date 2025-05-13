@@ -213,6 +213,8 @@ cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/
 cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/macosX64.err
 cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/iosSimulatorArm64.err
 cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/iosX64.err
+```
+```bash
 cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/macosArm64.err
 cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/macosX64.err
 cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/macosArm64.err
