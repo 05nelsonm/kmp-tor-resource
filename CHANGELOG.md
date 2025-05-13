@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## Version 408.16.1 (2025-05-13)
+ - Updates `xz` to `5.8.1` [[#122]][122]
+ - Adds [resource-filterjar-gradle-plugin][url-resource-filterjar-gradle-plugin] for minifying Java & 
+   KotlinMultiplatform/Jvm dependencies by filtering out unneeded compilations of tor for a given application 
+   distribution. [[#120]][120]
+
 ## Version 408.16.0 (2025-04-21)
  - Updates `tor` to `0.4.8.16` [[#117]][117]
  - Fixes `JPMS` module access error [[#115]][115]
@@ -45,6 +51,9 @@
 [113]: https://github.com/05nelsonm/kmp-tor-resource/pull/113
 [115]: https://github.com/05nelsonm/kmp-tor-resource/pull/115
 [117]: https://github.com/05nelsonm/kmp-tor-resource/pull/117
+[120]: https://github.com/05nelsonm/kmp-tor-resource/pull/120
+[122]: https://github.com/05nelsonm/kmp-tor-resource/pull/122
 
 [url-build-env]: https://github.com/05nelsonm/build-env
 [url-cklib]: https://github.com/touchlab/cklib
+[url-resource-filterjar-gradle-plugin]: https://github.com/05nelsonm/kmp-tor-resource/tree/master/library/resource-filterjar-gradle-plugin
