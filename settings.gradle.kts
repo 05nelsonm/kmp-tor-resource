@@ -73,6 +73,7 @@ if (CHECK_PUBLICATION != null) {
             "resource-android-unit-test-tor-gpl",
             "resource-exec-tor",
             "resource-exec-tor-gpl",
+            "resource-filterjar-gradle-plugin",
             "resource-frameworks-gradle-plugin",
             "resource-geoip",
             "resource-lib-tor",

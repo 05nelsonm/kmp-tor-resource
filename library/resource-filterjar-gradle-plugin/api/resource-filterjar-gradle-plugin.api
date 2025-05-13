@@ -1,0 +1,21 @@
+public abstract class io/matthewnelson/kmp/tor/resource/filterjar/KmpTorResourceFilterJarExtension : io/matthewnelson/filterjar/FilterJarApi {
+	public static final field Companion Lio/matthewnelson/kmp/tor/resource/filterjar/KmpTorResourceFilterJarExtension$Companion;
+	public static final field NAME Ljava/lang/String;
+	public final field logging Lorg/gradle/api/provider/Property;
+	public fun activate (Lorg/gradle/api/artifacts/Configuration;)V
+	public fun deactivate (Lorg/gradle/api/artifacts/Configuration;)V
+	public fun filter (Ljava/lang/String;Ljava/lang/String;Lorg/gradle/api/Action;)V
+	public fun filterGroup (Ljava/lang/String;Lorg/gradle/api/Action;)V
+	public final fun keepTorCompilation (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun keepTorCompilation (Ljava/lang/String;Ljava/util/Collection;)V
+	public final fun keepTorCompilation (Ljava/lang/String;[Ljava/lang/String;)V
+}
+
+public final class io/matthewnelson/kmp/tor/resource/filterjar/KmpTorResourceFilterJarExtension$Companion {
+}
+
+public class io/matthewnelson/kmp/tor/resource/filterjar/KmpTorResourceFilterJarPlugin : org/gradle/api/Plugin {
+	public synthetic fun apply (Ljava/lang/Object;)V
+	public final fun apply (Lorg/gradle/api/Project;)V
+}
+
