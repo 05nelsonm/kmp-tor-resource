@@ -33,6 +33,8 @@ git checkout -b release_"$VERSION_NAME"
 
 - Update `version` in project's `docs/DETERMINISTIC_BUILDS.md` documentation
 
+- Update `version` in project's `library/resource-filterjar-gradle-plugin/README.md` documentation
+
 - Update `version` in project's `library/resource-frameworks-gradle-plugin/README.md` documentation
 
 - Update `CHANGELOG.md`
@@ -99,21 +101,9 @@ mavenCentralPassword=MyPassword
 
 - Make sure you have GPG gradle config setup in `~/.gradle/gradle.properties` for signing
 ```
-signing.gnupg.executable=gpg
-signing.gnupg.useLegacyGpg=true
-signing.gnupg.homeDir=/path/to/.gnupg/
-signing.gnupg.optionsFile=/path/to/.gnupg/gpg.conf
-signing.gnupg.keyName=0x61471B8AB3890961
-```
-
-- Make sure GPG is picking up YubiKey to sign releases
-```bash
-gpg --card-status
-```
-
-- Disable YubiKey touch for signing
-```bash
-ykman openpgp keys set-touch sig off
+signing.keyId=MyGPGKeyId
+signing.password=MyGPGKeyPassword
+signing.secretKeyRingFile=/path/to/.gnupg/MyGPGKey.gpg
 ```
 
 - Perform a clean build
@@ -172,14 +162,6 @@ cd external && tar c build | ssh $SSH_MAC_PROFILE "cd $SSH_MAC_PATH/external; rm
 
 ### Macos
 
-- Spin up VM of macOS and ensure USB pass through worked for the YubiKey
-    - Should ask for PIN to log in
-
-- Sign a random `.txt` file (gpg tty for YubiKey PIN + gradle build don't mix)
-```shell
-gpg --sign --armor --detach ~/Documents/hello.txt
-```
-
 - Ensure java version is greater than or equal to 11
 ```shell
 java --version
@@ -210,11 +192,9 @@ mavenCentralPassword=MyPassword
 
 - Make sure you have GPG gradle config setup in `~/.gradle/gradle.properties` for signing
 ```
-signing.gnupg.executable=gpg
-signing.gnupg.useLegacyGpg=true
-signing.gnupg.homeDir=/path/to/.gnupg/
-signing.gnupg.optionsFile=/path/to/.gnupg/gpg.conf
-signing.gnupg.keyName=0x61471B8AB3890961
+signing.keyId=MyGPGKeyId
+signing.password=MyGPGKeyPassword
+signing.secretKeyRingFile=/path/to/.gnupg/MyGPGKey.gpg
 ```
 
 - Perform a clean build
@@ -277,11 +257,6 @@ PUBLISH_TASKS=$(./gradlew tasks -PKMP_TARGETS="$MACOS_TARGETS" |
 ```
 
 ### Linux
-
-- Re-enable YubiKey touch for signing
-```bash
-ykman openpgp keys set-touch sig on
-```
 
 - **Release** publications from Sonatype OSS Nexus StagingRepositories manager
     - Alternatively, can use Curl with the given repository id's that were output
@@ -353,8 +328,6 @@ git pull
 git branch -D release_"$VERSION_NAME"
 git fetch origin --prune
 ```
-
-- Shutdown VMs (if not needed anymore)
 
 ### Linux
 
