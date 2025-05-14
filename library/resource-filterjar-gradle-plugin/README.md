@@ -24,6 +24,8 @@ compilations of tor.
 
 - Configure the tor compilations you wish to keep
   ```kotlin
+  // build.gradle.kts
+
   kmpTorResourceFilterJar {
       logging.set(true)
 
