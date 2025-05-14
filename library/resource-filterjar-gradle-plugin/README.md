@@ -42,4 +42,4 @@ compilations of tor.
   }
   ```
 
-[url-gradle-filterjar-plugin]: https://github.com/05nelson/gradle-filterjar-plugin
+[url-gradle-filterjar-plugin]: https://github.com/05nelsonm/gradle-filterjar-plugin
