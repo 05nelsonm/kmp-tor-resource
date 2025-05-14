@@ -179,6 +179,8 @@ public abstract class KmpTorResourceFilterJarExtension internal constructor(
             group.filter(artifact = "resource-exec-tor") { config ->
                 config.exclude(path = "io/matthewnelson/kmp/tor/resource/exec/tor/native") { keep ->
                     keep.apply(targets = this)
+                    if (!keys.contains(OSHost.Windows)) return@exclude
+                    keep.keep("/${OSHost.Windows}/tor.exe.local")
                 }
             }
             // Will also work for -gpl variant
