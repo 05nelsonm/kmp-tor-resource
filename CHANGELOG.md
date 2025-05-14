@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Version 408.16.2 (2025-05-14)
+ - Fix [resource-filterjar-gradle-plugin][url-resource-filterjar-gradle-plugin] filtering out `tor.exe.local` 
+   from `resource-exec-tor` dependency when on Windows [[#124]][124]
+
 ## Version 408.16.1 (2025-05-13)
  - Updates `xz` to `5.8.1` [[#122]][122]
  - Adds [resource-filterjar-gradle-plugin][url-resource-filterjar-gradle-plugin] for minifying Java & 
@@ -53,6 +57,7 @@
 [117]: https://github.com/05nelsonm/kmp-tor-resource/pull/117
 [120]: https://github.com/05nelsonm/kmp-tor-resource/pull/120
 [122]: https://github.com/05nelsonm/kmp-tor-resource/pull/122
+[124]: https://github.com/05nelsonm/kmp-tor-resource/pull/124
 
 [url-build-env]: https://github.com/05nelsonm/build-env
 [url-cklib]: https://github.com/touchlab/cklib
