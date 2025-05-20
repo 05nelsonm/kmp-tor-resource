@@ -16,10 +16,11 @@
 package io.matthewnelson.diff.core
 
 import io.matthewnelson.diff.core.Diff.Companion.create
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmName
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 public sealed class Options {
 
@@ -162,6 +163,7 @@ public sealed class Options {
             }
         }
 
+        @OptIn(ExperimentalTime::class)
         internal fun time(): Instant {
             return if (useStaticTime) {
                 Instant.parse(STATIC_TIME)
