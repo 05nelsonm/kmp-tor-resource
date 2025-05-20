@@ -6,7 +6,7 @@ clikt                       = "5.0.3"
 
 encoding                    = "2.4.0"
 
-gradle-android              = "8.7.3"
+gradle-android              = "8.9.3"
 gradle-binary-compat        = "0.17.0"
 gradle-cklib                = "0.3.3"
 gradle-filterjar            = "0.1.0"
