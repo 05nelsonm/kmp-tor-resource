@@ -19,7 +19,7 @@ kmp-tor-common              = "2.2.0"
 kotlincrypto-catalog        = "0.7.0" # Utilized from settings.gradle.kts
 kotlinx-coroutines          = "1.10.2"
 
-okio                        = "3.10.2"
+okio                        = "3.11.0"
 
 [libraries]
 gradle-android              = { module = "com.android.tools.build:gradle", version.ref = "gradle-android" }
