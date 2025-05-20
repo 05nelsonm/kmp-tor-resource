@@ -18,7 +18,6 @@ gradle-publish-npm          = "3.5.3"
 kmp-tor-common              = "2.2.0"
 kotlincrypto-catalog        = "0.7.0" # Utilized from settings.gradle.kts
 kotlinx-coroutines          = "1.10.2"
-kotlinx-datetime            = "0.6.2"
 
 okio                        = "3.10.2"
 
@@ -44,7 +43,6 @@ encoding-base16             = { module = "io.matthewnelson.encoding:base16", ver
 encoding-base64             = { module = "io.matthewnelson.encoding:base64", version.ref = "encoding" }
 
 kotlinx-coroutines-test     = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
-kotlinx-datetime            = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 okio-okio                   = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakeFileSystem         = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
