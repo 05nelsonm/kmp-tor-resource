@@ -223,7 +223,6 @@ fi
       ;;
     "ios"|"macos"|"tvos"|"watchos")
       __build:LDFLAGS '-Wl,-no_adhoc_codesign'
-      __build:LDFLAGS '-Wl,-no_uuid'
       ;;
   esac
 
