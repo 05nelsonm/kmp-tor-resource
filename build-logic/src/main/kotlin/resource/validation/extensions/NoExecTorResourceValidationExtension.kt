@@ -18,7 +18,6 @@
 package resource.validation.extensions
 
 import org.gradle.api.Project
-import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import resource.validation.extensions.internal.ValidationHash
 import java.io.File
 import javax.inject.Inject

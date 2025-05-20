@@ -50,9 +50,6 @@ fun KmpConfigurationExtension.configureExecTor(
     ) {
         androidLibrary {
             android {
-                // TODO: Move to CompilationExecTor
-                execResourceValidation.configureAndroidJniResources()
-
                 sourceSets["androidTest"].manifest.srcFile(
                     project.projectDir
                         .resolve("src")
@@ -154,6 +151,9 @@ fun KmpConfigurationExtension.configureExecTor(
                 val execTest = findByName("execTest") ?: return@with
 
                 try {
+                    project.evaluationDependsOn(":library:resource-compilation-lib-tor$suffix")
+                } catch (_: Throwable) {}
+                try {
                     project.evaluationDependsOn(":library:resource-lib-tor$suffix")
                 } catch (_: Throwable) {}
 
@@ -218,6 +218,14 @@ fun KmpConfigurationExtension.configureExecTor(
 
                 execTest.generateBuildConfig(areErrReportsEmpty = { null })
 
+                val reportDirCompilationLibTor = project.rootDir
+                    .resolve("library")
+                    .resolve("resource-compilation-lib-tor$suffix")
+                    .resolve("build")
+                    .resolve("reports")
+                    .resolve("resource-validation")
+                    .resolve("resource-compilation-lib-tor$suffix")
+
                 val reportDirLibTor = project.rootDir
                     .resolve("library")
                     .resolve("resource-lib-tor$suffix")
@@ -226,7 +234,15 @@ fun KmpConfigurationExtension.configureExecTor(
                     .resolve("resource-validation")
                     .resolve("resource-lib-tor$suffix")
 
-                val reportDirExec = buildDir
+                val reportDirCompilationExecTor = project.rootDir
+                    .resolve("library")
+                    .resolve("resource-compilation-exec-tor$suffix")
+                    .resolve("build")
+                    .resolve("reports")
+                    .resolve("resource-validation")
+                    .resolve("resource-compilation-exec-tor$suffix")
+
+                val reportDirExecTor = buildDir
                     .resolve("reports")
                     .resolve("resource-validation")
                     .resolve(project.name)
@@ -249,10 +265,10 @@ fun KmpConfigurationExtension.configureExecTor(
                     val srcSetTest = findByName("${srcSetName ?: reportName}Test") ?: return@forEach
 
                     val areErrReportsEmpty = {
-                        val reportLibTor = reportDirLibTor
+                        val reportLibTor = (if (reportName == "android") reportDirCompilationLibTor else reportDirLibTor)
                             .resolve("${reportName}.err")
                             .readText()
-                        val reportExec = reportDirExec
+                        val reportExec = (if (reportName == "android") reportDirCompilationExecTor else reportDirExecTor)
                             .resolve("${reportName}.err")
                             .readText()
 

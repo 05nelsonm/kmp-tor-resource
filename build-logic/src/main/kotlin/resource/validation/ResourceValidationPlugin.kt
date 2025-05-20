@@ -19,15 +19,20 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import resource.validation.extensions.*
 
+@Suppress("UNUSED")
 open class ResourceValidationPlugin internal constructor(): Plugin<Project> {
     override fun apply(target: Project) {
         listOf(
+            CompilationExecTorResourceValidationExtension.NAME to CompilationExecTorResourceValidationExtension::class.java,
+            CompilationExecTorResourceValidationExtension.GPL.NAME to CompilationExecTorResourceValidationExtension.GPL::class.java,
+            CompilationLibTorResourceValidationExtension.NAME to CompilationLibTorResourceValidationExtension::class.java,
+            CompilationLibTorResourceValidationExtension.GPL.NAME to CompilationLibTorResourceValidationExtension.GPL::class.java,
             ExecTorResourceValidationExtension.NAME to ExecTorResourceValidationExtension::class.java,
+            ExecTorResourceValidationExtension.GPL.NAME to ExecTorResourceValidationExtension.GPL::class.java,
             FrameworksResourceValidationExtension.NAME to FrameworksResourceValidationExtension::class.java,
             GeoipResourceValidationExtension.NAME to GeoipResourceValidationExtension::class.java,
             LibTorResourceValidationExtension.NAME to LibTorResourceValidationExtension::class.java,
             LibTorResourceValidationExtension.GPL.NAME to LibTorResourceValidationExtension.GPL::class.java,
-            ExecTorResourceValidationExtension.GPL.NAME to ExecTorResourceValidationExtension.GPL::class.java,
             NoExecTorResourceValidationExtension.NAME to NoExecTorResourceValidationExtension::class.java,
             NoExecTorResourceValidationExtension.GPL.NAME to NoExecTorResourceValidationExtension.GPL::class.java,
         ).forEach { (name, clazz) ->

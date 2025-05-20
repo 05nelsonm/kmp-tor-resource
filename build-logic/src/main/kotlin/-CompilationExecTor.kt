@@ -19,7 +19,7 @@ import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.the
-import resource.validation.extensions.ExecTorResourceValidationExtension
+import resource.validation.extensions.CompilationExecTorResourceValidationExtension
 
 fun KmpConfigurationExtension.configureCompilationExecTor(
     project: Project,
@@ -32,9 +32,9 @@ fun KmpConfigurationExtension.configureCompilationExecTor(
     val suffix = if (isGpl) "-gpl" else ""
     val execResourceValidation by lazy {
         if (isGpl) {
-            ExecTorResourceValidationExtension.GPL::class.java
+            CompilationExecTorResourceValidationExtension.GPL::class.java
         } else {
-            ExecTorResourceValidationExtension::class.java
+            CompilationExecTorResourceValidationExtension::class.java
         }.let { project.extensions.getByType(it) }
     }
 
@@ -46,7 +46,7 @@ fun KmpConfigurationExtension.configureCompilationExecTor(
         androidLibrary(namespace = "io.matthewnelson.kmp.tor.resource.compilation.exec.tor") {
             target { publishLibraryVariants("release") }
 
-            // TODO: android { execResourceValidation.configureAndroidJniResources() }
+            android { execResourceValidation.configureAndroidJniResources() }
 
             sourceSetMain {
                 dependencies {

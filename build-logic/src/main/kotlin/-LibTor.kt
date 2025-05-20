@@ -45,9 +45,6 @@ fun KmpConfigurationExtension.configureLibTor(
         publish = true,
     ) {
         androidLibrary {
-            // TODO: Move to CompilationLibTor
-            android { libResourceValidation.configureAndroidJniResources() }
-
             sourceSetMain {
                 dependencies {
                     implementation(project(":library:resource-compilation-lib-tor$suffix"))

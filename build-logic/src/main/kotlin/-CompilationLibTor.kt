@@ -17,7 +17,7 @@ import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import org.gradle.api.Action
 import org.gradle.api.Project
-import resource.validation.extensions.LibTorResourceValidationExtension
+import resource.validation.extensions.CompilationLibTorResourceValidationExtension
 
 fun KmpConfigurationExtension.configureCompilationLibTor(
     project: Project,
@@ -28,9 +28,9 @@ fun KmpConfigurationExtension.configureCompilationLibTor(
     val isGpl = project.name.endsWith("gpl")
     val libResourceValidation by lazy {
         if (isGpl) {
-            LibTorResourceValidationExtension.GPL::class.java
+            CompilationLibTorResourceValidationExtension.GPL::class.java
         } else {
-            LibTorResourceValidationExtension::class.java
+            CompilationLibTorResourceValidationExtension::class.java
         }.let { project.extensions.getByType(it) }
     }
 
@@ -42,7 +42,7 @@ fun KmpConfigurationExtension.configureCompilationLibTor(
         androidLibrary(namespace = "io.matthewnelson.kmp.tor.resource.compilation.lib.tor") {
             target { publishLibraryVariants("release") }
 
-            // TODO: android { libResourceValidation.configureAndroidJniResources() }
+            android { libResourceValidation.configureAndroidJniResources() }
         }
 
         common { pluginIds("publication", "resource-validation") }

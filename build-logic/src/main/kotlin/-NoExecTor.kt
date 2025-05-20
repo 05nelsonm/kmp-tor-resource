@@ -243,6 +243,9 @@ fun KmpConfigurationExtension.configureNoExecTor(
                 val noExecTest = findByName("noExecTest") ?: return@with
 
                 try {
+                    project.evaluationDependsOn(":library:resource-compilation-lib-tor$suffix")
+                } catch (_: Throwable) {}
+                try {
                     project.evaluationDependsOn(":library:resource-lib-tor$suffix")
                 } catch (_: Throwable) {}
 
@@ -282,6 +285,14 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
                 noExecTest.generateBuildConfig(isErrReportEmpty = { null })
 
+                val reportDirCompilationLibTor = project.rootDir
+                    .resolve("library")
+                    .resolve("resource-compilation-lib-tor$suffix")
+                    .resolve("build")
+                    .resolve("reports")
+                    .resolve("resource-validation")
+                    .resolve("resource-compilation-lib-tor$suffix")
+
                 val reportDirLibTor = project.rootDir
                     .resolve("library")
                     .resolve("resource-lib-tor$suffix")
@@ -296,7 +307,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     .resolve(project.name)
 
                 listOf(
-                    Triple("android", "androidInstrumented", listOf(reportDirLibTor, reportDirNoExec)),
+                    Triple("android", "androidInstrumented", listOf(reportDirCompilationLibTor, reportDirNoExec)),
                     Triple("jvm", "androidUnit", listOf(reportDirLibTor, reportDirNoExec)),
                     Triple("jvm", null, listOf(reportDirLibTor, reportDirNoExec)),
                     Triple("linuxArm64", null, listOf(reportDirLibTor)),
