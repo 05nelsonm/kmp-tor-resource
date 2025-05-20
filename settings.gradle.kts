@@ -70,6 +70,8 @@ if (CHECK_PUBLICATION != null) {
             "npmjs",
             "resource-android-unit-test-tor",
             "resource-android-unit-test-tor-gpl",
+            "resource-compilation-lib-tor",
+            "resource-compilation-lib-tor-gpl",
             "resource-exec-tor",
             "resource-exec-tor-gpl",
             "resource-filterjar-gradle-plugin",
