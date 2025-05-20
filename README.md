@@ -224,7 +224,7 @@ See [kmp-tor-samples][url-kmp-tor-samples] for more details.
 [badge-license]: https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat
 
 <!-- TAG_DEPENDENCIES -->
-[badge-kotlin]: https://img.shields.io/badge/kotlin-2.1.10-blue.svg?logo=kotlin
+[badge-kotlin]: https://img.shields.io/badge/kotlin-2.1.21-blue.svg?logo=kotlin
 [badge-build-env]: https://img.shields.io/badge/build--env-0.3.0-blue.svg?logo=docker
 [badge-kmp-tor-common]: https://img.shields.io/badge/kmp--tor--common-2.2.0-blue.svg?style=flat
 

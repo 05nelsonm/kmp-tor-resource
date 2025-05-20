@@ -17,12 +17,14 @@ package io.matthewnelson.diff.core
 
 import io.matthewnelson.diff.core.internal.LINE_BREAK
 import io.matthewnelson.diff.core.internal.writeNewLine
-import kotlinx.datetime.Instant
 import okio.BufferedSink
 import okio.BufferedSource
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmSynthetic
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
+@OptIn(ExperimentalTime::class)
 public class Header
 @Throws(IllegalStateException::class)
 internal constructor(

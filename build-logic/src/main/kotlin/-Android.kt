@@ -25,8 +25,8 @@ import resource.validation.extensions.NoExecTorResourceValidationExtension
 
 fun KmpConfigurationContainerDsl.androidLibrary(
     namespace: String,
-    buildTools: String? = "34.0.0",
-    compileSdk: Int = 34,
+    buildTools: String? = "35.0.1",
+    compileSdk: Int = 35,
     minSdk: Int = 21,
     javaVersion: JavaVersion = JavaVersion.VERSION_1_8,
     action: (Action<TargetAndroidContainer.Library>)? = null,
