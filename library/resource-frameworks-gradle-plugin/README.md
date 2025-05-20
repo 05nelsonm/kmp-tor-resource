@@ -39,9 +39,8 @@ in order to load `tor`.
       ![image](../../docs/assets/frameworks-gradle-plugin/xcode-embed-sign.png)
     - Under the `Build Phases` tab -> `Link Binary With Libraries`, click the `-` sign to remove the framework:  
       ![image](../../docs/assets/frameworks-gradle-plugin/xcode-embed-link.png) 
-        - **NOTE:** This step **cannot** be skipped, as `LibTor` is compiled with linker flag `-no_uuid` 
-          such that linking it with the application fails. `kmp-tor:resource-noexec-tor` only needs the 
-          signed framework present and handles all loading/unloading. 
+        - **NOTE:** This step **cannot** be skipped. `kmp-tor:resource-noexec-tor` only needs the signed framework 
+          present and handles all loading/unloading.
     - Things should look like the following now:  
       ![image](../../docs/assets/frameworks-gradle-plugin/xcode-embed-complete.png)
       
