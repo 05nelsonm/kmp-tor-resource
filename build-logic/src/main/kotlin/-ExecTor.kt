@@ -50,6 +50,7 @@ fun KmpConfigurationExtension.configureExecTor(
     ) {
         androidLibrary {
             android {
+                // TODO: Move to CompilationExecTor
                 execResourceValidation.configureAndroidJniResources()
 
                 sourceSets["androidTest"].manifest.srcFile(
@@ -63,6 +64,7 @@ fun KmpConfigurationExtension.configureExecTor(
             sourceSetMain {
                 dependencies {
                     implementation(libs.kmp.tor.common.lib.locator)
+                    implementation(project(":library:resource-compilation-exec-tor$suffix"))
                 }
             }
 
