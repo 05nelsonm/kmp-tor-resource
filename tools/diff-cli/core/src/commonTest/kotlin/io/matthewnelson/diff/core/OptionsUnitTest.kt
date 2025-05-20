@@ -16,14 +16,13 @@
 package io.matthewnelson.diff.core
 
 import io.matthewnelson.diff.core.internal.InternalDiffApi
+import kotlinx.datetime.Instant
 import okio.Path.Companion.toPath
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
-@OptIn(ExperimentalTime::class, InternalDiffApi::class)
+@OptIn(InternalDiffApi::class)
 class OptionsUnitTest: DiffCoreTestHelper() {
 
     @Test
