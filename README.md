@@ -126,7 +126,7 @@ have a `GPL` license are able to take advantage of the new functionality, and pr
 ```kotlin
 // build.gradle.kts
 dependencies {
-    val vKmpTorResource = "408.16.2"
+    val vKmpTorResource = "408.16.3"
     implementation("io.matthewnelson.kmp-tor:resource-exec-tor:$vKmpTorResource")
     implementation("io.matthewnelson.kmp-tor:resource-noexec-tor:$vKmpTorResource")
 
@@ -220,7 +220,7 @@ val env = TorRuntime.Environment.Builder(myWorkDir, myCacheDir, ResourceLoaderTo
 See [kmp-tor-samples][url-kmp-tor-samples] for more details.
 
 <!-- TAG_VERSION -->
-[badge-latest-release]: https://img.shields.io/badge/latest--release-408.16.2-5d2f68.svg?logo=torproject&style=flat&logoColor=5d2f68
+[badge-latest-release]: https://img.shields.io/badge/latest--release-408.16.3-5d2f68.svg?logo=torproject&style=flat&logoColor=5d2f68
 [badge-license]: https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat
 
 <!-- TAG_DEPENDENCIES -->

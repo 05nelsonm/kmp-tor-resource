@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Version 408.16.3 (2025-05-20)
+ - Fix `macOS`, `iOS` and `iOS-simulator` compilations by removing linker flag `-no_uuid`. [[#129]][129]
+     - `macOS` version `15.4.1+` now requires binaries running on the machine to contain a `LC_UUID` 
+       block; this was not the case on prior versions.
+
 ## Version 408.16.2 (2025-05-14)
  - Fix [resource-filterjar-gradle-plugin][url-resource-filterjar-gradle-plugin] filtering out `tor.exe.local` 
    from `resource-exec-tor` dependency when on Windows [[#124]][124]
@@ -58,6 +63,7 @@
 [120]: https://github.com/05nelsonm/kmp-tor-resource/pull/120
 [122]: https://github.com/05nelsonm/kmp-tor-resource/pull/122
 [124]: https://github.com/05nelsonm/kmp-tor-resource/pull/124
+[129]: https://github.com/05nelsonm/kmp-tor-resource/pull/129
 
 [url-build-env]: https://github.com/05nelsonm/build-env
 [url-cklib]: https://github.com/touchlab/cklib
