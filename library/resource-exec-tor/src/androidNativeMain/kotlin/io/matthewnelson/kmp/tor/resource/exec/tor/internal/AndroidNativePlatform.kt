@@ -38,11 +38,10 @@ internal actual inline fun Resource.Config.Builder.configureTorResources() {
     if (missing.isEmpty()) return
 
     if (KmpTorLibLocator.isInitialized()) {
+        // Android KmpTorLibLocator dependency is there (environment
+        // variable is present), but could not find libs.
         """
             Failed to find $missing within nativeLibraryDir.
-
-            Ensure the following android dependency is present:
-            io.matthewnelson.kmp-tor:resource-compilation-exec-tor{-gpl}:{version}
 
             Ensure the following are set correctly:
             build.gradle(.kts):  'android.packaging.jniLibs.useLegacyPackaging' is set to 'true'
@@ -50,9 +49,12 @@ internal actual inline fun Resource.Config.Builder.configureTorResources() {
             gradle.properties:   'android.bundle.enableUncompressedNativeLibs' is set to 'false'
         """.trimIndent()
     } else {
+        // Either missing the android dependency, or something went
+        // wrong with Android KmpTorLibLocator.Initializer.
         """
-            TODO: 
-        """.trimIndent()
+            Ensure the following android dependency is present:
+              io.matthewnelson.kmp-tor:resource-compilation-exec-tor{-gpl}:{version}
+        """.trimIndent() + KmpTorLibLocator.errorMsg()
     }.let { message -> error(message) }
 }
 
