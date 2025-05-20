@@ -56,7 +56,6 @@ internal inline fun Resource.Config.Builder.configureExecutableResource(
     }
 
     val arch = OSInfo.INSTANCE.osArch
-
     if (!arch.isSupportedBy(host)) {
         error("Unsupported architecture[$arch] for host[$host]")
         return

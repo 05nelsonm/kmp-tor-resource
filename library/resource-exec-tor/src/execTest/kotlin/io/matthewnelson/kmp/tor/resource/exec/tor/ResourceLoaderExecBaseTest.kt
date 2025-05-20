@@ -55,7 +55,7 @@ actual abstract class ResourceLoaderExecBaseTest {
                 RESOURCE_CONFIG_TOR[ALIAS_LIB_TOR].platform.fsFileName,
             )
         } catch (_: NoSuchElementException) {
-            // Android Runtime
+            // Android
             "libtorexec.so" to "libtor.so"
         }
 

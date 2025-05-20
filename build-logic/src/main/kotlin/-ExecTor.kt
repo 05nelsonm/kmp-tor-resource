@@ -97,6 +97,8 @@ fun KmpConfigurationExtension.configureExecTor(
             }
         }
 
+        androidNativeAll()
+
         common {
             pluginIds("resource-validation")
 
@@ -112,6 +114,7 @@ fun KmpConfigurationExtension.configureExecTor(
         sourceSetConnect(
             newName = "exec",
             existingNames = listOf(
+                "androidNative",
                 "jvmAndroid",
                 "js",
                 "linux",
@@ -122,7 +125,6 @@ fun KmpConfigurationExtension.configureExecTor(
                 dependencies {
                     implementation(libs.kmp.tor.common.core)
                     implementation(project(":library:resource-geoip"))
-                    implementation(project(":library:resource-lib-tor$suffix"))
                 }
             },
         )
@@ -145,6 +147,32 @@ fun KmpConfigurationExtension.configureExecTor(
                 }
             }
         )
+
+        kotlin {
+            with(sourceSets) {
+                listOf(
+                    "jvmAndroid",
+                    "js",
+                    "linux",
+                    "macos",
+                    "mingw",
+                ).forEach { target ->
+                    findByName("${target}Main")?.apply {
+                        dependencies {
+                            implementation(project(":library:resource-lib-tor$suffix"))
+                        }
+                    }
+                }
+            }
+        }
+
+        kotlin {
+            sourceSets.findByName("androidNativeMain")?.apply {
+                dependencies {
+                    implementation(libs.kmp.tor.common.lib.locator)
+                }
+            }
+        }
 
         kotlin {
             with(sourceSets) {
@@ -249,6 +277,7 @@ fun KmpConfigurationExtension.configureExecTor(
 
                 listOf(
                     "android" to "androidInstrumented",
+                    "android" to "androidNative",
 
                     // If no errors for JVM resources, then android-unit-test project
                     // dependency and js is not utilizing mock resources and can run tests.
@@ -263,16 +292,17 @@ fun KmpConfigurationExtension.configureExecTor(
                     "mingwX64" to null,
                 ).forEach { (reportName, srcSetName) ->
                     val srcSetTest = findByName("${srcSetName ?: reportName}Test") ?: return@forEach
+                    val isAndroid = reportName == "android"
 
                     val areErrReportsEmpty = {
-                        val reportLibTor = (if (reportName == "android") reportDirCompilationLibTor else reportDirLibTor)
+                        val reportLibTor = (if (isAndroid) reportDirCompilationLibTor else reportDirLibTor)
                             .resolve("${reportName}.err")
                             .readText()
-                        val reportExec = (if (reportName == "android") reportDirCompilationExecTor else reportDirExecTor)
+                        val reportExecTor = (if (isAndroid) reportDirCompilationExecTor else reportDirExecTor)
                             .resolve("${reportName}.err")
                             .readText()
 
-                        (reportLibTor + reportExec).indexOfFirst { !it.isWhitespace() } == -1
+                        (reportLibTor + reportExecTor).indexOfFirst { !it.isWhitespace() } == -1
                     }
 
                     srcSetTest.generateBuildConfig(areErrReportsEmpty = areErrReportsEmpty)
