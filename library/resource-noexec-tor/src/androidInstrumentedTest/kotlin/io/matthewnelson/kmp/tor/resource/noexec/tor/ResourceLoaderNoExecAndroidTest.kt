@@ -27,7 +27,7 @@ import kotlin.time.Duration.Companion.minutes
 class ResourceLoaderNoExecAndroidTest: ResourceLoaderNoExecBaseTest() {
 
     private companion object {
-        private val TIMEOUT: Duration = 20.minutes
+        private val TIMEOUT: Duration = 15.minutes
     }
 
     @Test
