@@ -43,12 +43,16 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
         @JvmStatic
         public fun getOrCreate(
             resourceDir: File,
-        ): ResourceLoader.Tor = getOrCreate(
-            resourceDir = resourceDir,
-            registerShutdownHook = true,
-        )
+        ): ResourceLoader.Tor {
+            @Suppress("DEPRECATION")
+            return getOrCreate(
+                resourceDir = resourceDir,
+                registerShutdownHook = false,
+            )
+        }
 
         @JvmStatic
+        @Deprecated("Use at your own peril. ShutdownHook registration causes abnormal exit behavior for Java/Android")
         public fun getOrCreate(
             resourceDir: File,
             registerShutdownHook: Boolean,
