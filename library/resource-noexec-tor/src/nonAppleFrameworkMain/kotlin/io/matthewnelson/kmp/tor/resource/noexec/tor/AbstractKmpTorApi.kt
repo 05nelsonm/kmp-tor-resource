@@ -27,9 +27,14 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.toCStringArray
 import kotlinx.cinterop.toKString
+import kotlin.concurrent.AtomicReference
+import kotlin.concurrent.Volatile
+import kotlin.native.concurrent.ObsoleteWorkersApi
+import kotlin.native.concurrent.TransferMode
+import kotlin.native.concurrent.Worker
 
 // nonAppleFramework
-@OptIn(ExperimentalForeignApi::class, InternalKmpTorApi::class)
+@OptIn(ExperimentalForeignApi::class, InternalKmpTorApi::class, ObsoleteWorkersApi::class)
 internal actual sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
 protected actual constructor(
@@ -37,20 +42,28 @@ protected actual constructor(
     registerShutdownHook: Boolean,
 ): TorApi() {
 
-    protected actual fun kmpTorRunMain(
+    private val worker = AtomicReference<Worker?>(null)
+
+    @Throws(IllegalStateException::class)
+    protected actual fun kmpTorRunInThread(
         libTor: String,
         args: Array<String>,
-    ): String? = memScoped {
-        kmp_tor_run_main(
-            lib_tor = libTor,
-            argc = args.size,
-            argv = args.toCStringArray(autofreeScope = this)
-        )?.toKString()
+    ): TorJob {
+        check(worker.value == null) { "Worker != null. terminateAndAwaitResult is required" }
+
+        val w = Worker.start(name = "tor_run_main")
+        val job = w.executeTorJob(libTor, args)
+        worker.value = w
+        return job
     }
 
     protected actual fun kmpTorState(): Int = kmp_tor_state()
 
-    protected actual fun kmpTorTerminateAndAwaitResult(): Int = kmp_tor_terminate_and_await_result()
+    protected actual fun kmpTorTerminateAndAwaitResult(): Int {
+        val result = kmp_tor_terminate_and_await_result()
+        worker.getAndSet(null)?.requestTermination(false)?.result
+        return result
+    }
 
     @Throws(IllegalStateException::class, IOException::class)
     protected actual fun libTor(): File = extractLibTor(isInit = false)

@@ -15,21 +15,10 @@
  **/
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
-import io.matthewnelson.kmp.file.InterruptedException
-import platform.posix.EINVAL
-import platform.posix.errno
-import platform.posix.usleep
 import kotlin.time.Duration
-
-internal expect val IS_ANDROID_NATIVE: Boolean
 
 @Suppress("NOTHING_TO_INLINE")
 @Throws(InterruptedException::class)
 internal actual inline fun Duration.threadSleep() {
-    if (usleep(inWholeMicroseconds.toUInt()) == -1) {
-        throw when (errno) {
-            EINVAL -> IllegalArgumentException()
-            else -> InterruptedException()
-        }
-    }
+    Thread.sleep(this.inWholeMilliseconds)
 }

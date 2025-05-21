@@ -23,6 +23,8 @@ import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorJob
+import kotlin.Throws
 
 // jvmAndroid
 @OptIn(InternalKmpTorApi::class)
@@ -33,7 +35,26 @@ protected actual constructor(
     registerShutdownHook: Boolean,
 ): TorApi() {
 
-    protected actual external fun kmpTorRunMain(libTor: String, args: Array<String>): String?
+    private external fun kmpTorRunBlocking(libTor: String, args: Array<String>): String?
+
+    @Throws(IllegalStateException::class)
+    protected actual fun kmpTorRunInThread(libTor: String, args: Array<String>): TorJob {
+        var error: String? = null
+        var l: String? = libTor
+        var a: Array<String>? = args
+        val t = Thread {
+            val e = kmpTorRunBlocking(l!!, a!!)
+            error = e
+            l = null
+            a = null
+        }
+        t.name = "tor_run_main"
+        t.isDaemon = true
+        t.priority = Thread.MAX_PRIORITY
+        t.start()
+        return object : TorJob { override fun checkError(): String? = error }
+    }
+
     protected actual external fun kmpTorState(): Int
     protected actual external fun kmpTorTerminateAndAwaitResult(): Int
 

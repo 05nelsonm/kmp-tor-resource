@@ -30,7 +30,7 @@
  *
  * `kmp_tor_terminate_and_await_result` MUST be called when done to release resources.
  **/
-const char *kmp_tor_run_main(const char *lib_tor, int argc, char *argv[]);
+const char *kmp_tor_run_blocking(const char *lib_tor, int argc, char *argv[]);
 
 /**
  * Returns current state.

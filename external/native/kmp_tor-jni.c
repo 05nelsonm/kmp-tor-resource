@@ -40,35 +40,20 @@ JStringDup(JNIEnv *env, jstring s)
   return dup;
 }
 
-static void
-ThrowIllegalState(JNIEnv *env, const char *fmt, ...)
-{
-  jclass illegal_state = (*env)->FindClass(env, "java/lang/IllegalStateException");
-  char msg[512];
-  va_list args;
-  va_start (args, fmt);
-  vsnprintf(msg, sizeof(msg), fmt, args);
-  va_end (args);
-  (*env)->ThrowNew(env, illegal_state, msg);
-}
-
 JNIEXPORT jstring JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMain
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunBlocking
 (JNIEnv *env, jobject thiz, jstring lib_tor, jobjectArray args)
 {
   if (lib_tor == NULL) {
-    ThrowIllegalState(env, "lib_tor cannot be NULL");
-    return null;
+    return (*env)->NewStringUTF(env, "lib_tor cannot be NULL");
   }
   if (args == NULL) {
-    ThrowIllegalState(env, "args cannot be NULL");
-    return null;
+    return (*env)->NewStringUTF(env, "args cannot be NULL");
   }
 
   jsize argc = (*env)->GetArrayLength(env, args);
   if (argc <= 0) {
-    ThrowIllegalState(env, "args cannot be empty");
-    return null;
+    return (*env)->NewStringUTF(env, "args cannot be empty");
   }
 
   int copy_args = 0;
@@ -79,15 +64,13 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMai
 
   c_lib_tor = JStringDup(env, lib_tor);
   if (c_lib_tor == NULL) {
-    ThrowIllegalState(env, "JStringDup failed to copy lib_tor");
-    return null;
+    return (*env)->NewStringUTF(env, "JStringDup failed to copy lib_tor");
   }
 
   c_argv = malloc(argc * sizeof(char *));
   if (c_argv == NULL) {
     free(c_lib_tor);
-    ThrowIllegalState(env, "Failed to create c_argv");
-    return null;
+    return (*env)->NewStringUTF(env, "Failed to create c_argv");
   }
 
   for (jsize i = 0; i < argc; i++) {
@@ -112,7 +95,7 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMai
   }
 
   if (copy_args == 0) {
-    error = kmp_tor_run_main(c_lib_tor, c_argc, c_argv);
+    error = kmp_tor_run_blocking(c_lib_tor, c_argc, c_argv);
   } else {
     error = "Failed to copy arguments to C";
   }
@@ -126,8 +109,9 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMai
   free(c_lib_tor);
 
   if (error != NULL) {
-    ThrowIllegalState(env, error);
+    return (*env)->NewStringUTF(env, error);
   }
+
   return null;
 }
 
