@@ -238,7 +238,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     Family.IOS,
                     Family.LINUX,
                     Family.OSX -> "-lpthread -ldl"
-                    Family.ANDROID -> "-pthread -ldl -llog"
+                    Family.ANDROID -> "-pthread -ldl -llog -m"
                     Family.MINGW -> ""
                     else -> null
                 }
