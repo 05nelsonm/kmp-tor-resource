@@ -139,10 +139,10 @@ dependencies {
 <details>
     <summary>Configure Android</summary>
 
-### Some additional configuration may be necessary for your Android application.
+Some additional configuration may be necessary for your Android application.
 
-- If utilizing the `-exec` dependency, compilations must be extracted to the `nativeLibraryDir` 
-  upon application install:
+- If utilizing the `-exec` Android dependency, `tor` compilations must be extracted to the
+  `ApplicationInfo.nativeLibraryDir` when the application is installed:
   ```kotlin
   // build.gradle.kts
   android {
@@ -157,7 +157,7 @@ dependencies {
   ```
 
 - If running unit tests for Android (not device/emulator), add the following dependency which 
-  will provide the desktop compilations and use them instead of the `android` compilations.
+  will provide the desktop compilations and use them in lieu of the `android` compilations.
   ```kotlin
   // build.gradle.kts
   dependencies {
@@ -168,7 +168,69 @@ dependencies {
   }
   ```
 
-- Setup splits for each ABI
+- Optionally, configure splits for each ABI:
+  ```kotlin
+  // build.gradle.kts
+  android {
+      splits {
+          abi {
+              isEnable = true
+              reset()
+              include("x86", "armeabi-v7a", "arm64-v8a", "x86_64")
+              isUniversalApk = true
+          }
+      }
+  }
+  ```
+
+</details>
+
+<details>
+    <summary>Configure Android Native</summary>
+
+Some additional configuration is necessary for your **Android** application. `tor` compilations are not 
+shipped with the `resource-exec-tor{-gpl}` or `resource-noexec-tor{-gpl}` Android **Native** dependencies, 
+they are packaged separately in an `.aar` and expected to be present at runtime.
+
+- If utilizing the `resource-exec-tor{-gpl}` Android **Native** dependency:
+    - Add `tor` compilations to your **Android** application:
+      ```kotlin
+      // build.gradle.kts
+      dependencies {
+          implementation("io.matthewnelson.kmp-tor:resource-compilation-exec-tor:$vKmpTorResource")
+
+          // Alternatively, if using the `-gpl` variants
+      //    implementation("io.matthewnelson.kmp-tor:resource-compilation-exec-tor-gpl:$vKmpTorResource")
+      }
+      ```
+    - The `tor` compilations must be extracted to the `ApplicationInfo.nativeLibraryDir` when the 
+      application is installed:
+      ```kotlin
+      // build.gradle.kts
+      android {
+          packaging {
+              jniLibs.useLegacyPackaging = true
+          }
+      }
+      ```
+      ```kotlin
+      // gradle.properties
+      android.bundle.enableUncompressedNativeLibs=false
+      ```
+
+- If utilizing the `resource-noexec-tor{-gpl}` Android **Native** dependency:
+    - Add `libtor` compilations to your **Android** application:
+      ```kotlin
+      // build.gradle.kts
+      dependencies {
+          implementation("io.matthewnelson.kmp-tor:resource-compilation-lib-tor:$vKmpTorResource")
+
+          // Alternatively, if using the `-gpl` variants
+      //    implementation("io.matthewnelson.kmp-tor:resource-compilation-lib-tor-gpl:$vKmpTorResource")
+      }
+      ```
+
+- Optionally, configure splits for each ABI:
   ```kotlin
   // build.gradle.kts
   android {
@@ -188,21 +250,21 @@ dependencies {
 <details>
     <summary>Configure iOS</summary>
 
-### See the [frameworks gradle plugin README](library/resource-frameworks-gradle-plugin/README.md) for more details.
+See the [frameworks gradle plugin README](library/resource-frameworks-gradle-plugin/README.md) for more details.
 
 </details>
 
 <details>
     <summary>Configure Jvm/Java</summary>
 
-### See the [filterjar gradle plugin README](library/resource-filterjar-gradle-plugin/README.md) for more details.
+See the [filterjar gradle plugin README](library/resource-filterjar-gradle-plugin/README.md) for more details.
 
 </details>
 
 <details>
     <summary>Configure Node.js</summary>
 
-### See the [npmjs README](library/npmjs/README.md) for more details.
+See the [npmjs README](library/npmjs/README.md) for more details.
 
 </details>
 

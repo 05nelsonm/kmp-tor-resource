@@ -63,9 +63,9 @@ NPMJS_PUBLISH_TASKS=$(./gradlew tasks | grep "ToNpmjsRegistry" | cut -d ' ' -f 1
 
 - Check for resource validation errors (tasks would not have been present otherwise)
 ```bash
-cat library/npmjs/build/reports/resource-validation/resource-geoip/jvm-geoip.err
 cat library/npmjs/build/reports/resource-validation/resource-exec-tor/jvm.err
 cat library/npmjs/build/reports/resource-validation/resource-exec-tor-gpl/jvm.err
+cat library/npmjs/build/reports/resource-validation/resource-geoip/jvm-geoip.err
 cat library/npmjs/build/reports/resource-validation/resource-lib-tor/jvm.err
 cat library/npmjs/build/reports/resource-validation/resource-lib-tor-gpl/jvm.err
 ```
@@ -116,33 +116,35 @@ signing.secretKeyRingFile=/path/to/.gnupg/MyGPGKey.gpg
 ```bash
 cat library/resource-android-unit-test-tor/build/reports/resource-validation/resource-exec-tor/jvm.err
 cat library/resource-android-unit-test-tor/build/reports/resource-validation/resource-lib-tor/jvm.err
+cat library/resource-android-unit-test-tor/build/reports/resource-validation/resource-noexec-tor/jvm.err
 cat library/resource-android-unit-test-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/jvm.err
 cat library/resource-android-unit-test-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/jvm.err
-cat library/resource-geoip/build/reports/resource-validation/resource-geoip/jvm-geoip.err
-cat library/resource-geoip/build/reports/resource-validation/resource-geoip/native.err
-cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/android.err
-cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/jvm.err
-cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/linuxArm64.err
-cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/linuxX64.err
-cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/mingwX64.err
-cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/android.err
-cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/jvm.err
-cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/linuxArm64.err
-cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/linuxX64.err
-cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/mingwX64.err
-cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/android.err
+cat library/resource-android-unit-test-tor-gpl/build/reports/resource-validation/resource-noexec-tor-gpl/jvm.err
+cat library/resource-compilation-lib-tor/build/reports/resource-validation/resource-compilation-lib-tor/android.err
+cat library/resource-compilation-lib-tor-gpl/build/reports/resource-validation/resource-compilation-lib-tor-gpl/android.err
+cat library/resource-compilation-exec-tor/build/reports/resource-validation/resource-compilation-exec-tor/android.err
+cat library/resource-compilation-exec-tor-gpl/build/reports/resource-validation/resource-compilation-exec-tor-gpl/android.err
 cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/jvm.err
 cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/linuxArm64.err
 cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/linuxX64.err
 cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/mingwX64.err
-cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/android.err
 cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/jvm.err
 cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/linuxArm64.err
 cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/linuxX64.err
 cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/mingwX64.err
+cat library/resource-frameworks-gradle-plugin/build/reports/resource-validation/resource-frameworks-gradle-plugin/jvm.err
+cat library/resource-geoip/build/reports/resource-validation/resource-geoip/jvm-geoip.err
+cat library/resource-geoip/build/reports/resource-validation/resource-geoip/native.err
+cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/jvm.err
+cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/linuxArm64.err
+cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/linuxX64.err
+cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/mingwX64.err
+cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/jvm.err
+cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/linuxArm64.err
+cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/linuxX64.err
+cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/mingwX64.err
 cat library/resource-noexec-tor/build/reports/resource-validation/resource-noexec-tor/jvm.err
 cat library/resource-noexec-tor-gpl/build/reports/resource-validation/resource-noexec-tor-gpl/jvm.err
-cat library/resource-frameworks-gradle-plugin/build/reports/resource-validation/resource-frameworks-gradle-plugin/jvm.err
 ```
 
 - Publish
@@ -206,21 +208,21 @@ MACOS_TARGETS="JVM,JS,IOS_ARM64,IOS_X64,IOS_SIMULATOR_ARM64,MACOS_ARM64,MACOS_X6
 
 - Check `resource-validation` error reports for any errors
 ```bash
-cat library/resource-geoip/build/reports/resource-validation/resource-geoip/native.err
-cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/iosSimulatorArm64.err
-cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/iosX64.err
-cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/macosArm64.err
-cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/macosX64.err
-cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/iosSimulatorArm64.err
-cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/iosX64.err
-```
-```bash
-cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/macosArm64.err
-cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/macosX64.err
 cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/macosArm64.err
 cat library/resource-exec-tor/build/reports/resource-validation/resource-exec-tor/macosX64.err
 cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/macosArm64.err
 cat library/resource-exec-tor-gpl/build/reports/resource-validation/resource-exec-tor-gpl/macosX64.err
+cat library/resource-geoip/build/reports/resource-validation/resource-geoip/native.err
+cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/iosSimulatorArm64.err
+cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/iosX64.err
+```
+```bash
+cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/macosArm64.err
+cat library/resource-lib-tor/build/reports/resource-validation/resource-lib-tor/macosX64.err
+cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/iosSimulatorArm64.err
+cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/iosX64.err
+cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/macosArm64.err
+cat library/resource-lib-tor-gpl/build/reports/resource-validation/resource-lib-tor-gpl/macosX64.err
 ```
 
 - Publish macOS build
