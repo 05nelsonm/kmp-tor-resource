@@ -27,7 +27,7 @@ import kotlin.time.Duration.Companion.minutes
 class ResourceLoaderNoExecAndroidTest: ResourceLoaderNoExecBaseTest() {
 
     private companion object {
-        private val TIMEOUT: Duration = 15.minutes
+        private val TIMEOUT: Duration = 20.minutes
     }
 
     @Test
@@ -65,7 +65,7 @@ class ResourceLoaderNoExecAndroidTest: ResourceLoaderNoExecBaseTest() {
             var timeout = TIMEOUT
             while (true) {
                 if (isComplete) break
-                if (timeout <= Duration.ZERO) break
+                check (timeout > Duration.ZERO) { "Timed out" }
 
                 Thread.sleep(100)
                 timeout -= 100.milliseconds
