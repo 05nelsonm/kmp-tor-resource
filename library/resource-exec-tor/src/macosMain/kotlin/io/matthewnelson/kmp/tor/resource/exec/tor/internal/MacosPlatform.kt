@@ -18,9 +18,12 @@
 package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
 import io.matthewnelson.kmp.file.File
-import io.matthewnelson.kmp.file.path
 
 @Suppress("NOTHING_TO_INLINE")
 internal actual inline fun MutableMap<String, String>.configureProcessEnvironment(resourceDir: File) {
-    this["LD_LIBRARY_PATH"] = resourceDir.path
+    setLD_LIBRARY_PATH(resourceDir)
 }
+
+@Suppress("NOTHING_TO_INLINE")
+@Throws(IllegalStateException::class)
+internal actual inline fun Map<String, File>.findLibTorExec(): Map<String, File> = this

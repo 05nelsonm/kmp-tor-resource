@@ -15,10 +15,74 @@
  **/
 package io.matthewnelson.kmp.tor.resource.exec.tor
 
+import io.matthewnelson.kmp.tor.common.lib.locator.KmpTorLibLocator
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 
 class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
 
+    private companion object {
+        private val TIMEOUT: Duration = 2.minutes
+    }
+
     @Test
-    fun stub() {}
+    fun givenAndroidNative_whenExecuteTestBinary_thenIsSuccessful() {
+        val executable = KmpTorLibLocator.require("libTestExec.so")
+
+        var p: Process? = null
+        try {
+            p = ProcessBuilder(listOf(executable.path))
+                .redirectErrorStream(true)
+                .start()
+
+            p.outputStream.close()
+
+            var isComplete = false
+            Thread {
+                try {
+                    p.inputStream.use { s ->
+                        val buf = ByteArray(DEFAULT_BUFFER_SIZE * 2)
+                        while (true) {
+                            val read = s.read(buf)
+                            if (read == -1) break
+                            System.out.write(buf, 0, read)
+                        }
+                    }
+                } finally {
+                    isComplete = true
+                }
+            }.apply {
+                isDaemon = true
+                priority = Thread.MAX_PRIORITY
+            }.start()
+
+            var timeout = TIMEOUT
+            while (true) {
+                if (isComplete) break
+                check(timeout > Duration.ZERO) { "Timed out" }
+
+                Thread.sleep(100)
+                timeout -= 100.milliseconds
+            }
+        } finally {
+            p?.destroy()
+        }
+
+        assertNotNull(p)
+
+        var exitCode: Int? = null
+        while (exitCode == null) {
+            try {
+                exitCode = p.exitValue()
+            } catch (_: IllegalThreadStateException) {
+                Thread.sleep(50)
+            }
+        }
+
+        assertEquals(0, exitCode)
+    }
 }

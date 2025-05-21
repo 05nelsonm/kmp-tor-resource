@@ -42,11 +42,6 @@ open class ExecTorResourceValidationExtension private constructor(
     @Suppress("unused")
     internal constructor(project: Project): this(project, isGpl = false)
 
-    private val androidAarch64: String = "8a4eb402a872f21fdb6de60b59cc783503a1f49555c381e48fcb32a11a8f73c9"
-    private val androidArmv7: String = "3172cf145ed7a4060f7fc20c1ee9463224fb564b9f674df1fef9b4c3a5d72796"
-    private val androidX86: String = "9c919fb4aa36c391d6aa64ac67ced5b220392597eb40d565456353edcc45c8bd"
-    private val androidX86_64: String = "d556c33cb1d6ffeb951c6aaea441b80cf804c207e2728d3b3b47b99b3c78fd1c"
-
     private val jvmLinuxAndroidAarch64: String = "b2e58a4396fa2b65dae429abe0e3a5db6aa58dbc700878038f67e53b27401c06"
     private val jvmLinuxAndroidArmv7: String = "55a35586b66c923097c5d6c23e15e0adddb88004b07091b05c9f15127ab67705"
     private val jvmLinuxAndroidX86: String = "1d844a7248131a4b9cbfa52bdf7a6e3367bf8eead18f96868715f6a0618f8c7f"
@@ -94,20 +89,10 @@ open class ExecTorResourceValidationExtension private constructor(
         }
     }
 
-    fun configureAndroidJniResources() { configureLibAndroidProtected() }
     fun jvmNativeLibResourcesSrcDir(): File = jvmNativeLibsResourcesSrcDirProtected()
     fun configureNativeResources(kmp: KotlinMultiplatformExtension) { configureNativeResourcesProtected(kmp) }
 
     final override val hashes: Set<ValidationHash> by lazy { setOf(
-        // android
-        ValidationHash.LibAndroid(
-            libname = "libtorexec.so",
-            hashArm64 = androidAarch64,
-            hashArmv7 = androidArmv7,
-            hashX86 = androidX86,
-            hashX86_64 = androidX86_64,
-        ),
-
         // jvm linux-android
         ValidationHash.LibJvm(
             osName = "linux",

@@ -88,7 +88,8 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
             RESOURCE_CONFIG_LIB_TOR.let { config ->
                 // Android may have an empty configuration if not using
-                // test resources. iOS is always empty. Do not include.
+                // test resources. iOS and androidNative are always empty;
+                // do not include if that is the case.
                 if (config.errors.isEmpty() && config.resources.isEmpty()) return@let
 
                 val lines = config.toString().lines()

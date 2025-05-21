@@ -43,6 +43,10 @@ fun KmpConfigurationExtension.configureExecTor(
         }.let { project.extensions.getByType(it) }
     }
 
+    val buildDir = project.layout
+        .buildDirectory
+        .get().asFile
+
     configureShared(
         androidNamespace = packageName,
         java9ModuleName = packageName,
@@ -50,8 +54,6 @@ fun KmpConfigurationExtension.configureExecTor(
     ) {
         androidLibrary {
             android {
-                execResourceValidation.configureAndroidJniResources()
-
                 sourceSets["androidTest"].manifest.srcFile(
                     project.projectDir
                         .resolve("src")
@@ -63,6 +65,7 @@ fun KmpConfigurationExtension.configureExecTor(
             sourceSetMain {
                 dependencies {
                     implementation(libs.kmp.tor.common.lib.locator)
+                    implementation(project(":library:resource-compilation-exec-tor$suffix"))
                 }
             }
 
@@ -113,6 +116,7 @@ fun KmpConfigurationExtension.configureExecTor(
         sourceSetConnect(
             newName = "exec",
             existingNames = listOf(
+                "androidNative",
                 "jvmAndroid",
                 "js",
                 "linux",
@@ -123,7 +127,6 @@ fun KmpConfigurationExtension.configureExecTor(
                 dependencies {
                     implementation(libs.kmp.tor.common.core)
                     implementation(project(":library:resource-geoip"))
-                    implementation(project(":library:resource-lib-tor$suffix"))
                 }
             },
         )
@@ -149,16 +152,40 @@ fun KmpConfigurationExtension.configureExecTor(
 
         kotlin {
             with(sourceSets) {
+                listOf(
+                    "jvmAndroid",
+                    "js",
+                    "linux",
+                    "macos",
+                    "mingw",
+                ).forEach { target ->
+                    findByName(target + "Main")?.apply {
+                        dependencies {
+                            implementation(project(":library:resource-lib-tor$suffix"))
+                        }
+                    }
+                }
+            }
+        }
+
+        kotlin {
+            sourceSets.findByName("androidNativeMain")?.apply {
+                dependencies {
+                    implementation(libs.kmp.tor.common.lib.locator)
+                }
+            }
+        }
+
+        kotlin {
+            with(sourceSets) {
                 val execTest = findByName("execTest") ?: return@with
 
                 try {
+                    project.evaluationDependsOn(":library:resource-compilation-lib-tor$suffix")
+                } catch (_: Throwable) {}
+                try {
                     project.evaluationDependsOn(":library:resource-lib-tor$suffix")
                 } catch (_: Throwable) {}
-
-                val buildDir = project.layout
-                    .buildDirectory
-                    .get()
-                    .asFile
 
                 val buildConfigDir = buildDir
                     .resolve("generated")
@@ -216,6 +243,14 @@ fun KmpConfigurationExtension.configureExecTor(
 
                 execTest.generateBuildConfig(areErrReportsEmpty = { null })
 
+                val reportDirCompilationLibTor = project.rootDir
+                    .resolve("library")
+                    .resolve("resource-compilation-lib-tor$suffix")
+                    .resolve("build")
+                    .resolve("reports")
+                    .resolve("resource-validation")
+                    .resolve("resource-compilation-lib-tor$suffix")
+
                 val reportDirLibTor = project.rootDir
                     .resolve("library")
                     .resolve("resource-lib-tor$suffix")
@@ -224,13 +259,22 @@ fun KmpConfigurationExtension.configureExecTor(
                     .resolve("resource-validation")
                     .resolve("resource-lib-tor$suffix")
 
-                val reportDirExec = buildDir
+                val reportDirCompilationExecTor = project.rootDir
+                    .resolve("library")
+                    .resolve("resource-compilation-exec-tor$suffix")
+                    .resolve("build")
+                    .resolve("reports")
+                    .resolve("resource-validation")
+                    .resolve("resource-compilation-exec-tor$suffix")
+
+                val reportDirExecTor = buildDir
                     .resolve("reports")
                     .resolve("resource-validation")
                     .resolve(project.name)
 
                 listOf(
                     "android" to "androidInstrumented",
+                    "android" to "androidNative",
 
                     // If no errors for JVM resources, then android-unit-test project
                     // dependency and js is not utilizing mock resources and can run tests.
@@ -245,22 +289,25 @@ fun KmpConfigurationExtension.configureExecTor(
                     "mingwX64" to null,
                 ).forEach { (reportName, srcSetName) ->
                     val srcSetTest = findByName("${srcSetName ?: reportName}Test") ?: return@forEach
+                    val isAndroid = reportName == "android"
 
                     val areErrReportsEmpty = {
-                        val reportLibTor = reportDirLibTor
+                        val reportLibTor = (if (isAndroid) reportDirCompilationLibTor else reportDirLibTor)
                             .resolve("${reportName}.err")
                             .readText()
-                        val reportExec = reportDirExec
+                        val reportExecTor = (if (isAndroid) reportDirCompilationExecTor else reportDirExecTor)
                             .resolve("${reportName}.err")
                             .readText()
 
-                        (reportLibTor + reportExec).indexOfFirst { !it.isWhitespace() } == -1
+                        (reportLibTor + reportExecTor).indexOfFirst { !it.isWhitespace() } == -1
                     }
 
                     srcSetTest.generateBuildConfig(areErrReportsEmpty = areErrReportsEmpty)
                 }
             }
         }
+
+        configureAndroidNativeEmulatorTests(project)
 
         action.execute(this)
     }

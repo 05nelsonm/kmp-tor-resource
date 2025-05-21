@@ -18,9 +18,7 @@
 package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
 import android.os.Build
-import io.matthewnelson.kmp.file.ANDROID
 import io.matthewnelson.kmp.file.File
-import io.matthewnelson.kmp.file.parentPath
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSHost
 import io.matthewnelson.kmp.tor.common.core.OSInfo
@@ -75,15 +73,6 @@ internal actual inline fun Resource.Config.Builder.configureTorResources() {
 }
 
 @Suppress("NOTHING_TO_INLINE")
-@Throws(IllegalStateException::class)
-internal actual inline fun Map<String, File>.findLibTorExec(): Map<String, File> {
-    if (contains(ALIAS_TOR)) return this
-
-    val lib = KmpTorLibLocator.require("libtorexec.so")
-    return toMutableMap().apply { put(ALIAS_TOR, lib) }
-}
-
-@Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
 internal actual inline fun MutableMap<String, String>.configureProcessEnvironment(resourceDir: File) {
     if (OSInfo.INSTANCE.isAndroidRuntime()) {
@@ -104,4 +93,13 @@ internal actual inline fun MutableMap<String, String>.configureProcessEnvironmen
     // This would only be the case if someone is compiling an Android
     // app ON an Android device, but hey...
     setLD_LIBRARY_PATH(resourceDir)
+}
+
+@Suppress("NOTHING_TO_INLINE")
+@Throws(IllegalStateException::class)
+internal actual inline fun Map<String, File>.findLibTorExec(): Map<String, File> {
+    if (contains(ALIAS_TOR)) return this
+
+    val lib = KmpTorLibLocator.require("libtorexec.so")
+    return toMutableMap().apply { put(ALIAS_TOR, lib) }
 }

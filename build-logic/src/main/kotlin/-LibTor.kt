@@ -29,6 +29,7 @@ fun KmpConfigurationExtension.configureLibTor(
 
     val libs = project.the<LibrariesForLibs>()
     val isGpl = project.name.endsWith("gpl")
+    val suffix = if (isGpl) "-gpl" else ""
     val libResourceValidation by lazy {
         if (isGpl) {
             LibTorResourceValidationExtension.GPL::class.java
@@ -44,7 +45,11 @@ fun KmpConfigurationExtension.configureLibTor(
         publish = true,
     ) {
         androidLibrary {
-            android { libResourceValidation.configureAndroidJniResources() }
+            sourceSetMain {
+                dependencies {
+                    implementation(project(":library:resource-compilation-lib-tor$suffix"))
+                }
+            }
         }
 
         jvm {

@@ -21,10 +21,6 @@ import io.matthewnelson.kmp.tor.common.core.OSHost
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 
 @Suppress("NOTHING_TO_INLINE")
-@Throws(IllegalStateException::class)
-internal actual inline fun Map<String, File>.findLibTorExec(): Map<String, File> = this
-
-@Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
 internal actual inline fun MutableMap<String, String>.configureProcessEnvironment(resourceDir: File) {
     if (OSInfo.INSTANCE.osHost !is OSHost.Linux.Android) return
@@ -32,3 +28,7 @@ internal actual inline fun MutableMap<String, String>.configureProcessEnvironmen
     // Only necessary for Android API 23 and below, but set it nonetheless
     setLD_LIBRARY_PATH(resourceDir)
 }
+
+@Suppress("NOTHING_TO_INLINE")
+@Throws(IllegalStateException::class)
+internal actual inline fun Map<String, File>.findLibTorExec(): Map<String, File> = this

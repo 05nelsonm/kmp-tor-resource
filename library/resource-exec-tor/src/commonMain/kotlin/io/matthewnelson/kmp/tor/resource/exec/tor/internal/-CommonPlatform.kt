@@ -24,11 +24,11 @@ internal const val ALIAS_TOR: String = "tor"
 internal const val ALIAS_LIB_TOR: String = "libtor"
 
 @Suppress("NOTHING_TO_INLINE")
-@Throws(IllegalStateException::class)
-internal expect inline fun Map<String, File>.findLibTorExec(): Map<String, File>
+internal expect inline fun MutableMap<String, String>.configureProcessEnvironment(resourceDir: File)
 
 @Suppress("NOTHING_TO_INLINE")
-internal expect inline fun MutableMap<String, String>.configureProcessEnvironment(resourceDir: File)
+@Throws(IllegalStateException::class)
+internal expect inline fun Map<String, File>.findLibTorExec(): Map<String, File>
 
 @Suppress("NOTHING_TO_INLINE", "FunctionName")
 internal inline fun MutableMap<String, String>.setLD_LIBRARY_PATH(dir: File) {

@@ -18,9 +18,7 @@ package resource.validation.extensions
 import com.android.build.gradle.LibraryExtension
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.getByName
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import resource.validation.extensions.internal.ERROR
 import resource.validation.extensions.internal.SourceSetName
 import resource.validation.extensions.internal.SourceSetName.Companion.toSourceSetName
@@ -51,13 +49,11 @@ sealed class AbstractResourceValidationExtension(
 
     private val errLibAndroid = mutableSetOf<ERROR>()
     private val errLibJvm = mutableSetOf<ERROR>()
-    private val errLibNativeInterop = mutableMapOf<String, MutableSet<ERROR>>()
     private val errResJvm = mutableSetOf<ERROR>()
     private val errResNative = mutableMapOf<SourceSetName, MutableSet<ERROR>>()
 
     private var isConfiguredLibAndroid = false
     private var isConfiguredLibJvm = false
-    private var isConfiguredLibNativeInterop = false
     private var isConfiguredResJvm = false
     private var isConfiguredResNative = false
 
@@ -95,10 +91,6 @@ sealed class AbstractResourceValidationExtension(
 
         val hashes = hashes.filterIsInstance<ValidationHash.LibAndroid>()
         check(hashes.isNotEmpty()) { "No hashes to validate, no jni resources." }
-
-        packaging {
-            jniLibs.useLegacyPackaging = true
-        }
 
         defaultConfig {
             ndk {
