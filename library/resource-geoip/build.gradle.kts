@@ -37,8 +37,6 @@ kmpConfiguration {
             }
         }
 
-        androidNativeAll()
-
         common {
             sourceSetMain {
                 dependencies {

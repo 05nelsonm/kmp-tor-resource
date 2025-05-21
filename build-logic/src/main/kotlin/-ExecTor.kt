@@ -111,8 +111,6 @@ fun KmpConfigurationExtension.configureExecTor(
             }
         }
 
-        androidNativeAll()
-
         common {
             pluginIds("resource-validation")
 
@@ -171,7 +169,7 @@ fun KmpConfigurationExtension.configureExecTor(
                     "macos",
                     "mingw",
                 ).forEach { target ->
-                    findByName("${target}Main")?.apply {
+                    findByName(target + "Main")?.apply {
                         dependencies {
                             implementation(project(":library:resource-lib-tor$suffix"))
                         }

@@ -56,6 +56,8 @@ protected actual constructor(
     protected actual fun libTor(): File = extractLibTor(isInit = false)
 
     private fun extractLibTor(isInit: Boolean): File {
+        if (IS_ANDROID_NATIVE) return "libtor.so".toFile()
+
         return RESOURCE_CONFIG_LIB_TOR
             .extractTo(resourceDir, onlyIfDoesNotExist = !isInit)
             .getValue(ALIAS_LIB_TOR)
