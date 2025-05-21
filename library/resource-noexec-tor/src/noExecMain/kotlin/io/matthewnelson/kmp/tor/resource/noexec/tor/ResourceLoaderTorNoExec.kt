@@ -134,6 +134,8 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
                 while (e == null) {
                     try {
+                        // Block the calling thread until we have a
+                        // confirmed start in the allocated thread.
                         10.milliseconds.threadSleep()
                     } catch (_: InterruptedException) {}
 
@@ -141,15 +143,17 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
                         State.OFF,
                         State.STARTING -> e = job.checkError()
 
-                        // No startup errors from kmp_tor.c will be returned
-                        // beyond this point.
+                        // No startup errors from kmp_tor.c will be
+                        // returned beyond this point.
                         State.STARTED,
                         State.STOPPED -> break
                     }
                 }
 
                 if (e != null) {
-                    // To clean up the Native Worker. kmp_tor.c will just return -1, so.
+                    // To clean up the Native Worker thread. kmp_tor.c
+                    // will just return -1 because it will already be
+                    // in State.OFF if it returned an error.
                     terminateAndAwaitResult()
                 }
 

@@ -24,6 +24,8 @@ import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorJob
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.Throws
 
 // jvmAndroid
@@ -35,24 +37,37 @@ protected actual constructor(
     registerShutdownHook: Boolean,
 ): TorApi() {
 
+    // Using a fixed thread pool will keep the thread around
+    // for the lifetime of the application. This is because if
+    // using a stand-alone Thread for each invocation, Java likes
+    // to eagerly destroy things and that does not bode well
+    // with native code. If the pthread_key_delete ever gets called,
+    // it may cause tor to abort.
+    private val executor = run {
+        val threadNo = AtomicLong()
+        Executors.newFixedThreadPool(/* nThreads = */ 1) { runnable ->
+            Thread(runnable).apply {
+                name = "tor_run_main-${threadNo.incrementAndGet()}"
+                isDaemon = true
+                priority = Thread.MAX_PRIORITY
+            }
+        }
+    }
+
     private external fun kmpTorRunBlocking(libTor: String, args: Array<String>): String?
 
     @Throws(IllegalStateException::class)
     protected actual fun kmpTorRunInThread(libTor: String, args: Array<String>): TorJob {
-        var error: String? = null
-        var l: String? = libTor
-        var a: Array<String>? = args
-        val t = Thread {
-            val e = kmpTorRunBlocking(l!!, a!!)
-            error = e
-            l = null
-            a = null
+        var localError: String? = null
+        var localLibTor: String? = libTor
+        var localArgs: Array<String>? = args
+        executor.submit {
+            val e = kmpTorRunBlocking(localLibTor!!, localArgs!!)
+            localError = e
+            localLibTor = null
+            localArgs = null
         }
-        t.name = "tor_run_main"
-        t.isDaemon = true
-        t.priority = Thread.MAX_PRIORITY
-        t.start()
-        return object : TorJob { override fun checkError(): String? = error }
+        return object : TorJob { override fun checkError(): String? = localError }
     }
 
     protected actual external fun kmpTorState(): Int
