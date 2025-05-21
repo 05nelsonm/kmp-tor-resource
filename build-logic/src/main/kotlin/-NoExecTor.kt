@@ -191,8 +191,9 @@ fun KmpConfigurationExtension.configureNoExecTor(
                 .resolve("external")
                 .resolve("native")
 
-            val generatedNativeDir = generatedSourcesDir.resolve("native")
-            generatedNativeDir.mkdirs()
+            val generatedNativeDir = generatedSourcesDir
+                .resolve("native")
+                .apply { mkdirs() }
 
             val files = listOf("lib_load", "win32_sockets", "kmp_tor").map { name ->
                 val sb = StringBuilder()
@@ -202,6 +203,37 @@ fun KmpConfigurationExtension.configureNoExecTor(
                 generatedNativeDir.resolve("$name.def").writeText(sb.toString())
 
                 File("$name.c")
+            }
+
+            val nativeTargets = targets.filterIsInstance<KotlinNativeTarget>().map { target ->
+                val linkerOpts = when (target.konanTarget.family) {
+                    Family.IOS,
+                    Family.LINUX,
+                    Family.OSX -> "-lpthread -ldl"
+                    Family.ANDROID -> "-pthread -ldl -llog"
+                    Family.MINGW -> ""
+                    else -> null
+                }
+
+                check(linkerOpts != null) { "Configuration needed for $target" }
+
+                target.compilations["main"].cinterops.create("kmp_tor") {
+                    defFile(generatedNativeDir.resolve("$name.def"))
+                    includeDirs(externalNativeDir)
+                }
+
+                if (target.konanTarget.family == Family.MINGW) {
+                    target.compilations["test"].cinterops.create("win32_sockets") {
+                        defFile(generatedNativeDir.resolve("$name.def"))
+                        includeDirs(externalNativeDir)
+                    }
+                }
+
+                if (linkerOpts.isNotBlank()) {
+                    target.compilerOptions.freeCompilerArgs.addAll("-linker-options", linkerOpts)
+                }
+
+                target
             }
 
             project.extensions.configure<CompileToBitcodeExtension> {
@@ -221,45 +253,25 @@ fun KmpConfigurationExtension.configureNoExecTor(
                         name
                     }.let { includeFiles = it }
 
-                    if (kt.family == Family.ANDROID) {
-                        compilerArgs.add("-D__ANDROID__")
-                    }
-
                     if (kt.family.isAppleFamily) {
                         listOf(
                             "-Wno-unused-command-line-argument",
                         ).let { compilerArgs.addAll(it) }
                     }
-                }
-            }
 
-            targets.filterIsInstance<KotlinNativeTarget>().forEach target@ { target ->
-                val linkerOpts = when (target.konanTarget.family) {
-                    Family.IOS,
-                    Family.LINUX,
-                    Family.OSX -> "-lpthread -ldl"
-                    Family.ANDROID -> "-pthread -ldl -llog -m"
-                    Family.MINGW -> ""
-                    else -> null
-                }
+                    // Ensure the CompileToBitcode task comes after cinterop task such
+                    // that whatever sysroot dependencies are needed get downloaded
+                    // and are available at time of execution.
+                    nativeTargets.forEach { nt ->
+                        if (nt.konanTarget != kt) return@forEach
+                        val interopTaskName = nt.compilations["main"]
+                            .cinterops
+                            .getByName("kmp_tor")
+                            .interopProcessingTaskName
 
-                check(linkerOpts != null) { "Configuration needed for $target" }
-
-                target.compilations["main"].cinterops.create("kmp_tor") {
-                    defFile(generatedNativeDir.resolve("$name.def"))
-                    includeDirs(externalNativeDir)
-                }
-
-                if (target.konanTarget.family == Family.MINGW) {
-                    target.compilations["test"].cinterops.create("win32_sockets") {
-                        defFile(generatedNativeDir.resolve("$name.def"))
-                        includeDirs(externalNativeDir)
+                        this.dependsOn(interopTaskName)
                     }
                 }
-
-                if (linkerOpts.isBlank()) return@target
-
-                target.compilerOptions.freeCompilerArgs.addAll("-linker-options", linkerOpts)
             }
         }
 
