@@ -224,6 +224,12 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     if (kt.family == Family.ANDROID) {
                         compilerArgs.add("-D__ANDROID__")
                     }
+
+                    if (kt.family.isAppleFamily) {
+                        listOf(
+                            "-Wno-unused-command-line-argument",
+                        ).let { compilerArgs.addAll(it) }
+                    }
                 }
             }
 
