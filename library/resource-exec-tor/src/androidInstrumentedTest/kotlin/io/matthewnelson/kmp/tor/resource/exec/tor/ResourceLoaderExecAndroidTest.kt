@@ -25,6 +25,10 @@ import kotlin.time.Duration.Companion.minutes
 
 class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
 
+    private companion object {
+        private val TIMEOUT: Duration = 1.minutes
+    }
+
     @Test
     fun givenAndroidNative_whenExecuteTestBinary_thenIsSuccessful() {
         val executable = KmpTorLibLocator.require("libTestExec.so")
@@ -56,7 +60,7 @@ class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
                 priority = Thread.MAX_PRIORITY
             }.start()
 
-            var timeout = 1.minutes
+            var timeout = TIMEOUT
             while (true) {
                 if (isComplete) break
                 if (timeout <= Duration.ZERO) break

@@ -368,13 +368,15 @@ fun KmpConfigurationExtension.configureNoExecTor(
             }
         }
 
+        configureAndroidNativeEmulatorTests(project)
+
         action.execute(this)
     }
 }
 
 // CKLib uses too old of a version of LLVM for current version of Kotlin which produces errors for android
-// native due to unknown link arguments. Below is a supplemental implementation for downloading and using
-// the -dev llvm compiler.
+// native due to unsupported link arguments. Below is a supplemental implementation to download and use
+// the -dev llvm compiler for the current kotlin version.
 //
 // The following info can be found in ~/.konan/konan-native-prebuild-{os}-{arch}-{kotlin version}/konan/konan.properties
 private const val LLVM_VERSION: String = "16.0.0"

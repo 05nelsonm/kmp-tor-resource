@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-import com.android.build.gradle.tasks.MergeSourceSetFolders
 import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import org.gradle.accessors.dm.LibrariesForLibs
@@ -46,12 +45,7 @@ fun KmpConfigurationExtension.configureExecTor(
 
     val buildDir = project.layout
         .buildDirectory
-        .get()
-        .asFile
-    val testJniLibs = project.projectDir
-        .resolve("testJniLibs")
-
-    project.tasks.findByName("clean")?.apply { testJniLibs.deleteRecursively() }
+        .get().asFile
 
     configureShared(
         androidNamespace = packageName,
@@ -60,16 +54,12 @@ fun KmpConfigurationExtension.configureExecTor(
     ) {
         androidLibrary {
             android {
-                sourceSets["androidTest"].apply {
-                    jniLibs.srcDir(testJniLibs)
-
-                    manifest.srcFile(
-                        project.projectDir
-                            .resolve("src")
-                            .resolve("androidInstrumentedTest")
-                            .resolve("AndroidManifest.xml")
-                    )
-                }
+                sourceSets["androidTest"].manifest.srcFile(
+                    project.projectDir
+                        .resolve("src")
+                        .resolve("androidInstrumentedTest")
+                        .resolve("AndroidManifest.xml")
+                )
             }
 
             sourceSetMain {
@@ -317,41 +307,7 @@ fun KmpConfigurationExtension.configureExecTor(
             }
         }
 
-        kotlin {
-            if (!project.plugins.hasPlugin("com.android.base")) return@kotlin
-
-            val nativeTestBinaryTasks = listOf(
-                "Arm32" to "armeabi-v7a",
-                "Arm64" to "arm64-v8a",
-                "X64" to "x86_64",
-                "X86" to "x86",
-            ).mapNotNull { (arch, abi) ->
-                val nativeTestBinariesTask = project
-                    .tasks
-                    .findByName("androidNative${arch}TestBinaries")
-                    ?: return@mapNotNull null
-
-                val abiDir = testJniLibs.resolve(abi)
-                if (!abiDir.exists() && !abiDir.mkdirs()) throw RuntimeException("mkdirs[$abiDir]")
-
-                val testExecutable = buildDir
-                    .resolve("bin")
-                    .resolve("androidNative$arch")
-                    .resolve("debugTest")
-                    .resolve("test.kexe")
-
-                nativeTestBinariesTask.doLast {
-                    testExecutable.copyTo(abiDir.resolve("libTestExec.so"), overwrite = true)
-                }
-
-                nativeTestBinariesTask
-            }
-
-            project.tasks.withType(MergeSourceSetFolders::class.java).all {
-                if (name != "mergeDebugAndroidTestJniLibFolders") return@all
-                nativeTestBinaryTasks.forEach { task -> dependsOn(task) }
-            }
-        }
+        configureAndroidNativeEmulatorTests(project)
 
         action.execute(this)
     }
