@@ -579,7 +579,6 @@ function __build:configure:target:finalize:output:shared {
   # NOTE: Android API 23 and below will still need LD_LIBRARY_PATH set
   local exec_ldflags="-Wl,-rpath,'\$ORIGIN'"
 
-  local jni_java_version="java8"
   local jni_name="libtorjni.so"
   local jni_cflags="-shared -Wl,--version-script,exports/kmp_tor-jni.map"
   local jni_ldadd="-ldl -pthread"
@@ -595,7 +594,6 @@ function __build:configure:target:finalize:output:shared {
   case "$os_name" in
     "android")
       exec_name="libtorexec.so"
-      jni_java_version="java6"
       jni_cflags+=" -Wl,-soname,$jni_name"
       jni_ldadd+=" -llog"
       lib_load_cflags="-D__ANDROID__"
@@ -666,7 +664,6 @@ function __build:configure:target:finalize:output:shared {
   esac
 
   if [ -n "$jni_name" ]; then
-    __util:require:var_set "$jni_java_version" "jni_java_version"
     __util:require:var_set "$jni_cflags" "jni_cflags"
   fi
 
@@ -717,7 +714,7 @@ function __build:configure:target:finalize:output:shared {
 
   if [ -n "$jni_name" ]; then
     __build:SCRIPT "  \$CC \$CFLAGS -c kmp_tor.c"
-    __build:SCRIPT "  \$CC \$CFLAGS -I\"\${JNI_H}\"/$jni_java_version/include -c kmp_tor-jni.c"
+    __build:SCRIPT "  \$CC \$CFLAGS -I\"\${JNI_H}\"/java6/include -c kmp_tor-jni.c"
     __build:SCRIPT "  \$CC \$CFLAGS $lib_load_cflags -c lib_load.c"
     if [ "$os_name" = "mingw" ]; then
       __build:SCRIPT '  $CC $CFLAGS -DHAVE_AF_UNIX_H -c win32_sockets.c'
