@@ -360,6 +360,16 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     val srcSetTest = findByName("${srcSetName ?: reportName}Test") ?: return@forEach
 
                     val isErrReportEmpty = report@ {
+                        if (reportName == "jvm" && !HostManager.hostIsMingw) {
+                            if (JavaVersion.current() < JavaVersion.VERSION_16) {
+                                // Java 15- tests for JVM on UNIX are very problematic due
+                                // to Process and how the tests get run... test runner will
+                                // exit exceptionally crying about memory issues, but it's
+                                // actually OK.
+                                return@report false
+                            }
+                        }
+
                         var hasError = reportDirs.isEmpty()
                         reportDirs.forEach readReport@{ dir ->
                             if (hasError) return@readReport
