@@ -30,10 +30,11 @@ protected constructor(
     registerShutdownHook: Boolean,
 ): TorApi {
 
+    public final override fun state(): State
+    public final override fun terminateAndAwaitResult(): Int
+
     @Throws(IllegalStateException::class)
-    protected fun kmpTorRunInThread(libTor: String, args: Array<String>): TorJob
-    protected fun kmpTorState(): Int
-    protected fun kmpTorTerminateAndAwaitResult(): Int
+    protected fun runInThread(libTor: String, args: Array<String>): TorJob
 
     @Throws(IllegalStateException::class, IOException::class)
     protected fun libTor(): File

@@ -44,25 +44,22 @@ protected actual constructor(
 
     private val worker = AtomicReference<Worker?>(null)
 
+    public actual final override fun state(): State = State.entries.elementAt(kmp_tor_state())
+
+    public actual final override fun terminateAndAwaitResult(): Int {
+        val result = kmp_tor_terminate_and_await_result()
+        worker.getAndSet(null)?.requestTermination(false)?.result
+        return result
+    }
+
     @Throws(IllegalStateException::class)
-    protected actual fun kmpTorRunInThread(
-        libTor: String,
-        args: Array<String>,
-    ): TorJob {
+    protected actual fun runInThread(libTor: String, args: Array<String>): TorJob {
         check(worker.value == null) { "Worker != null. terminateAndAwaitResult is required" }
 
         val w = Worker.start(name = "tor_run_main")
         val job = w.executeTorJob(libTor, args)
         worker.value = w
         return job
-    }
-
-    protected actual fun kmpTorState(): Int = kmp_tor_state()
-
-    protected actual fun kmpTorTerminateAndAwaitResult(): Int {
-        val result = kmp_tor_terminate_and_await_result()
-        worker.getAndSet(null)?.requestTermination(false)?.result
-        return result
     }
 
     @Throws(IllegalStateException::class, IOException::class)

@@ -19,8 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-static jstring null = NULL;
-
 static char *
 JStringDup(JNIEnv *env, jstring s)
 {
@@ -112,7 +110,7 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunBlo
     return (*env)->NewStringUTF(env, error);
   }
 
-  return null;
+  return NULL;
 }
 
 JNIEXPORT jint JNICALL

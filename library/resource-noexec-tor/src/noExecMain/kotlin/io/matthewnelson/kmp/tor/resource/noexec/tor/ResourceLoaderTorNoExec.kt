@@ -122,13 +122,13 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
         private val lock = synchronizedObject()
 
         @Throws(IllegalStateException::class, IOException::class)
-        override fun torRunMain(args: Array<String>) {
+        public override fun torRunMain(args: Array<String>) {
             val error = synchronized(lock) {
                 val s = state()
                 check(s == State.OFF) { "state[$s] != State.OFF" }
 
                 val libTor = libTor()
-                val job = kmpTorRunInThread(libTor.path, args)
+                val job = runInThread(libTor.path, args)
 
                 var e: String? = null
 
@@ -162,10 +162,6 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
             throw IllegalStateException(error)
         }
-
-        override fun state(): State = State.entries.elementAt(kmpTorState())
-
-        override fun terminateAndAwaitResult(): Int = kmpTorTerminateAndAwaitResult()
     }
 
     @Throws(IllegalStateException::class)

@@ -37,12 +37,12 @@ protected actual constructor(
     registerShutdownHook: Boolean,
 ): TorApi() {
 
-    // Using a fixed thread pool will keep the thread around
-    // for the lifetime of the application. This is because if
-    // using a stand-alone Thread for each invocation, Java likes
-    // to eagerly destroy things and that does not bode well
-    // with native code. If the pthread_key_delete ever gets called,
-    // it may cause tor to abort.
+
+    // Using a fixed thread pool will keep the thread around for the lifetime
+    // of the application. This is because if a new Thread that cleans itself
+    // up once done is used on each invocation of runInThread, Java may call
+    // pthread_key_delete too soon before native resources are released, causing
+    // tor to abort.
     private val executor = run {
         val threadNo = AtomicLong()
         Executors.newFixedThreadPool(/* nThreads = */ 1) { runnable ->
@@ -54,10 +54,12 @@ protected actual constructor(
         }
     }
 
-    private external fun kmpTorRunBlocking(libTor: String, args: Array<String>): String?
+    public actual final override fun state(): State = State.entries.elementAt(kmpTorState())
+
+    public actual final override fun terminateAndAwaitResult(): Int = kmpTorTerminateAndAwaitResult()
 
     @Throws(IllegalStateException::class)
-    protected actual fun kmpTorRunInThread(libTor: String, args: Array<String>): TorJob {
+    protected actual fun runInThread(libTor: String, args: Array<String>): TorJob {
         var localError: String? = null
         var localLibTor: String? = libTor
         var localArgs: Array<String>? = args
@@ -69,9 +71,6 @@ protected actual constructor(
         }
         return object : TorJob { override fun checkError(): String? = localError }
     }
-
-    protected actual external fun kmpTorState(): Int
-    protected actual external fun kmpTorTerminateAndAwaitResult(): Int
 
     @Throws(IllegalStateException::class, IOException::class)
     protected actual fun libTor(): File = extractLibTor(isInit = false)
@@ -85,13 +84,13 @@ protected actual constructor(
             }
             "libtor.so".toFile()
         } else {
-            val map: Map<String, File> = RESOURCE_CONFIG_LIB_TOR
-                .extractTo(resourceDir, onlyIfDoesNotExist = !isInit)
+            val libs = RESOURCE_CONFIG_LIB_TOR.extractTo(resourceDir, onlyIfDoesNotExist = !isInit)
 
             if (isInit) {
-                System.load(map.getValue(ALIAS_LIB_TOR_JNI).path)
+                @Suppress("UnsafeDynamicallyLoadedCode")
+                System.load(libs.getValue(ALIAS_LIB_TOR_JNI).path)
             }
-            map.getValue(ALIAS_LIB_TOR)
+            libs.getValue(ALIAS_LIB_TOR)
         }
     } catch (t: Throwable) {
         if (t is IOException) throw t
@@ -102,17 +101,29 @@ protected actual constructor(
     }
 
     init {
-        extractLibTor(isInit = true)
+        try {
+            extractLibTor(isInit = true)
+        } catch (t: Throwable) {
+            executor.shutdown()
+            throw t
+        }
 
         if (registerShutdownHook) {
             val t = Thread { terminateAndAwaitResult() }
             try {
-                Runtime.getRuntime().addShutdownHook(t)
+                Runtime.getRuntime().addShutdownHook(/* hook = */ t)
             } catch (_: Throwable) {}
         }
     }
 
     internal companion object {
         internal const val ALIAS_LIB_TOR_JNI: String = "libtorjni"
+
+        @JvmStatic
+        private external fun kmpTorRunBlocking(libTor: String, args: Array<String>): String?
+        @JvmStatic
+        private external fun kmpTorState(): Int
+        @JvmStatic
+        private external fun kmpTorTerminateAndAwaitResult(): Int
     }
 }
