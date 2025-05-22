@@ -195,7 +195,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
                 .resolve("native")
                 .apply { mkdirs() }
 
-            val files = listOf("lib_load", "win32_sockets", "kmp_tor").map { name ->
+            val cFiles = listOf("lib_load", "win32_sockets", "kmp_tor").map { name ->
                 val sb = StringBuilder()
                 sb.appendLine("package = $packageName.internal")
                 sb.appendLine("headers = $name.h")
@@ -205,7 +205,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
                 File("$name.c")
             }
 
-            val nativeTargets = targets.filterIsInstance<KotlinNativeTarget>().map { target ->
+            val interopTaskInfo = targets.filterIsInstance<KotlinNativeTarget>().map { target ->
                 val linkerOpts = when (target.konanTarget.family) {
                     Family.IOS,
                     Family.LINUX,
@@ -217,10 +217,10 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
                 check(linkerOpts != null) { "Configuration needed for $target" }
 
-                target.compilations["main"].cinterops.create("kmp_tor") {
+                val interopTaskName = target.compilations["main"].cinterops.create("kmp_tor") {
                     defFile(generatedNativeDir.resolve("$name.def"))
                     includeDirs(externalNativeDir)
-                }
+                }.interopProcessingTaskName
 
                 if (target.konanTarget.family == Family.MINGW) {
                     target.compilations["test"].cinterops.create("win32_sockets") {
@@ -233,7 +233,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     target.compilerOptions.freeCompilerArgs.addAll("-linker-options", linkerOpts)
                 }
 
-                target
+                interopTaskName to target.konanTarget
             }
 
             project.extensions.configure<CompileToBitcodeExtension> {
@@ -245,7 +245,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
                     val kt = KonanTarget.predefinedTargets[target]!!
 
-                    files.mapNotNull { cFile ->
+                    cFiles.mapNotNull { cFile ->
                         val name = cFile.name
                         if (name == "win32_sockets.c" && kt.family != Family.MINGW) {
                             return@mapNotNull null
@@ -262,13 +262,8 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     // Ensure the CompileToBitcode task comes after cinterop task such
                     // that whatever sysroot dependencies are needed get downloaded
                     // and are available at time of execution.
-                    nativeTargets.forEach { nt ->
-                        if (nt.konanTarget != kt) return@forEach
-                        val interopTaskName = nt.compilations["main"]
-                            .cinterops
-                            .getByName("kmp_tor")
-                            .interopProcessingTaskName
-
+                    interopTaskInfo.forEach { (interopTaskName, interopTarget) ->
+                        if (interopTarget != kt) return@forEach
                         this.dependsOn(interopTaskName)
                     }
                 }

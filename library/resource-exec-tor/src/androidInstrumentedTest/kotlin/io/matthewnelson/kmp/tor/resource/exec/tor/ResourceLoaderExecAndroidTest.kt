@@ -22,6 +22,7 @@ import kotlin.test.assertNotNull
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.TimeSource
 
 class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
 
@@ -34,6 +35,8 @@ class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
         val executable = KmpTorLibLocator.require("libTestExec.so")
 
         var p: Process? = null
+        val mark = TimeSource.Monotonic.markNow()
+        val output = StringBuilder()
         try {
             p = ProcessBuilder(listOf(executable.path))
                 .redirectErrorStream(true)
@@ -44,12 +47,12 @@ class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
             var isComplete = false
             Thread {
                 try {
-                    p.inputStream.use { s ->
-                        val buf = ByteArray(DEFAULT_BUFFER_SIZE * 2)
+                    p.inputStream.buffered().reader().use { s ->
+                        val buf = CharArray(DEFAULT_BUFFER_SIZE * 2)
                         while (true) {
                             val read = s.read(buf)
                             if (read == -1) break
-                            System.out.write(buf, 0, read)
+                            output.append(buf, 0, read)
                         }
                     }
                 } finally {
@@ -63,7 +66,7 @@ class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
             var timeout = TIMEOUT
             while (true) {
                 if (isComplete) break
-                check(timeout > Duration.ZERO) { "Timed out" }
+                check(timeout > Duration.ZERO) { "Timed out\n${output}" }
 
                 Thread.sleep(100)
                 timeout -= 100.milliseconds
@@ -83,6 +86,9 @@ class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
             }
         }
 
+        output.appendLine().append("RUN LENGTH: ${mark.elapsedNow().inWholeSeconds}s")
+        val out = output.toString()
         assertEquals(0, exitCode)
+        println(out)
     }
 }
