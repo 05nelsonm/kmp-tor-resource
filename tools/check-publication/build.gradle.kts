@@ -39,6 +39,11 @@ kmpConfiguration {
         androidLibrary {
             sourceSetMain {
                 dependencies {
+                    implementation("$group:resource-compilation-exec-tor:$version")
+                    implementation("$group:resource-compilation-exec-tor-gpl:$version")
+                    implementation("$group:resource-compilation-lib-tor:$version")
+                    implementation("$group:resource-compilation-lib-tor-gpl:$version")
+
                     // Should be a SEPARATE publication from -jvm
                     implementation("$group:resource-lib-tor-android:$version")
                     implementation("$group:resource-lib-tor-gpl-android:$version")
