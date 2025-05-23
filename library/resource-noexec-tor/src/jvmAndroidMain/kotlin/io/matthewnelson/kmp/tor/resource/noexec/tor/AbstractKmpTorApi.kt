@@ -23,6 +23,10 @@ import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorJob
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicLong
+import kotlin.Throws
 
 // jvmAndroid
 @OptIn(InternalKmpTorApi::class)
@@ -33,9 +37,40 @@ protected actual constructor(
     registerShutdownHook: Boolean,
 ): TorApi() {
 
-    protected actual external fun kmpTorRunMain(libTor: String, args: Array<String>): String?
-    protected actual external fun kmpTorState(): Int
-    protected actual external fun kmpTorTerminateAndAwaitResult(): Int
+
+    // Using a fixed thread pool will keep the thread around for the lifetime
+    // of the application. This is because if a new Thread that cleans itself
+    // up once done is used on each invocation of runInThread, Java may call
+    // pthread_key_delete too soon before native resources are released, causing
+    // tor to abort.
+    private val executor = run {
+        val threadNo = AtomicLong()
+        Executors.newFixedThreadPool(/* nThreads = */ 1) { runnable ->
+            Thread(runnable).apply {
+                name = "tor_run_main-${threadNo.incrementAndGet()}"
+                isDaemon = true
+                priority = Thread.MAX_PRIORITY
+            }
+        }
+    }
+
+    public actual final override fun state(): State = State.entries.elementAt(kmpTorState())
+
+    public actual final override fun terminateAndAwaitResult(): Int = kmpTorTerminateAndAwaitResult()
+
+    @Throws(IllegalStateException::class)
+    protected actual fun runInThread(libTor: String, args: Array<String>): TorJob {
+        var localError: String? = null
+        var localLibTor: String? = libTor
+        var localArgs: Array<String>? = args
+        executor.submit {
+            val e = kmpTorRunBlocking(localLibTor!!, localArgs!!)
+            localError = e
+            localLibTor = null
+            localArgs = null
+        }
+        return object : TorJob { override fun checkError(): String? = localError }
+    }
 
     @Throws(IllegalStateException::class, IOException::class)
     protected actual fun libTor(): File = extractLibTor(isInit = false)
@@ -49,13 +84,13 @@ protected actual constructor(
             }
             "libtor.so".toFile()
         } else {
-            val map: Map<String, File> = RESOURCE_CONFIG_LIB_TOR
-                .extractTo(resourceDir, onlyIfDoesNotExist = !isInit)
+            val libs = RESOURCE_CONFIG_LIB_TOR.extractTo(resourceDir, onlyIfDoesNotExist = !isInit)
 
             if (isInit) {
-                System.load(map.getValue(ALIAS_LIB_TOR_JNI).path)
+                @Suppress("UnsafeDynamicallyLoadedCode")
+                System.load(libs.getValue(ALIAS_LIB_TOR_JNI).path)
             }
-            map.getValue(ALIAS_LIB_TOR)
+            libs.getValue(ALIAS_LIB_TOR)
         }
     } catch (t: Throwable) {
         if (t is IOException) throw t
@@ -66,17 +101,29 @@ protected actual constructor(
     }
 
     init {
-        extractLibTor(isInit = true)
+        try {
+            extractLibTor(isInit = true)
+        } catch (t: Throwable) {
+            executor.shutdown()
+            throw t
+        }
 
         if (registerShutdownHook) {
             val t = Thread { terminateAndAwaitResult() }
             try {
-                Runtime.getRuntime().addShutdownHook(t)
+                Runtime.getRuntime().addShutdownHook(/* hook = */ t)
             } catch (_: Throwable) {}
         }
     }
 
     internal companion object {
         internal const val ALIAS_LIB_TOR_JNI: String = "libtorjni"
+
+        @JvmStatic
+        private external fun kmpTorRunBlocking(libTor: String, args: Array<String>): String?
+        @JvmStatic
+        private external fun kmpTorState(): Int
+        @JvmStatic
+        private external fun kmpTorTerminateAndAwaitResult(): Int
     }
 }

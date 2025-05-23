@@ -19,16 +19,21 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.IOException
+import io.matthewnelson.kmp.file.InterruptedException
 import io.matthewnelson.kmp.file.path
 import io.matthewnelson.kmp.tor.common.api.GeoipFiles
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
+import io.matthewnelson.kmp.tor.common.core.synchronized
+import io.matthewnelson.kmp.tor.common.core.synchronizedObject
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_GEOIPS
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP6
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.threadSleep
 import kotlin.concurrent.Volatile
 import kotlin.jvm.JvmStatic
+import kotlin.time.Duration.Companion.milliseconds
 
 // noExecMain
 public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
@@ -38,12 +43,16 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
         @JvmStatic
         public fun getOrCreate(
             resourceDir: File,
-        ): ResourceLoader.Tor = getOrCreate(
-            resourceDir = resourceDir,
-            registerShutdownHook = true,
-        )
+        ): ResourceLoader.Tor {
+            @Suppress("DEPRECATION")
+            return getOrCreate(
+                resourceDir = resourceDir,
+                registerShutdownHook = false,
+            )
+        }
 
         @JvmStatic
+        @Deprecated("Use at your own peril. ShutdownHook registration causes abnormal exit behavior for Java/Android")
         public fun getOrCreate(
             resourceDir: File,
             registerShutdownHook: Boolean,
@@ -104,21 +113,55 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
         }
     }
 
+    @OptIn(InternalKmpTorApi::class)
     private class KmpTorApi(
         resourceDir: File,
         registerShutdownHook: Boolean,
     ): AbstractKmpTorApi(resourceDir, registerShutdownHook) {
 
+        private val lock = synchronizedObject()
+
         @Throws(IllegalStateException::class, IOException::class)
-        override fun torRunMain(args: Array<String>) {
-            val libTor = libTor()
-            val error = kmpTorRunMain(libTor.path, args) ?: return
+        public override fun torRunMain(args: Array<String>) {
+            val error = synchronized(lock) {
+                val s = state()
+                check(s == State.OFF) { "state[$s] != State.OFF" }
+
+                val libTor = libTor()
+                val job = runInThread(libTor.path, args)
+
+                var e: String? = null
+
+                while (e == null) {
+                    try {
+                        // Block the calling thread until we have a
+                        // confirmed start in the allocated thread.
+                        10.milliseconds.threadSleep()
+                    } catch (_: InterruptedException) {}
+
+                    when (state()) {
+                        State.OFF,
+                        State.STARTING -> e = job.checkError()
+
+                        // No startup errors from kmp_tor.c will be
+                        // returned beyond this point.
+                        State.STARTED,
+                        State.STOPPED -> break
+                    }
+                }
+
+                if (e != null) {
+                    // To clean up the Native Worker thread. kmp_tor.c
+                    // will just return -1 because it will already be
+                    // in State.OFF if it returned an error.
+                    terminateAndAwaitResult()
+                }
+
+                e
+            } ?: return
+
             throw IllegalStateException(error)
         }
-
-        override fun state(): State = State.entries.elementAt(kmpTorState())
-
-        override fun terminateAndAwaitResult(): Int = kmpTorTerminateAndAwaitResult()
     }
 
     @Throws(IllegalStateException::class)

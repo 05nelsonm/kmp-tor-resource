@@ -20,7 +20,7 @@
 #include <jni.h>
 
 JNIEXPORT jstring JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMain
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunBlocking
 (JNIEnv *, jobject, jstring, jobjectArray);
 
 JNIEXPORT jint JNICALL

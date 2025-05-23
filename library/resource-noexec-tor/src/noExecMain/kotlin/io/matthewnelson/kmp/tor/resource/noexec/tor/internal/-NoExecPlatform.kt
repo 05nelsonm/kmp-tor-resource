@@ -17,10 +17,12 @@
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
+import io.matthewnelson.kmp.file.InterruptedException
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.geoip.configureGeoipResources
 import kotlin.jvm.JvmSynthetic
+import kotlin.time.Duration
 
 internal const val ALIAS_LIB_TOR: String = "libtor"
 
@@ -39,3 +41,7 @@ internal val RESOURCE_CONFIG_LIB_TOR: Resource.Config by lazy {
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
 internal expect inline fun Resource.Config.Builder.configureLibTorResources()
+
+@Suppress("NOTHING_TO_INLINE")
+@Throws(InterruptedException::class)
+internal expect inline fun Duration.threadSleep()

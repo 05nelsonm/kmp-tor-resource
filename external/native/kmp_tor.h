@@ -30,12 +30,12 @@
  *
  * `kmp_tor_terminate_and_await_result` MUST be called when done to release resources.
  **/
-const char *kmp_tor_run_main(const char *lib_tor, int argc, char *argv[]);
+const char *kmp_tor_run_blocking(const char *lib_tor, int argc, char *argv[]);
 
 /**
  * Returns current state.
- *  - (0) KMP_TOR_STATE_OFF:       Nothing happening. Free to call `kmp_tor_run_main`
- *  - (1) KMP_TOR_STATE_STARTING:  `kmp_tor_run_main` was called and awaiting return
+ *  - (0) KMP_TOR_STATE_OFF:       Nothing happening. Free to call `kmp_tor_run_blocking`
+ *  - (1) KMP_TOR_STATE_STARTING:  `kmp_tor_run_blocking` was called and awaiting return
  *  - (2) KMP_TOR_STATE_STARTED:   tor's `tor_run_main` is running in its thread
  *  - (3) KMP_TOR_STATE_STOPPED:   tor's `tor_run_main` returned and the thread is ready
  *                                 for cleanup via `kmp_tor_terminate_and_await_result`.
@@ -43,7 +43,7 @@ const char *kmp_tor_run_main(const char *lib_tor, int argc, char *argv[]);
 int kmp_tor_state();
 
 /**
- * This MUST be called to release resources before calling `kmp_tor_run_main` again. It
+ * This MUST be called to release resources before calling `kmp_tor_run_blocking` again. It
  * should be called as soon as possible (i.e. when `kmp_tor_state` is `KMP_TOR_STATE_STOPPED`).
  *
  * Returns -1 if state is `KMP_TOR_STATE_OFF`. Otherwise, will return whatever `tor_run_main`
