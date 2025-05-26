@@ -39,15 +39,13 @@ public actual class ResourceLoaderTorExec: ResourceLoader.Tor.Exec {
         @JvmStatic
         public fun getOrCreate(
             resourceDir: File,
-        ): ResourceLoader.Tor {
-            return Exec.getOrCreate(
-                resourceDir = resourceDir,
-                extract = ::extractGeoips,
-                extractTor = ::extractTor,
-                configureEnv = { configureProcessEnvironment(it) },
-                toString = ::toString,
-            )
-        }
+        ): ResourceLoader.Tor = Exec.getOrCreate(
+            resourceDir = resourceDir,
+            extract = ::extractGeoips,
+            extractTor = ::extractTor,
+            configureEnv = { configureProcessEnvironment(it) },
+            toString = ::toString,
+        )
 
         @Volatile
         private var isFirstExtractionGeoip: Boolean = true
