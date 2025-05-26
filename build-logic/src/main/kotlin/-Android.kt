@@ -59,7 +59,10 @@ fun KmpConfigurationContainerDsl.androidLibrary(
 fun KmpConfigurationContainerDsl.configureAndroidNativeEmulatorTests(project: Project) {
     val libs = project.the<LibrariesForLibs>()
     val testJniLibs = project.projectDir.resolve("testJniLibs")
-    project.tasks.findByName("clean")?.apply { testJniLibs.deleteRecursively() }
+    project.tasks.all {
+        if (name != "clean") return@all
+        doLast { testJniLibs.deleteRecursively() }
+    }
 
     androidLibrary {
         android {

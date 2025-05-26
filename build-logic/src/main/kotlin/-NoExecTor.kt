@@ -391,50 +391,68 @@ fun KmpConfigurationExtension.configureNoExecTor(
 // native due to unsupported link arguments. Below is a supplemental implementation to download and use
 // the -dev llvm compiler for the current kotlin version.
 //
-// The following info can be found in ~/.konan/konan-native-prebuild-{os}-{arch}-{kotlin version}/konan/konan.properties
-private const val LLVM_VERSION: String = "16.0.0"
-private const val LLVM_URL: String = "https://download.jetbrains.com/kotlin/native/resources/llvm"
+// The following info can be found in ~/.konan/kotlin-native-prebuild-{os}-{arch}-{kotlin version}/konan/konan.properties
+private object LLVM {
+    const val URL: String = "https://download.jetbrains.com/kotlin/native/resources/llvm"
+    const val VERSION: String = "16.0.0"
+
+    // llvm-{llvm version}-{arch}-{host}-dev-{id}
+    object DevID {
+        object Linux {
+            const val x86_64: Int = 80
+        }
+        object MacOS {
+            const val aarch64: Int = 65
+            const val x86_64: Int = 56
+        }
+        object MinGW {
+            const val x86_64: Int = 56
+        }
+    }
+}
 
 private fun CKlibGradleExtension.configure(libs: LibrariesForLibs) {
     kotlinVersion = libs.versions.gradle.kotlin.get()
-    if (kotlinVersion != "2.1.21") {
-        project.logger.error("Kotlin version out of date! Download URLs for LLVM need to be updated for ${project.path}.")
+    check(kotlinVersion == "2.1.21") {
+        "Kotlin version out of date! Download URLs for LLVM need to be updated for ${project.path}"
     }
 
     val host = HostManager.simpleOsName()
     val arch = HostManager.hostArch()
     val (id, archive) = when (host) {
         "linux" -> when (arch) {
-            "x86_64" -> 80 to ArchiveType.TAR_GZ
+            "x86_64" -> LLVM.DevID.Linux.x86_64 to ArchiveType.TAR_GZ
             else -> null
         }
         "macos" -> when (arch) {
-            "aarch64" -> 65 to ArchiveType.TAR_GZ
-            "x86_64" -> 56 to ArchiveType.TAR_GZ
+            "aarch64" -> LLVM.DevID.MacOS.aarch64 to ArchiveType.TAR_GZ
+            "x86_64" -> LLVM.DevID.MacOS.x86_64 to ArchiveType.TAR_GZ
             else -> null
         }
         "windows" -> when (arch) {
-            "x86_64" -> 56 to ArchiveType.ZIP
+            "x86_64" -> LLVM.DevID.MinGW.x86_64 to ArchiveType.ZIP
             else -> null
         }
         else -> null
     } ?: throw TargetSupportException("Unsupported host[$host] or arch[$arch]")
 
-    val llvmDev = "llvm-${LLVM_VERSION}-${arch}-${host}-dev-${id}"
+    val llvmDev = "llvm-${LLVM.VERSION}-${arch}-${host}-dev-${id}"
     val cklibDir = File(System.getProperty("user.home")).resolve(".cklib")
     llvmHome = cklibDir.resolve(llvmDev).path
 
-    val source = DependencySource.Remote.Public(subDirectory = "${LLVM_VERSION}-${arch}-${host}")
+    val source = DependencySource.Remote.Public(subDirectory = "${LLVM.VERSION}-${arch}-${host}")
 
     DependencyProcessor(
         dependenciesRoot = cklibDir,
-        dependenciesUrl = LLVM_URL,
+        dependenciesUrl = LLVM.URL,
         dependencyToCandidates = mapOf(llvmDev to listOf(source)),
         homeDependencyCache = cklibDir.resolve("cache"),
         customProgressCallback = { _, currentBytes, totalBytes ->
             val total = totalBytes.toString()
             var current = currentBytes.toString()
-            while (current.length < 15 && current.length < total.length) { current = " $current" }
+            while (current.length < 15 && current.length < total.length) {
+                current = " $current"
+            }
 
             println("Downloading[$llvmDev] - $current / $total")
         },
