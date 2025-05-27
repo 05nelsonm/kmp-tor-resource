@@ -15,4 +15,8 @@
  **/
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
-internal actual val IS_ANDROID_NATIVE: Boolean = false
+import io.matthewnelson.kmp.file.File
+
+@Suppress("NOTHING_TO_INLINE")
+@Throws(IllegalStateException::class)
+internal actual inline fun Map<String, File>.findLibs(): Map<String, File> = this

@@ -18,19 +18,21 @@
 package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
 import android.os.Build
+import android.system.Os
 import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.file.toFile
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSHost
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.common.core.Resource
-import io.matthewnelson.kmp.tor.common.lib.locator.KmpTorLibLocator
 import io.matthewnelson.kmp.tor.resource.lib.tor.tryConfigureTestTorResources
 
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
 internal actual inline fun Resource.Config.Builder.configureTorResources() {
     if (OSInfo.INSTANCE.isAndroidRuntime()) {
-        val missing = ArrayList<String>(2)
+        var isNotExtracted = false
+        var isMissing = false
 
         // Is Android Runtime.
         //
@@ -38,27 +40,40 @@ internal actual inline fun Resource.Config.Builder.configureTorResources() {
         // nativeLibraryDir. This is required as Android does not
         // allow execution from data directory on API 28+ (cannot
         // download executables and run them).
-        if (KmpTorLibLocator.find("libtor.so") == null) {
-            missing.add("libtor.so")
-        }
-        if (KmpTorLibLocator.find("libtorexec.so") == null) {
-            missing.add("libtorexec.so")
+        arrayOf(ENV_KEY_LIBTOR, ENV_KEY_LIBTOREXEC).forEach { key ->
+            val libName = key.substringAfter('[').dropLast(1)
+            val lib = Os.getenv(key)?.toFile()
+            if (lib == null) {
+                error("LIB[$libName] not found")
+                isMissing = true
+                return@forEach
+            }
+            // Check both exist, indicative that they have been
+            // extracted to the nativeLibraryDir
+            if (lib.exists()) return@forEach
+            error("LIB[$libName].exists() != true")
+            isNotExtracted = true
         }
 
-        if (missing.isEmpty()) return
-
-        if (KmpTorLibLocator.isInitialized()) {
+        if (isMissing) {
             error("""
-                Failed to find $missing within nativeLibraryDir.
+                A library was missing. Please ensure you have:
+                <meta-data
+                    android:name='io.matthewnelson.kmp.tor.resource.compilation.lib.tor.LibTorInitializer'
+                    android:value='androidx.startup' />
+                under InitializationProvider in your AndroidManifest.xml
+            """.trimIndent())
+        }
+        if (isNotExtracted) {
+            error("""
+                A library was present, but was not extracted to the
+                ApplicationInfo.nativeLibraryDir upon application install.
     
                 Ensure the following are set correctly:
                 build.gradle(.kts):  'android.packaging.jniLibs.useLegacyPackaging' is set to 'true'
                 AndroidManifest.xml: 'android:extractNativeLibs' is set to 'true'
                 gradle.properties:   'android.bundle.enableUncompressedNativeLibs' is set to 'false'
             """.trimIndent())
-        } else {
-            // Startup initializer did not initialize...
-            error(KmpTorLibLocator.errorMsg())
         }
 
         return
@@ -81,7 +96,7 @@ internal actual inline fun MutableMap<String, String>.configureProcessEnvironmen
 
         // Should never be null here b/c extraction would have failed
         // if the configureEnv callback is being invoked.
-        val dir = KmpTorLibLocator.find("libtor.so")?.parentFile ?: return
+        val dir = Os.getenv(ENV_KEY_LIBTOREXEC)?.toFile()?.parentFile ?: return
         setLD_LIBRARY_PATH(dir)
         return
     }
@@ -99,7 +114,19 @@ internal actual inline fun MutableMap<String, String>.configureProcessEnvironmen
 @Throws(IllegalStateException::class)
 internal actual inline fun Map<String, File>.findLibTorExec(): Map<String, File> {
     if (contains(ALIAS_TOR)) return this
+    @OptIn(InternalKmpTorApi::class)
+    if (!OSInfo.INSTANCE.isAndroidRuntime()) return this
 
-    val lib = KmpTorLibLocator.require("libtorexec.so")
+    // Error from ResourceConfig would hit before this function has
+    // a chance to be called, but...
+    val lib = try {
+        Os.getenv(ENV_KEY_LIBTOREXEC)
+            ?.toFile()
+            ?: throw IllegalStateException("libtorexec.so not found")
+    } catch (t: Throwable) {
+        if (t is IllegalStateException) throw t
+        throw IllegalStateException("libtorexec.so not found")
+    }
+
     return toMutableMap().apply { put(ALIAS_TOR, lib) }
 }

@@ -5,6 +5,7 @@
 [![badge-kotlin]][url-kotlin]
 [![badge-build-env]][url-build-env]
 [![badge-kmp-tor-common]][url-kmp-tor-common]
+[![badge-androidx-startup]][url-androidx-startup]
 
 ![badge-platform-android]
 ![badge-platform-jvm]
@@ -286,6 +287,7 @@ See [kmp-tor-samples][url-kmp-tor-samples] for more details.
 [badge-license]: https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat
 
 <!-- TAG_DEPENDENCIES -->
+[badge-androidx-startup]: https://img.shields.io/badge/androidx.startup-1.2.0-6EDB8D.svg?logo=android
 [badge-kotlin]: https://img.shields.io/badge/kotlin-2.1.21-blue.svg?logo=kotlin
 [badge-build-env]: https://img.shields.io/badge/build--env-0.3.0-blue.svg?logo=docker
 [badge-kmp-tor-common]: https://img.shields.io/badge/kmp--tor--common-2.3.0-blue.svg?style=flat
@@ -307,6 +309,7 @@ See [kmp-tor-samples][url-kmp-tor-samples] for more details.
 [badge-support-js-ir]: https://img.shields.io/badge/support-[js--IR]-AAC4E0.svg?style=flat
 [badge-support-linux-arm]: http://img.shields.io/badge/support-[LinuxArm]-2D3F6C.svg?style=flat
 
+[url-androidx-startup]: https://developer.android.com/jetpack/androidx/releases/startup
 [url-build-env]: https://github.com/05nelsonm/build-env
 [url-latest-release]: https://github.com/05nelsonm/kmp-tor-resource/releases/latest
 [url-license]: https://www.apache.org/licenses/LICENSE-2.0.html

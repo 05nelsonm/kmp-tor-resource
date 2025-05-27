@@ -20,10 +20,10 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor
 import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
-import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorJob
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.findLibs
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.Throws
@@ -77,21 +77,16 @@ protected actual constructor(
 
     @Throws(IllegalStateException::class, IOException::class)
     private fun extractLibTor(isInit: Boolean): File = try {
-        if (OSInfo.INSTANCE.isAndroidRuntime()) {
-            // libtorjni.so & libtor.so
-            if (isInit) {
-                System.loadLibrary("torjni")
-            }
-            "libtor.so".toFile()
-        } else {
-            val libs = RESOURCE_CONFIG_LIB_TOR.extractTo(resourceDir, onlyIfDoesNotExist = !isInit)
+        val libs = RESOURCE_CONFIG_LIB_TOR
+            .extractTo(resourceDir, onlyIfDoesNotExist = !isInit)
+            .findLibs()
 
-            if (isInit) {
-                @Suppress("UnsafeDynamicallyLoadedCode")
-                System.load(libs.getValue(ALIAS_LIB_TOR_JNI).path)
-            }
-            libs.getValue(ALIAS_LIB_TOR)
+        if (isInit) {
+            @Suppress("UnsafeDynamicallyLoadedCode")
+            System.load(libs.getValue(ALIAS_LIB_TOR_JNI).path)
         }
+
+        libs.getValue(ALIAS_LIB_TOR)
     } catch (t: Throwable) {
         if (t is IOException) throw t
         if (t is IllegalStateException) throw t

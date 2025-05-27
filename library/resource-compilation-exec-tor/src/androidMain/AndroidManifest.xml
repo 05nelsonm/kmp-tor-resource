@@ -16,4 +16,11 @@
  * limitations under the License.
  **/
 -->
-<manifest />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:extractNativeLibs="true"
+        tools:targetApi="m" />
+
+</manifest>

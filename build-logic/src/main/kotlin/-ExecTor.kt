@@ -54,6 +54,8 @@ fun KmpConfigurationExtension.configureExecTor(
     ) {
         androidLibrary {
             android {
+                packaging.jniLibs.useLegacyPackaging = true
+
                 sourceSets["androidTest"].manifest.srcFile(
                     project.projectDir
                         .resolve("src")
@@ -64,7 +66,6 @@ fun KmpConfigurationExtension.configureExecTor(
 
             sourceSetMain {
                 dependencies {
-                    implementation(libs.kmp.tor.common.lib.locator)
                     implementation(project(":library:resource-compilation-exec-tor$suffix"))
                 }
             }
@@ -164,14 +165,6 @@ fun KmpConfigurationExtension.configureExecTor(
                             implementation(project(":library:resource-lib-tor$suffix"))
                         }
                     }
-                }
-            }
-        }
-
-        kotlin {
-            sourceSets.findByName("androidNativeMain")?.apply {
-                dependencies {
-                    implementation(libs.kmp.tor.common.lib.locator)
                 }
             }
         }
@@ -307,6 +300,7 @@ fun KmpConfigurationExtension.configureExecTor(
             }
         }
 
+        configureAndroidEnvironmentKeysConfig(project)
         configureAndroidNativeEmulatorTests(project)
 
         action.execute(this)

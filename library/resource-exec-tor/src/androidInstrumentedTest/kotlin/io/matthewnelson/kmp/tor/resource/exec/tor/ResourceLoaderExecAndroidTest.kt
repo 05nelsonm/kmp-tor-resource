@@ -15,7 +15,9 @@
  **/
 package io.matthewnelson.kmp.tor.resource.exec.tor
 
-import io.matthewnelson.kmp.tor.common.lib.locator.KmpTorLibLocator
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
+import io.matthewnelson.kmp.file.toFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -30,9 +32,12 @@ class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
         private val TIMEOUT: Duration = 2.minutes
     }
 
+    private val ctx = ApplicationProvider.getApplicationContext<Context>()
+    private val nativeLibraryDir = ctx.applicationInfo.nativeLibraryDir
+
     @Test
     fun givenAndroidNative_whenExecuteTestBinary_thenIsSuccessful() {
-        val executable = KmpTorLibLocator.require("libTestExec.so")
+        val executable = nativeLibraryDir.toFile().resolve("libTestExec.so")
 
         var p: Process? = null
         val mark = TimeSource.Monotonic.markNow()

@@ -17,45 +17,64 @@ package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.parentFile
+import io.matthewnelson.kmp.file.toFile
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
-import io.matthewnelson.kmp.tor.common.lib.locator.KmpTorLibLocator
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.toKString
 import platform.posix.__ANDROID_API_M__
 import platform.posix.android_get_device_api_level
+import platform.posix.getenv
 
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
 internal actual inline fun Resource.Config.Builder.configureTorResources() {
-    val missing = ArrayList<String>(2)
+    var isNotExtracted = false
+    var isMissing = false
 
-    if (KmpTorLibLocator.find("libtor.so") == null) {
-        missing.add("libtor.so")
+    // Is Android Runtime.
+    //
+    // Binaries are extracted on application install to the
+    // nativeLibraryDir. This is required as Android does not
+    // allow execution from data directory on API 28+ (cannot
+    // download executables and run them).
+    arrayOf(ENV_KEY_LIBTOR, ENV_KEY_LIBTOREXEC).forEach { key ->
+        val libName = key.substringAfter('[').dropLast(1)
+        @OptIn(ExperimentalForeignApi::class)
+        val lib = getenv(key)?.toKString()?.toFile()
+        if (lib == null) {
+            error("LIB[$libName] not found")
+            isMissing = true
+            return@forEach
+        }
+        // Check both exist, indicative that they have been
+        // extracted to the nativeLibraryDir
+        if (lib.exists()) return@forEach
+        error("LIB[$libName].exists() != true")
+        isNotExtracted = true
     }
-    if (KmpTorLibLocator.find("libtorexec.so") == null) {
-        missing.add("libtorexec.so")
+
+    if (isMissing) {
+        error("""
+            A library was missing. Please ensure you have the
+            resource-compilation-exec-tor{-gpl} Android dependency and:
+            <meta-data
+                android:name='io.matthewnelson.kmp.tor.resource.compilation.lib.tor.LibTorInitializer'
+                android:value='androidx.startup' />
+            under InitializationProvider in your AndroidManifest.xml
+        """.trimIndent())
     }
-
-    if (missing.isEmpty()) return
-
-    if (KmpTorLibLocator.isInitialized()) {
-        // Android KmpTorLibLocator dependency is there (environment
-        // variable is present), but could not find libs.
-        """
-            Failed to find $missing within nativeLibraryDir.
+    if (isNotExtracted) {
+        error("""
+            A library was present, but was not extracted to the
+            ApplicationInfo.nativeLibraryDir upon application install.
 
             Ensure the following are set correctly:
             build.gradle(.kts):  'android.packaging.jniLibs.useLegacyPackaging' is set to 'true'
             AndroidManifest.xml: 'android:extractNativeLibs' is set to 'true'
             gradle.properties:   'android.bundle.enableUncompressedNativeLibs' is set to 'false'
-        """.trimIndent()
-    } else {
-        // Either missing the android dependency, or something went
-        // wrong with Android KmpTorLibLocator.Initializer.
-        """
-            Ensure the following android dependency is present:
-              io.matthewnelson.kmp-tor:resource-compilation-exec-tor{-gpl}:{version}
-        """.trimIndent() + KmpTorLibLocator.errorMsg()
-    }.let { message -> error(message) }
+        """.trimIndent())
+    }
 }
 
 @Suppress("NOTHING_TO_INLINE")
@@ -66,7 +85,13 @@ internal actual inline fun MutableMap<String, String>.configureProcessEnvironmen
 
     // Should never be null here b/c extraction would have failed
     // if the configureEnv callback is being invoked
-    val dir = KmpTorLibLocator.find("libtor.so")?.parentFile ?: return
+    @OptIn(ExperimentalForeignApi::class)
+    val dir = getenv(ENV_KEY_LIBTOREXEC)
+            ?.toKString()
+            ?.toFile()
+            ?.parentFile
+            ?: return
+
     setLD_LIBRARY_PATH(dir)
 }
 
@@ -75,6 +100,16 @@ internal actual inline fun MutableMap<String, String>.configureProcessEnvironmen
 internal actual inline fun Map<String, File>.findLibTorExec(): Map<String, File> {
     if (contains(ALIAS_TOR)) return this
 
-    val lib = KmpTorLibLocator.require("libtorexec.so")
+    val lib = try {
+        @OptIn(ExperimentalForeignApi::class)
+        getenv(ENV_KEY_LIBTOREXEC)
+            ?.toKString()
+            ?.toFile()
+            ?: throw IllegalStateException("libtorexec.so not found")
+    } catch (t: Throwable) {
+        if (t is IllegalStateException) throw t
+        throw IllegalStateException("libtorexec.so not found")
+    }
+
     return toMutableMap().apply { put(ALIAS_TOR, lib) }
 }

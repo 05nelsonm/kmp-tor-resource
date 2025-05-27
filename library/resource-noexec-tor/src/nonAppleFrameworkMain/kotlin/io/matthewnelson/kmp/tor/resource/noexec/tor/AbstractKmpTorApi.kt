@@ -21,16 +21,9 @@ import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.*
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.toCStringArray
-import kotlinx.cinterop.toKString
 import kotlin.concurrent.AtomicReference
-import kotlin.concurrent.Volatile
 import kotlin.native.concurrent.ObsoleteWorkersApi
-import kotlin.native.concurrent.TransferMode
 import kotlin.native.concurrent.Worker
 
 // nonAppleFramework
@@ -65,13 +58,10 @@ protected actual constructor(
     @Throws(IllegalStateException::class, IOException::class)
     protected actual fun libTor(): File = extractLibTor(isInit = false)
 
-    private fun extractLibTor(isInit: Boolean): File {
-        if (IS_ANDROID_NATIVE) return "libtor.so".toFile()
-
-        return RESOURCE_CONFIG_LIB_TOR
-            .extractTo(resourceDir, onlyIfDoesNotExist = !isInit)
-            .getValue(ALIAS_LIB_TOR)
-    }
+    private fun extractLibTor(isInit: Boolean): File = RESOURCE_CONFIG_LIB_TOR
+        .extractTo(resourceDir, onlyIfDoesNotExist = !isInit)
+        .findLibs()
+        .getValue(ALIAS_LIB_TOR)
 
     init { extractLibTor(isInit = true) }
 }
