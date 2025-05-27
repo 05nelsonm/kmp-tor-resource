@@ -1,4 +1,6 @@
 [versions]
+#noinspection GradleDependency
+androidx-startup            = "1.1.1" # Do not upgrade. Next version requires minSdk 21+
 androidx-test-core          = "1.6.1"
 androidx-test-runner        = "1.6.2"
 
@@ -22,6 +24,8 @@ kotlinx-coroutines          = "1.10.2"
 okio                        = "3.11.0"
 
 [libraries]
+androidx-startup-runtime    = { module = "androidx.startup:startup-runtime", version.ref = "androidx-startup" }
+
 gradle-android              = { module = "com.android.tools.build:gradle", version.ref = "gradle-android" }
 gradle-cklib                = { module = "co.touchlab:cklib-gradle-plugin", version.ref = "gradle-cklib" }
 gradle-filterjar            = { module = "io.matthewnelson:gradle-filterjar-plugin", version.ref = "gradle-filterjar" }
@@ -31,7 +35,6 @@ gradle-publish-maven        = { module = "com.vanniktech:gradle-maven-publish-pl
 
 kmp-tor-common-api          = { module = "io.matthewnelson.kmp-tor:common-api", version.ref = "kmp-tor-common" }
 kmp-tor-common-core         = { module = "io.matthewnelson.kmp-tor:common-core", version.ref = "kmp-tor-common" }
-kmp-tor-common-lib-locator  = { module = "io.matthewnelson.kmp-tor:common-lib-locator", version.ref = "kmp-tor-common" }
 
 # tests & tools
 androidx-test-core          = { module = "androidx.test:core", version.ref = "androidx-test-core" }

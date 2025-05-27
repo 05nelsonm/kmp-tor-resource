@@ -21,8 +21,6 @@ import platform.posix.errno
 import platform.posix.usleep
 import kotlin.time.Duration
 
-internal expect val IS_ANDROID_NATIVE: Boolean
-
 @Suppress("NOTHING_TO_INLINE")
 @Throws(InterruptedException::class)
 internal actual inline fun Duration.threadSleep() {

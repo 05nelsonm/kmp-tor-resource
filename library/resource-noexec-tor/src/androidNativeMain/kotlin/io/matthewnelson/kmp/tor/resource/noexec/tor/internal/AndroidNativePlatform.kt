@@ -15,11 +15,45 @@
  **/
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
+import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.file.toFile
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
-
-internal actual val IS_ANDROID_NATIVE: Boolean = true
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.toKString
+import platform.posix.getenv
 
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
-internal actual inline fun Resource.Config.Builder.configureLibTorResources() { /* no-op */ }
+internal actual inline fun Resource.Config.Builder.configureLibTorResources() {
+    @OptIn(ExperimentalForeignApi::class)
+    if (getenv(ENV_KEY_LIBTOR) != null) return
+
+    error("""
+        LIB[libtor.so] not found. Please ensure you have the
+        resource-compilation-lib-tor{-gpl} Android dependency and:
+        <meta-data
+            android:name='io.matthewnelson.kmp.tor.resource.compilation.lib.tor.LibTorInitializer'
+            android:value='androidx.startup' />
+        under InitializationProvider in your AndroidManifest.xml
+    """.trimIndent())
+}
+
+@Suppress("NOTHING_TO_INLINE")
+@Throws(IllegalStateException::class)
+internal actual inline fun Map<String, File>.findLibs(): Map<String, File> {
+    if (contains(ALIAS_LIB_TOR)) return this
+
+    val lib = try {
+        @OptIn(ExperimentalForeignApi::class)
+        getenv(ENV_KEY_LIBTOR)
+            ?.toKString()
+            ?.toFile()
+            ?: throw IllegalStateException("libtor.so not found")
+    } catch (t: Throwable) {
+        if (t is IllegalStateException) throw t
+        throw IllegalStateException("libtor.so not found")
+    }
+
+    return toMutableMap().apply { put(ALIAS_LIB_TOR, lib) }
+}

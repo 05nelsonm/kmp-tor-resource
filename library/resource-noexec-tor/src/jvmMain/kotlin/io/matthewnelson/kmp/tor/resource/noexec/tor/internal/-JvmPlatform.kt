@@ -17,11 +17,13 @@
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
+import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.lib.tor.configureNoExecTorResource
 import io.matthewnelson.kmp.tor.resource.noexec.tor.AbstractKmpTorApi.Companion.ALIAS_LIB_TOR_JNI
 import io.matthewnelson.kmp.tor.resource.noexec.tor.ResourceLoaderTorNoExec
+import kotlin.Throws
 
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
@@ -32,3 +34,7 @@ internal actual inline fun Resource.Config.Builder.configureLibTorResources() {
         loaderClass = ResourceLoaderTorNoExec::class.java,
     )
 }
+
+@Suppress("NOTHING_TO_INLINE")
+@Throws(IllegalStateException::class)
+internal actual inline fun Map<String, File>.findLibs(): Map<String, File> = this

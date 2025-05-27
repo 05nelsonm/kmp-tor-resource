@@ -381,6 +381,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
             }
         }
 
+        configureAndroidEnvironmentKeysConfig(project)
         configureAndroidNativeEmulatorTests(project)
 
         action.execute(this)

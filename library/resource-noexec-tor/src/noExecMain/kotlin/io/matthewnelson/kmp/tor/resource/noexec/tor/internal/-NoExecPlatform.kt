@@ -17,6 +17,7 @@
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
+import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.InterruptedException
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
@@ -45,3 +46,7 @@ internal expect inline fun Resource.Config.Builder.configureLibTorResources()
 @Suppress("NOTHING_TO_INLINE")
 @Throws(InterruptedException::class)
 internal expect inline fun Duration.threadSleep()
+
+@Suppress("NOTHING_TO_INLINE")
+@Throws(IllegalStateException::class)
+internal expect inline fun Map<String, File>.findLibs(): Map<String, File>

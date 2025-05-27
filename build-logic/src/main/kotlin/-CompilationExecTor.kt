@@ -50,15 +50,30 @@ fun KmpConfigurationExtension.configureCompilationExecTor(
 
             sourceSetMain {
                 dependencies {
-                    // So that Android Native KmpTorLibLocator gets initialized with
-                    // its environment variable for ApplicationInfo.nativeLibraryDir
-                    implementation(libs.kmp.tor.common.lib.locator)
                     implementation(project(":library:resource-compilation-lib-tor$suffix"))
+                }
+            }
+
+            sourceSetTestInstrumented {
+                dependencies {
+                    implementation(libs.androidx.test.runner)
                 }
             }
         }
 
-        common { pluginIds("publication", "resource-validation") }
+        common {
+            pluginIds("publication", "resource-validation")
+
+            sourceSetTest {
+                dependencies {
+                    implementation(kotlin("test"))
+                }
+            }
+        }
+
+        kotlin { explicitApi() }
+
+        configureAndroidEnvironmentKeysConfig(project)
 
         action.execute(this)
     }

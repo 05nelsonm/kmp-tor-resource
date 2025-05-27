@@ -56,8 +56,52 @@ fun KmpConfigurationContainerDsl.androidLibrary(
     }
 }
 
+fun KmpConfigurationContainerDsl.configureAndroidEnvironmentKeysConfig(project: Project) {
+    kotlin {
+        val envKeyConfigDir = project
+            .layout
+            .buildDirectory
+            .asFile.get()
+            .resolve("generated")
+            .resolve("sources")
+            .resolve("envKeyConfig")
+
+        val prefix = "io.matthewnelson.kmp.tor."
+        val packageName = prefix + project.name
+            .substringBefore("-gpl")
+            .replace('-', '.') + ".internal"
+
+        arrayOf("androidMain", "androidNativeMain").forEach { name ->
+            val srcDir = envKeyConfigDir
+                .resolve(name)
+                .resolve("kotlin")
+            srcDir.deleteRecursively()
+
+            var configDir = srcDir
+
+            packageName.split('.').forEach { segment ->
+                configDir = configDir.resolve(segment)
+            }
+            configDir.mkdirs()
+            @Suppress("SpellCheckingInspection")
+            configDir.resolve("_EnvKeyConfig.kt").apply { delete() }.writeText("""
+                @file:Suppress("SpellCheckingInspection")
+
+                package $packageName
+
+                internal const val ENV_KEY_LIBTOR: String = "${prefix}resource.compilation.lib.tor[libtor.so]"
+                internal const val ENV_KEY_LIBTOREXEC: String = "${prefix}resource.compilation.exec.tor[libtorexec.so]"
+                internal const val ENV_KEY_LIBTORJNI: String = "${prefix}resource.noexec.tor[libtorjni.so]"
+
+            """.trimIndent())
+            sourceSets.findByName(name)?.apply {
+                kotlin.srcDir(srcDir)
+            }
+        }
+    }
+}
+
 fun KmpConfigurationContainerDsl.configureAndroidNativeEmulatorTests(project: Project) {
-    val libs = project.the<LibrariesForLibs>()
     val testJniLibs = project.projectDir.resolve("testJniLibs")
     project.tasks.all {
         if (name != "clean") return@all
@@ -70,13 +114,6 @@ fun KmpConfigurationContainerDsl.configureAndroidNativeEmulatorTests(project: Pr
                 .getByName("androidTest")
                 .jniLibs
                 .srcDir(testJniLibs)
-        }
-
-        sourceSetTestInstrumented {
-            dependencies {
-                // So can locate libTestExec.so when running
-                implementation(libs.kmp.tor.common.lib.locator)
-            }
         }
     }
 
