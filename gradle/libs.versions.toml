@@ -18,7 +18,7 @@ gradle-publish-maven        = "0.32.0"
 gradle-publish-npm          = "3.5.3"
 
 kmp-tor-common              = "2.3.0-SNAPSHOT"
-kotlincrypto-catalog        = "0.7.0" # Utilized from settings.gradle.kts
+kotlincrypto-catalog        = "0.7.1" # Utilized from settings.gradle.kts
 kotlinx-coroutines          = "1.10.2"
 
 okio                        = "3.11.0"
