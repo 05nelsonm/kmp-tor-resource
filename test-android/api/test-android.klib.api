@@ -1,0 +1,10 @@
+// Klib ABI Dump
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.matthewnelson.kmp-tor:test-android>
+final fun io.matthewnelson.kmp.tor.resource.test.android/Java_io_matthewnelson_kmp_tor_resource_test_android_AndroidNoExecJniTest_checkLoaded(): kotlin/Int // io.matthewnelson.kmp.tor.resource.test.android/Java_io_matthewnelson_kmp_tor_resource_test_android_AndroidNoExecJniTest_checkLoaded|Java_io_matthewnelson_kmp_tor_resource_test_android_AndroidNoExecJniTest_checkLoaded(){}[0]
+final fun io.matthewnelson.kmp.tor.resource.test.android/Java_io_matthewnelson_kmp_tor_resource_test_android_AndroidNoExecJniTest_executeNative(): kotlin/Int // io.matthewnelson.kmp.tor.resource.test.android/Java_io_matthewnelson_kmp_tor_resource_test_android_AndroidNoExecJniTest_executeNative|Java_io_matthewnelson_kmp_tor_resource_test_android_AndroidNoExecJniTest_executeNative(){}[0]
