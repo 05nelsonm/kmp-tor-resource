@@ -17,11 +17,9 @@ import com.android.build.gradle.tasks.MergeSourceSetFolders
 import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import io.matthewnelson.kmp.configuration.extension.container.target.TargetAndroidContainer
-import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.kotlin.dsl.the
 import resource.validation.extensions.ExecTorResourceValidationExtension
 import resource.validation.extensions.LibTorResourceValidationExtension
 import resource.validation.extensions.NoExecTorResourceValidationExtension

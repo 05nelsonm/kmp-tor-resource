@@ -39,12 +39,6 @@ kmpConfiguration {
                 sourceSets["androidTest"].jniLibs.srcDir(jniLibsDir)
             }
 
-            sourceSetMain {
-                dependencies {
-
-                }
-            }
-
             sourceSetTestInstrumented {
                 dependencies {
                     implementation(libs.androidx.test.runner)
@@ -60,8 +54,6 @@ kmpConfiguration {
                         baseName = "testjni"
                     }
                 }
-                // -Wno-return-type
-                compilerOptions.suppressWarnings.set(true)
             }
         }
 
