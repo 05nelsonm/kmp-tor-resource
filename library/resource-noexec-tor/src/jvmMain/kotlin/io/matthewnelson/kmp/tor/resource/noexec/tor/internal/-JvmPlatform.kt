@@ -21,7 +21,7 @@ import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.lib.tor.configureNoExecTorResource
-import io.matthewnelson.kmp.tor.resource.noexec.tor.AbstractKmpTorApi.Companion.ALIAS_LIB_TOR_JNI
+import io.matthewnelson.kmp.tor.resource.noexec.tor.AbstractKmpTorApi.Companion.ALIAS_LIBTORJNI
 import io.matthewnelson.kmp.tor.resource.noexec.tor.ResourceLoaderTorNoExec
 import kotlin.Throws
 
@@ -29,8 +29,8 @@ import kotlin.Throws
 @OptIn(InternalKmpTorApi::class)
 internal actual inline fun Resource.Config.Builder.configureLibTorResources() {
     configureNoExecTorResource(
-        aliasLibTor = ALIAS_LIB_TOR,
-        aliasLibTorJni = ALIAS_LIB_TOR_JNI,
+        aliasLibTor = ALIAS_LIBTOR,
+        aliasLibTorJni = ALIAS_LIBTORJNI,
         loaderClass = ResourceLoaderTorNoExec::class.java,
     )
 }

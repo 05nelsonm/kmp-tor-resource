@@ -30,7 +30,7 @@ internal actual inline fun Resource.Config.Builder.configureLibTorResources() {
     if (getenv(ENV_KEY_LIBTOR) != null) return
 
     error("""
-        LIB[libtor.so] not found. Please ensure you have the
+        LIB[${ENV_KEY_LIBTOR.envKeyLibName()}] not found. Please ensure you have the
         resource-compilation-lib-tor{-gpl} Android dependency and:
         <meta-data
             android:name='io.matthewnelson.kmp.tor.resource.compilation.lib.tor.LibTorInitializer'
@@ -42,18 +42,18 @@ internal actual inline fun Resource.Config.Builder.configureLibTorResources() {
 @Suppress("NOTHING_TO_INLINE")
 @Throws(IllegalStateException::class)
 internal actual inline fun Map<String, File>.findLibs(): Map<String, File> {
-    if (contains(ALIAS_LIB_TOR)) return this
+    if (contains(ALIAS_LIBTOR)) return this
 
     val lib = try {
         @OptIn(ExperimentalForeignApi::class)
         getenv(ENV_KEY_LIBTOR)
             ?.toKString()
             ?.toFile()
-            ?: throw IllegalStateException("libtor.so not found")
+            ?: throw IllegalStateException("${ENV_KEY_LIBTOR.envKeyLibName()} not found")
     } catch (t: Throwable) {
         if (t is IllegalStateException) throw t
-        throw IllegalStateException("libtor.so not found")
+        throw IllegalStateException("${ENV_KEY_LIBTOR.envKeyLibName()} not found")
     }
 
-    return toMutableMap().apply { put(ALIAS_LIB_TOR, lib) }
+    return toMutableMap().apply { put(ALIAS_LIBTOR, lib) }
 }

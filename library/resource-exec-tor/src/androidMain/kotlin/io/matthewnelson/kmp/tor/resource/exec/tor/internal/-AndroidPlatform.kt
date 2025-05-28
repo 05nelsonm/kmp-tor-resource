@@ -41,17 +41,17 @@ internal actual inline fun Resource.Config.Builder.configureTorResources() {
         // allow execution from data directory on API 28+ (cannot
         // download executables and run them).
         arrayOf(ENV_KEY_LIBTOR, ENV_KEY_LIBTOREXEC).forEach { key ->
-            val libName = key.substringAfter('[').dropLast(1)
             val lib = Os.getenv(key)?.toFile()
             if (lib == null) {
-                error("LIB[$libName] not found")
+                error("LIB[${key.envKeyLibName()}] not found")
                 isMissing = true
                 return@forEach
             }
+
             // Check both exist, indicative that they have been
             // extracted to the nativeLibraryDir
             if (lib.exists()) return@forEach
-            error("LIB[$libName].exists() != true")
+            error("LIB[${key.envKeyLibName()}].exists() != true")
             isNotExtracted = true
         }
 
@@ -81,9 +81,9 @@ internal actual inline fun Resource.Config.Builder.configureTorResources() {
 
     // Not Android runtime. Try using unit test dependencies.
     tryConfigureTestTorResources(
-        aliasLibTor = ALIAS_LIB_TOR,
+        aliasLibTor = ALIAS_LIBTOR,
         aliasLibTorJni = null,
-        aliasTor = ALIAS_TOR,
+        aliasTor = ALIAS_TOREXEC,
     )
 }
 
@@ -113,7 +113,7 @@ internal actual inline fun MutableMap<String, String>.configureProcessEnvironmen
 @Suppress("NOTHING_TO_INLINE")
 @Throws(IllegalStateException::class)
 internal actual inline fun Map<String, File>.findLibTorExec(): Map<String, File> {
-    if (contains(ALIAS_TOR)) return this
+    if (contains(ALIAS_TOREXEC)) return this
     @OptIn(InternalKmpTorApi::class)
     if (!OSInfo.INSTANCE.isAndroidRuntime()) return this
 
@@ -122,11 +122,11 @@ internal actual inline fun Map<String, File>.findLibTorExec(): Map<String, File>
     val lib = try {
         Os.getenv(ENV_KEY_LIBTOREXEC)
             ?.toFile()
-            ?: throw IllegalStateException("libtorexec.so not found")
+            ?: throw IllegalStateException("${ENV_KEY_LIBTOREXEC.envKeyLibName()} not found")
     } catch (t: Throwable) {
         if (t is IllegalStateException) throw t
-        throw IllegalStateException("libtorexec.so not found")
+        throw IllegalStateException("${ENV_KEY_LIBTOREXEC.envKeyLibName()} not found")
     }
 
-    return toMutableMap().apply { put(ALIAS_TOR, lib) }
+    return toMutableMap().apply { put(ALIAS_TOREXEC, lib) }
 }

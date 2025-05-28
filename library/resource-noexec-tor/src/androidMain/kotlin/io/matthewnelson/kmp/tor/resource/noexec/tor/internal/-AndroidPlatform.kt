@@ -24,7 +24,7 @@ import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.lib.tor.tryConfigureTestTorResources
-import io.matthewnelson.kmp.tor.resource.noexec.tor.AbstractKmpTorApi.Companion.ALIAS_LIB_TOR_JNI
+import io.matthewnelson.kmp.tor.resource.noexec.tor.AbstractKmpTorApi.Companion.ALIAS_LIBTORJNI
 import kotlin.Throws
 
 @Suppress("NOTHING_TO_INLINE")
@@ -40,10 +40,9 @@ internal actual inline fun Resource.Config.Builder.configureLibTorResources() {
         // allow execution from data directory on API 28+ (cannot
         // download executables and run them).
         arrayOf(ENV_KEY_LIBTOR, ENV_KEY_LIBTORJNI).forEach { key ->
-            val libName = key.substringAfter('[').dropLast(1)
             val lib = Os.getenv(key)?.toFile()
             if (lib == null) {
-                error("LIB[$libName] not found")
+                error("LIB[${key.envKeyLibName()}] not found")
                 isMissing = true
                 return@forEach
             }
@@ -63,8 +62,8 @@ internal actual inline fun Resource.Config.Builder.configureLibTorResources() {
     }
 
     tryConfigureTestTorResources(
-        aliasLibTor = ALIAS_LIB_TOR,
-        aliasLibTorJni = ALIAS_LIB_TOR_JNI,
+        aliasLibTor = ALIAS_LIBTOR,
+        aliasLibTorJni = ALIAS_LIBTORJNI,
         aliasTor = null,
     )
 }
@@ -73,7 +72,7 @@ internal actual inline fun Resource.Config.Builder.configureLibTorResources() {
 @Suppress("NOTHING_TO_INLINE")
 @Throws(IllegalStateException::class)
 internal actual inline fun Map<String, File>.findLibs(): Map<String, File> {
-    if (contains(ALIAS_LIB_TOR) && contains(ALIAS_LIB_TOR_JNI)) return this
+    if (contains(ALIAS_LIBTOR) && contains(ALIAS_LIBTORJNI)) return this
 
     @OptIn(InternalKmpTorApi::class)
     if (!OSInfo.INSTANCE.isAndroidRuntime()) return this
@@ -83,22 +82,21 @@ internal actual inline fun Map<String, File>.findLibs(): Map<String, File> {
     val result = toMutableMap()
 
     arrayOf(
-        arrayOf(ALIAS_LIB_TOR, ENV_KEY_LIBTOR),
-        arrayOf(ALIAS_LIB_TOR_JNI, ENV_KEY_LIBTORJNI),
+        arrayOf(ALIAS_LIBTOR, ENV_KEY_LIBTOR),
+        arrayOf(ALIAS_LIBTORJNI, ENV_KEY_LIBTORJNI),
     ).forEach { array ->
         val alias = array[0]
         if (result.contains(alias)) return@forEach
 
         val key = array[1]
-        val libName = key.substringAfter('[').dropLast(1)
 
         val lib = try {
             Os.getenv(key)
                 ?.toFile()
-                ?: throw IllegalStateException("LIB[$libName] not found")
+                ?: throw IllegalStateException("LIB[${key.envKeyLibName()}] not found")
         } catch (t: Throwable) {
             if (t is IllegalStateException) throw t
-            throw IllegalStateException("LIB[$libName] not found")
+            throw IllegalStateException("LIB[${key.envKeyLibName()}] not found")
         }
         result[alias] = lib
     }

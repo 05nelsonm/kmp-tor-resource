@@ -41,7 +41,7 @@ internal class LibTorInitializer internal constructor(): androidx.startup.Initia
             """.trimIndent()
         }
 
-        var loader = LibTorInitializer::class.java.classLoader
+        var loader = context.classLoader
         var libtor: String? = null
         var libtorexec: String? = null
         var libtorjni: String? = null

@@ -83,15 +83,25 @@ fun KmpConfigurationContainerDsl.configureAndroidEnvironmentKeysConfig(project: 
                 configDir = configDir.resolve(segment)
             }
             configDir.mkdirs()
+
+            val prefixPosix = prefix.replace('.', '_')
+
             @Suppress("SpellCheckingInspection")
             configDir.resolve("_EnvKeyConfig.kt").apply { delete() }.writeText("""
                 @file:Suppress("SpellCheckingInspection")
 
                 package $packageName
 
-                internal const val ENV_KEY_LIBTOR: String = "${prefix}resource.compilation.lib.tor[libtor.so]"
-                internal const val ENV_KEY_LIBTOREXEC: String = "${prefix}resource.compilation.exec.tor[libtorexec.so]"
-                internal const val ENV_KEY_LIBTORJNI: String = "${prefix}resource.noexec.tor[libtorjni.so]"
+                internal const val ENV_KEY_LIBTOR: String = "${prefixPosix}resource_compilation_lib_tor_LIBTOR"
+                internal const val ENV_KEY_LIBTOREXEC: String = "${prefixPosix}resource_compilation_exec_tor_LIBTOREXEC"
+                internal const val ENV_KEY_LIBTORJNI: String = "${prefixPosix}resource_noexec_tor_LIBTORJNI"
+
+                //@Throw(IllegalStateException::class)
+                @Suppress("NOTHING_TO_INLINE")
+                internal inline fun String.envKeyLibName(): String = when (this) {
+                    ENV_KEY_LIBTOR, ENV_KEY_LIBTOREXEC, ENV_KEY_LIBTORJNI -> substringAfterLast('_').lowercase() + ".so"
+                    else -> error("Unknown environment key >> ${"\$this"}")
+                }
 
             """.trimIndent())
             sourceSets.findByName(name)?.apply {

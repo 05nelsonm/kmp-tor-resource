@@ -20,8 +20,8 @@ package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.path
 
-internal const val ALIAS_TOR: String = "tor"
-internal const val ALIAS_LIB_TOR: String = "libtor"
+internal const val ALIAS_TOREXEC: String = "tor"
+internal const val ALIAS_LIBTOR: String = "libtor"
 
 @Suppress("NOTHING_TO_INLINE")
 internal expect inline fun MutableMap<String, String>.configureProcessEnvironment(resourceDir: File)
