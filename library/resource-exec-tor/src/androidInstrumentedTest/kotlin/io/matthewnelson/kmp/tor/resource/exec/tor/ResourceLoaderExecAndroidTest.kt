@@ -93,7 +93,7 @@ class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
 
         output.appendLine().append("RUN LENGTH: ${mark.elapsedNow().inWholeSeconds}s")
         val out = output.toString()
-        assertEquals(0, exitCode)
+        assertEquals(0, exitCode, out)
         println(out)
     }
 }

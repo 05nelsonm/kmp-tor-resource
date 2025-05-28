@@ -22,57 +22,58 @@ import dalvik.system.BaseDexClassLoader
 import io.matthewnelson.kmp.tor.resource.compilation.lib.tor.internal.ENV_KEY_LIBTOR
 import io.matthewnelson.kmp.tor.resource.compilation.lib.tor.internal.ENV_KEY_LIBTOREXEC
 import io.matthewnelson.kmp.tor.resource.compilation.lib.tor.internal.ENV_KEY_LIBTORJNI
+import io.matthewnelson.kmp.tor.resource.compilation.lib.tor.internal.envKeyLibName
 
-internal class LibTorInitializer internal constructor(): androidx.startup.Initializer<LibTorInitializer.Init> {
+internal class KmpTorResourceInitializer internal constructor(): androidx.startup.Initializer<KmpTorResourceInitializer.Companion> {
 
-    internal sealed class Init
-    private object RealInit: Init()
+    internal companion object {}
 
-    override fun create(context: Context): Init {
+    override fun create(context: Context): Companion {
         val appInitializer = AppInitializer.getInstance(context)
         check(appInitializer.isEagerlyInitialized(javaClass)) {
             """
-                LibTorInitializer cannot be initialized lazily.
+                KmpTorResourceInitializer cannot be initialized lazily.
                 Please ensure that you have:
                 <meta-data
-                    android:name='${LibTorInitializer::class.qualifiedName}'
+                    android:name='${KmpTorResourceInitializer::class.qualifiedName}'
                     android:value='androidx.startup' />
                 under InitializationProvider in your AndroidManifest.xml
             """.trimIndent()
         }
 
         var loader = context.classLoader
-        var libtor: String? = null
-        var libtorexec: String? = null
-        var libtorjni: String? = null
+
+        val keys = arrayOf(ENV_KEY_LIBTOR, ENV_KEY_LIBTOREXEC, ENV_KEY_LIBTORJNI)
+        val libs = arrayOfNulls<String>(keys.size)
 
         while (loader != null) {
             if (loader is BaseDexClassLoader) {
-                if (libtor == null) {
-                    libtor = loader.findLibrary("tor")
-                }
-                if (libtorexec == null) {
-                    libtorexec = loader.findLibrary("torexec")
-                }
-                if (libtorjni == null) {
-                    libtorjni = loader.findLibrary("torjni")
+                for (i in keys.indices) {
+                    var lib = libs[i]
+                    if (lib.isNullOrBlank()) {
+                        val name = keys[i].envKeyLibName()
+                            .substringAfter("lib")
+                            .substringBeforeLast(".so")
+
+                        lib = loader.findLibrary(name)
+
+                        if (!lib.isNullOrBlank()) {
+                            libs[i] = lib
+                        }
+                    }
                 }
             }
-            if (libtor != null && libtorexec != null && libtorjni != null) break
+
             loader = loader.parent
         }
 
-        if (libtor != null) {
-            Os.setenv(/* name = */ ENV_KEY_LIBTOR, /* value = */ libtor, /* overwrite = */ true)
-        }
-        if (libtorexec != null) {
-            Os.setenv(/* name = */ ENV_KEY_LIBTOREXEC, /* value = */ libtorexec, /* overwrite = */ true)
-        }
-        if (libtorjni != null) {
-            Os.setenv(/* name = */ ENV_KEY_LIBTORJNI, /* value = */ libtorjni, /* overwrite = */ true)
+        for (i in keys.indices) {
+            val lib = libs[i]
+            if (lib.isNullOrBlank()) continue
+            Os.setenv(/* name = */ keys[i], /* value = */ lib, /* overwrite = */ true)
         }
 
-        return RealInit
+        return Companion
     }
 
     override fun dependencies(): List<Class<out androidx.startup.Initializer<*>>> = emptyList()

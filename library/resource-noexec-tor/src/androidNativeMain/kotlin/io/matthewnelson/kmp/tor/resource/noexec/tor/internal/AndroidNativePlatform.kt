@@ -33,7 +33,7 @@ internal actual inline fun Resource.Config.Builder.configureLibTorResources() {
         LIB[${ENV_KEY_LIBTOR.envKeyLibName()}] not found. Please ensure you have the
         resource-compilation-lib-tor{-gpl} Android dependency and:
         <meta-data
-            android:name='io.matthewnelson.kmp.tor.resource.compilation.lib.tor.LibTorInitializer'
+            android:name='io.matthewnelson.kmp.tor.resource.compilation.lib.tor.KmpTorResourceInitializer'
             android:value='androidx.startup' />
         under InitializationProvider in your AndroidManifest.xml
     """.trimIndent())

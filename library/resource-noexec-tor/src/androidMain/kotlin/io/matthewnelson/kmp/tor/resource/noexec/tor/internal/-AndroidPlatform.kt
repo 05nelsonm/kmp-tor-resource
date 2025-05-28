@@ -52,7 +52,7 @@ internal actual inline fun Resource.Config.Builder.configureLibTorResources() {
             error("""
                 A library was missing. Please ensure you have:
                 <meta-data
-                    android:name='io.matthewnelson.kmp.tor.resource.compilation.lib.tor.LibTorInitializer'
+                    android:name='io.matthewnelson.kmp.tor.resource.compilation.lib.tor.KmpTorResourceInitializer'
                     android:value='androidx.startup' />
                 under InitializationProvider in your AndroidManifest.xml
             """.trimIndent())
