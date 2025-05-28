@@ -207,7 +207,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        api-level: [ 21, 23, 24, 29, 30, 31, 32, 33, 34, 35 ]
+        api-level: [ 21, 23, 24, 26, 28, 29, 30, 31, 32, 33, 34, 35 ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
