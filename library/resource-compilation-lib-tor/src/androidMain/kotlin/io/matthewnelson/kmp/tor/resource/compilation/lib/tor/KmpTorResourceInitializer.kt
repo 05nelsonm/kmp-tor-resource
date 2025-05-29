@@ -15,7 +15,9 @@
  **/
 package io.matthewnelson.kmp.tor.resource.compilation.lib.tor
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
 import android.system.Os
 import androidx.startup.AppInitializer
 import dalvik.system.BaseDexClassLoader
@@ -40,6 +42,9 @@ internal class KmpTorResourceInitializer internal constructor(): androidx.startu
                 under InitializationProvider in your AndroidManifest.xml
             """.trimIndent()
         }
+
+        @SuppressLint("ObsoleteSdkInt")
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return Companion
 
         var loader = context.classLoader
 
