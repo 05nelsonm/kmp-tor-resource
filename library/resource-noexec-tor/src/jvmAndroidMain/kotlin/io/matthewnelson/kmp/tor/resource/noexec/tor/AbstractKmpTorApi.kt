@@ -64,10 +64,12 @@ protected actual constructor(
         var localLibTor: String? = libTor
         var localArgs: Array<String>? = args
         executor.submit {
+            Thread.sleep(15)
             val e = kmpTorRunBlocking(localLibTor!!, localArgs!!)
             localError = e
             localLibTor = null
             localArgs = null
+            Thread.sleep(50)
         }
         return object : TorJob { override fun checkError(): String? = localError }
     }
