@@ -27,6 +27,7 @@ import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.findLibs
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.Throws
+import kotlin.concurrent.Volatile
 
 // jvmAndroid
 @OptIn(InternalKmpTorApi::class)
@@ -60,18 +61,14 @@ protected actual constructor(
 
     @Throws(IllegalStateException::class)
     protected actual fun runInThread(libTor: String, args: Array<String>): TorJob {
-        var localError: String? = null
-        var localLibTor: String? = libTor
-        var localArgs: Array<String>? = args
+        val job = RealTorJob()
         executor.submit {
-            Thread.sleep(15)
-            val e = kmpTorRunBlocking(localLibTor!!, localArgs!!)
-            localError = e
-            localLibTor = null
-            localArgs = null
-            Thread.sleep(50)
+            Thread.sleep(25)
+            val e = kmpTorRunBlocking(libTor, args)
+            job.error = e
+            Thread.sleep(75)
         }
-        return object : TorJob { override fun checkError(): String? = localError }
+        return job
     }
 
     @Throws(IllegalStateException::class, IOException::class)
@@ -95,6 +92,12 @@ protected actual constructor(
 
         // UnsatisfiedLinkError
         throw IllegalStateException("Failed to load torjni", t)
+    }
+
+    private class RealTorJob: TorJob {
+        @Volatile
+        var error: String? = null
+        override fun checkError(): String? = error
     }
 
     init {
