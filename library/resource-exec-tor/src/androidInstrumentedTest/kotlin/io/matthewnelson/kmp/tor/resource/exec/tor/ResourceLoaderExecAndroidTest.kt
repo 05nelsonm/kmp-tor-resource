@@ -16,6 +16,8 @@
 package io.matthewnelson.kmp.tor.resource.exec.tor
 
 import android.content.Context
+import android.os.Build
+import android.system.Os
 import androidx.test.core.app.ApplicationProvider
 import io.matthewnelson.kmp.file.toFile
 import kotlin.test.Test
@@ -41,23 +43,34 @@ class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
 
         var p: Process? = null
         val mark = TimeSource.Monotonic.markNow()
-        val output = StringBuilder()
         try {
-            p = ProcessBuilder(listOf(executable.path))
-                .redirectErrorStream(true)
-                .start()
+            p = ProcessBuilder(listOf(executable.path)).apply {
+                redirectErrorStream(true)
+
+                // https://github.com/05nelsonm/kmp-process/issues/149
+                if (Build.VERSION.SDK_INT in 24..32) {
+                    val envOs = Os.environ() ?: return@apply
+                    val envP = environment()
+                    envP.clear()
+                    envOs.forEach { line ->
+                        val i = line.indexOf('=')
+                        if (i == -1) return@forEach
+                        envP[line.substring(0, i)] = line.substring(i + 1, line.length)
+                    }
+                }
+            }.start()
 
             p.outputStream.close()
 
             var isComplete = false
             Thread {
                 try {
-                    p.inputStream.buffered().reader().use { s ->
-                        val buf = CharArray(DEFAULT_BUFFER_SIZE * 2)
+                    p.inputStream.use { s ->
+                        val buf = ByteArray(DEFAULT_BUFFER_SIZE * 2)
                         while (true) {
                             val read = s.read(buf)
                             if (read == -1) break
-                            output.append(buf, 0, read)
+                            System.out.write(buf, 0, read)
                         }
                     }
                 } finally {
@@ -71,7 +84,7 @@ class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
             var timeout = TIMEOUT
             while (true) {
                 if (isComplete) break
-                check(timeout > Duration.ZERO) { "Timed out\n${output}" }
+                check(timeout > Duration.ZERO) { "Timed out" }
 
                 Thread.sleep(100)
                 timeout -= 100.milliseconds
@@ -91,9 +104,7 @@ class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
             }
         }
 
-        output.appendLine().append("RUN LENGTH: ${mark.elapsedNow().inWholeSeconds}s")
-        val out = output.toString()
+        println("RUN LENGTH: ${mark.elapsedNow().inWholeSeconds}s")
         assertEquals(0, exitCode)
-        println(out)
     }
 }

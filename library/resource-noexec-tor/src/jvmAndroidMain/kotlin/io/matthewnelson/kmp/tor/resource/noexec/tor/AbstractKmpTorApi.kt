@@ -20,7 +20,7 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor
 import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIB_TOR
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIBTOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorJob
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.findLibs
@@ -83,10 +83,10 @@ protected actual constructor(
 
         if (isInit) {
             @Suppress("UnsafeDynamicallyLoadedCode")
-            System.load(libs.getValue(ALIAS_LIB_TOR_JNI).path)
+            System.load(libs.getValue(ALIAS_LIBTORJNI).path)
         }
 
-        libs.getValue(ALIAS_LIB_TOR)
+        libs.getValue(ALIAS_LIBTOR)
     } catch (t: Throwable) {
         if (t is IOException) throw t
         if (t is IllegalStateException) throw t
@@ -112,7 +112,7 @@ protected actual constructor(
     }
 
     internal companion object {
-        internal const val ALIAS_LIB_TOR_JNI: String = "libtorjni"
+        internal const val ALIAS_LIBTORJNI: String = "libtorjni"
 
         @JvmStatic
         private external fun kmpTorRunBlocking(libTor: String, args: Array<String>): String?

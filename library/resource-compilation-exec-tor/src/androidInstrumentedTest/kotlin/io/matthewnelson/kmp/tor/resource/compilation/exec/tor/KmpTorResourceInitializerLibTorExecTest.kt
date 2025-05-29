@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-package io.matthewnelson.kmp.tor.resource.noexec.tor
+package io.matthewnelson.kmp.tor.resource.compilation.exec.tor
 
 import android.system.Os
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ENV_KEY_LIBTOR
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ENV_KEY_LIBTOREXEC
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ENV_KEY_LIBTORJNI
+import io.matthewnelson.kmp.tor.resource.compilation.exec.tor.internal.ENV_KEY_LIBTOR
+import io.matthewnelson.kmp.tor.resource.compilation.exec.tor.internal.ENV_KEY_LIBTOREXEC
+import io.matthewnelson.kmp.tor.resource.compilation.exec.tor.internal.ENV_KEY_LIBTORJNI
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-class LibTorJniInitializerTest {
+class KmpTorResourceInitializerLibTorExecTest {
 
     @Test
     fun givenEnvironmentVariable_whenKeyLibTor_thenIsPresent() {
@@ -31,12 +31,12 @@ class LibTorJniInitializerTest {
     }
 
     @Test
-    fun givenEnvironmentVariable_whenKeyLibTorExec_thenIsNotPresent() {
-        assertNull(Os.getenv(ENV_KEY_LIBTOREXEC))
+    fun givenEnvironmentVariable_whenKeyLibTorExec_thenIsPresent() {
+        assertNotNull(Os.getenv(ENV_KEY_LIBTOREXEC))
     }
 
     @Test
-    fun givenEnvironmentVariable_whenKeyLibTorJni_thenIsPresent() {
-        assertNotNull(Os.getenv(ENV_KEY_LIBTORJNI))
+    fun givenEnvironmentVariable_whenKeyLibTorJni_thenIsNotPresent() {
+        assertNull(Os.getenv(ENV_KEY_LIBTORJNI))
     }
 }

@@ -61,7 +61,7 @@ protected actual constructor(
     private fun extractLibTor(isInit: Boolean): File = RESOURCE_CONFIG_LIB_TOR
         .extractTo(resourceDir, onlyIfDoesNotExist = !isInit)
         .findLibs()
-        .getValue(ALIAS_LIB_TOR)
+        .getValue(ALIAS_LIBTOR)
 
     init { extractLibTor(isInit = true) }
 }

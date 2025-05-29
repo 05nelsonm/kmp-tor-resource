@@ -16,6 +16,7 @@
 package io.matthewnelson.kmp.tor.resource.test.android
 
 import android.os.Build
+import android.system.Os
 import dalvik.annotation.optimization.CriticalNative
 import dalvik.system.BaseDexClassLoader
 import io.matthewnelson.kmp.file.SysTempDir
@@ -60,6 +61,7 @@ class AndroidNoExecJniTest {
 
     @Test
     fun givenLibTor_whenLegacyPackaging_thenIsUncompressedAndAlignedIfApi23OrAbove() {
+        printEnvironment()
         var cl: ClassLoader? = this::class.java.classLoader
         var libTor: File? = null
         while (cl != null) {
@@ -94,6 +96,7 @@ class AndroidNoExecJniTest {
             return
         }
 
+        printEnvironment()
         val result = executeNative()
         assertEquals(0, result)
     }
@@ -105,11 +108,20 @@ class AndroidNoExecJniTest {
             return
         }
 
+        printEnvironment()
         val result = LOADER.withApi(BINDER) {
             torRunMain(listOf("--version"))
             terminateAndAwaitResult()
         }
 
         assertEquals(0, result)
+    }
+
+    private fun printEnvironment() {
+        buildString {
+            appendLine("--- Os.environ ---")
+            Os.environ()?.forEach { line -> append("    ").appendLine(line) }
+            appendLine("---    END     ---")
+        }.let { println(it) }
     }
 }

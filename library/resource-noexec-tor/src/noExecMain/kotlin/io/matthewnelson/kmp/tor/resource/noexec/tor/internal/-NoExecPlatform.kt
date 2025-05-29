@@ -25,7 +25,7 @@ import io.matthewnelson.kmp.tor.resource.geoip.configureGeoipResources
 import kotlin.jvm.JvmSynthetic
 import kotlin.time.Duration
 
-internal const val ALIAS_LIB_TOR: String = "libtor"
+internal const val ALIAS_LIBTOR: String = "libtor"
 
 @get:JvmSynthetic
 @OptIn(InternalKmpTorApi::class)

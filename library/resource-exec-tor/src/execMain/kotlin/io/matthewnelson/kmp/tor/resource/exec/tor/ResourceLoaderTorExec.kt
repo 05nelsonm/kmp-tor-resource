@@ -22,7 +22,7 @@ import io.matthewnelson.kmp.tor.common.api.GeoipFiles
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.*
-import io.matthewnelson.kmp.tor.resource.exec.tor.internal.ALIAS_TOR
+import io.matthewnelson.kmp.tor.resource.exec.tor.internal.ALIAS_TOREXEC
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.RESOURCE_CONFIG_GEOIPS
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.RESOURCE_CONFIG_TOR
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.findLibTorExec
@@ -72,7 +72,7 @@ public actual class ResourceLoaderTorExec: ResourceLoader.Tor.Exec {
 
             isFirstExtractionTor = false
 
-            return map.getValue(ALIAS_TOR)
+            return map.getValue(ALIAS_TOREXEC)
         }
 
         @OptIn(InternalKmpTorApi::class)
