@@ -105,6 +105,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
 
             val result = LOADER.withApi(TestRuntimeBinder) {
                 assertEquals(TorApi.State.OFF, state())
+                assertEquals(-1, terminateAndAwaitResult())
 
                 torRunMain(
                     listOf(

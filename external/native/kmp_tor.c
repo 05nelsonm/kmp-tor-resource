@@ -38,7 +38,7 @@ typedef int kmp_tor_socket_t;
 #define __closesocket close
 #endif // _WIN32
 
-#define KMP_TOR_AWAITING_RESULT -1
+#define KMP_TOR_RESULT_AWAITING -1
 
 typedef struct {
   int argc;
@@ -60,13 +60,19 @@ typedef struct {
   kmp_tor_socket_t ctrl_socket_owned;
 
   lib_handle_t *lib_t;
-
-  int tor_run_main_result;
 } kmp_tor_handle_t;
 
-static kmp_tor_handle_t    *s_handle_t      = NULL;
-static int                  s_kmp_tor_state = KMP_TOR_STATE_OFF;
-static pthread_mutex_t      kmp_tor_lock    = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t      s_kmp_tor_lock          = PTHREAD_MUTEX_INITIALIZER;
+
+// Static things which are referenced from different threads. No memory
+// allocated references here, as all allocated resources live and die
+// within the body of the kmp_tor_run_blocking function.
+//
+// Any and all modifications to these variables are done while holding
+// s_kmp_tor_lock.
+static int                  s_kmp_tor_state         = KMP_TOR_STATE_OFF;
+static int                  s_tor_run_main_result   = KMP_TOR_RESULT_AWAITING;
+static kmp_tor_socket_t     s_ctrl_socket           = KMP_TOR_SOCKET_INVALID;
 
 static void
 kmp_tor_sleep(int millis)
@@ -85,7 +91,7 @@ kmp_tor_closesocket(kmp_tor_socket_t s)
 }
 
 static void
-kmp_tor_free(kmp_tor_handle_t *handle_t)
+kmp_tor_free(kmp_tor_handle_t *handle_t, int tor_run_main_was_called)
 {
   assert(handle_t != NULL);
 
@@ -121,6 +127,10 @@ kmp_tor_free(kmp_tor_handle_t *handle_t)
   if (handle_t->OPENSSL_cleanup != NULL) {
     handle_t->OPENSSL_cleanup();
     handle_t->OPENSSL_cleanup = NULL;
+
+    // Always give OPENSSL a moment to release any
+    // resources before libtor is unloaded.
+    kmp_tor_sleep(25);
   }
 
   if (handle_t->lib_t != NULL) {
@@ -137,9 +147,16 @@ kmp_tor_free(kmp_tor_handle_t *handle_t)
 
   free(handle_t);
 
-  pthread_mutex_lock(&kmp_tor_lock);
+  if (tor_run_main_was_called == 0) {
+    // State will be updated by kmp_tor_terminate_and_await_result caller
+    // to ensure any resources allocated from Kotlin code get cleaned up
+    // before another startup can be had.
+    return;
+  }
+
+  pthread_mutex_lock(&s_kmp_tor_lock);
     s_kmp_tor_state = KMP_TOR_STATE_OFF;
-  pthread_mutex_unlock(&kmp_tor_lock);
+  pthread_mutex_unlock(&s_kmp_tor_lock);
 }
 
 static const char *
@@ -280,12 +297,13 @@ kmp_tor_run_blocking(const char *lib_tor, int argc, char *argv[])
   const char *c_result = NULL;
   kmp_tor_handle_t *handle_t = NULL;
 
-  pthread_mutex_lock(&kmp_tor_lock);
+  pthread_mutex_lock(&s_kmp_tor_lock);
     i_result = s_kmp_tor_state;
     if (s_kmp_tor_state == KMP_TOR_STATE_OFF) {
       s_kmp_tor_state = KMP_TOR_STATE_STARTING;
+      s_tor_run_main_result = KMP_TOR_RESULT_AWAITING;
     }
-  pthread_mutex_unlock(&kmp_tor_lock);
+  pthread_mutex_unlock(&s_kmp_tor_lock);
 
   if (i_result != KMP_TOR_STATE_OFF) {
     if (i_result == KMP_TOR_STATE_STARTING) {
@@ -303,9 +321,9 @@ kmp_tor_run_blocking(const char *lib_tor, int argc, char *argv[])
 
   handle_t = malloc(sizeof(kmp_tor_handle_t));
   if (handle_t == NULL) {
-    pthread_mutex_lock(&kmp_tor_lock);
+    pthread_mutex_lock(&s_kmp_tor_lock);
       s_kmp_tor_state = KMP_TOR_STATE_OFF;
-    pthread_mutex_unlock(&kmp_tor_lock);
+    pthread_mutex_unlock(&s_kmp_tor_lock);
     return "Failed to create kmp_tor_handle_t";
   } else {
     handle_t->argc = 0;
@@ -325,21 +343,23 @@ kmp_tor_run_blocking(const char *lib_tor, int argc, char *argv[])
     handle_t->ctrl_socket = KMP_TOR_SOCKET_INVALID;
     handle_t->ctrl_socket_owned = KMP_TOR_SOCKET_INVALID;
     handle_t->lib_t = NULL;
-    handle_t->tor_run_main_result = KMP_TOR_AWAITING_RESULT;
   }
 
 #ifdef _WIN32
   handle_t->was_win32_sockets_initialized = win32_sockets_init();
   if (handle_t->was_win32_sockets_initialized != 0) {
-    kmp_tor_free(handle_t);
+    kmp_tor_free(handle_t, -1);
     return "Failed to initialize windows sockets";
   }
 #endif
 
+  // Adding 2 to the end in order to setup __OwningControllerFD to
+  // interrupt tor's main loop by closing it down whenever needed,
+  // instead of dealing with signals (which can be a nightmare).
   handle_t->argc = argc + 2;
   handle_t->argv = malloc(handle_t->argc * sizeof(char *));
   if (handle_t->argv == NULL) {
-    kmp_tor_free(handle_t);
+    kmp_tor_free(handle_t, -1);
     return "Failed to create argv";
   }
 
@@ -364,26 +384,30 @@ kmp_tor_run_blocking(const char *lib_tor, int argc, char *argv[])
   }
 
   if (i_result != 0) {
-    kmp_tor_free(handle_t);
+    kmp_tor_free(handle_t, -1);
     return "Failed to copy arguments to argv";
   }
 
   c_result = kmp_tor_configure_lib_t(lib_tor, handle_t);
   if (c_result != NULL) {
-    kmp_tor_free(handle_t);
+    kmp_tor_free(handle_t, -1);
     return c_result;
   }
 
   c_result = kmp_tor_configure_tor(handle_t);
   if (c_result != NULL) {
-    kmp_tor_free(handle_t);
+    kmp_tor_free(handle_t, -1);
     return c_result;
   }
 
-  pthread_mutex_lock(&kmp_tor_lock);
+  pthread_mutex_lock(&s_kmp_tor_lock);
     s_kmp_tor_state = KMP_TOR_STATE_STARTED;
-    s_handle_t = handle_t;
-  pthread_mutex_unlock(&kmp_tor_lock);
+    s_tor_run_main_result = KMP_TOR_RESULT_AWAITING;
+
+    // Provide access for kmp_tor_terminate_and_await_result
+    // so it can interrupt tor's main loop if need be.
+    s_ctrl_socket = handle_t->ctrl_socket;
+  pthread_mutex_unlock(&s_kmp_tor_lock);
 
   i_result = handle_t->tor_api_run_main(handle_t->cfg);
   if (i_result < 0 || i_result > 255) {
@@ -392,10 +416,28 @@ kmp_tor_run_blocking(const char *lib_tor, int argc, char *argv[])
 
   kmp_tor_sleep(100);
 
-  pthread_mutex_lock(&kmp_tor_lock);
+  pthread_mutex_lock(&s_kmp_tor_lock);
     s_kmp_tor_state = KMP_TOR_STATE_STOPPED;
-    handle_t->tor_run_main_result = i_result;
-  pthread_mutex_unlock(&kmp_tor_lock);
+
+    // Take back the ctrl socket and clear static reference. If
+    // kmp_tor_terminate_and_await_result closed the socket and
+    // set it to invalid, need to ensure we have the updated value
+    // before freeing kmp_tor_handle_t
+    handle_t->ctrl_socket = s_ctrl_socket;
+    s_ctrl_socket = KMP_TOR_SOCKET_INVALID;
+  pthread_mutex_unlock(&s_kmp_tor_lock);
+
+  // Free all resources, but do not set state to off. This will
+  // require kmp_tor_terminate_and_await_result to be called in
+  // order to ensure any resources allocated from Kotlin side get
+  // cleaned up.
+  kmp_tor_free(handle_t, 0);
+
+  // Set the result so that kmp_tor_terminate_and_await can pick
+  // it up and complete.
+  pthread_mutex_lock(&s_kmp_tor_lock);
+    s_tor_run_main_result = i_result;
+  pthread_mutex_unlock(&s_kmp_tor_lock);
 
   return NULL;
 }
@@ -404,60 +446,46 @@ int
 kmp_tor_state()
 {
   int state;
-  pthread_mutex_lock(&kmp_tor_lock);
+  pthread_mutex_lock(&s_kmp_tor_lock);
     state = s_kmp_tor_state;
-  pthread_mutex_unlock(&kmp_tor_lock);
+  pthread_mutex_unlock(&s_kmp_tor_lock);
   return state;
 }
 
 int
 kmp_tor_terminate_and_await_result()
 {
-  int result = 1;
-  kmp_tor_handle_t *handle_t = NULL;
+  int result = KMP_TOR_RESULT_AWAITING;
 
-  while (result == 1 && handle_t == NULL) {
-    pthread_mutex_lock(&kmp_tor_lock);
+  while (result == KMP_TOR_RESULT_AWAITING) {
+    pthread_mutex_lock(&s_kmp_tor_lock);
       if (s_kmp_tor_state == KMP_TOR_STATE_OFF) {
-        result = -1;
+        // Nothing happening. Pop out.
+        result = KMP_TOR_RESULT_AWAITING - 1;
       } else {
-        handle_t = s_handle_t;
-        s_handle_t = NULL;
+        // interrupt tor's main loop if possible
+        kmp_tor_closesocket(s_ctrl_socket);
+        s_ctrl_socket = KMP_TOR_SOCKET_INVALID;
+
+        result = s_tor_run_main_result;
+        if (result >= 0) {
+          // kmp_tor_run_blocking completed
+          s_kmp_tor_state = KMP_TOR_STATE_OFF;
+          s_tor_run_main_result = KMP_TOR_RESULT_AWAITING;
+        }
       }
-    pthread_mutex_unlock(&kmp_tor_lock);
+    pthread_mutex_unlock(&s_kmp_tor_lock);
 
-    if (result == 1 && handle_t == NULL) {
-      kmp_tor_sleep(1);
-    }
-  }
-
-  if (handle_t == NULL) {
-    return -1;
-  }
-
-  kmp_tor_closesocket(handle_t->ctrl_socket);
-  handle_t->ctrl_socket = KMP_TOR_SOCKET_INVALID;
-
-  int attempts = 250;
-  result = KMP_TOR_AWAITING_RESULT;
-
-  while (result == KMP_TOR_AWAITING_RESULT) {
-    pthread_mutex_lock(&kmp_tor_lock);
-      result = handle_t->tor_run_main_result;
-    pthread_mutex_unlock(&kmp_tor_lock);
-
-    if (result == KMP_TOR_AWAITING_RESULT) {
-      // If after 2.5 seconds tor has not shutdown after the
-      // owning controller FD was closed, there is a problem
-      // and we should terminate instead of hanging...
-      if (attempts-- < 0) {
-        break;
-      }
-
+    // Waiting for kmp_tor_run_blocking to complete
+    if (result == KMP_TOR_RESULT_AWAITING) {
       kmp_tor_sleep(10);
     }
   }
 
-  kmp_tor_free(handle_t);
+  if (result == KMP_TOR_RESULT_AWAITING - 1) {
+    // state was KMP_TOR_STATE_OFF.
+    return -1;
+  }
+
   return result;
 }
