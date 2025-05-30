@@ -25,7 +25,9 @@ import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorJob
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.findLibs
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.Throws
 import kotlin.concurrent.Volatile
 
@@ -55,14 +57,24 @@ protected actual constructor(
         }
     }
 
+    private val future = AtomicReference<Future<*>?>(null)
+
     public actual final override fun state(): State = State.entries.elementAt(kmpTorState())
 
-    public actual final override fun terminateAndAwaitResult(): Int = kmpTorTerminateAndAwaitResult()
+    public actual final override fun terminateAndAwaitResult(): Int {
+        val result = kmpTorTerminateAndAwaitResult()
+        try {
+            future.getAndSet(null)?.get()
+        } catch (_: Throwable) {}
+        return result
+    }
 
     @Throws(IllegalStateException::class)
     protected actual fun runInThread(libTor: String, args: Array<String>): TorJob {
+        check(future.get() == null) { "Future != null. terminateAndAwaitResult is required" }
         val job = RealTorJob(libTor, args)
-        executor.submit(job)
+        val f = executor.submit(job)
+        future.set(f)
         return job
     }
 
