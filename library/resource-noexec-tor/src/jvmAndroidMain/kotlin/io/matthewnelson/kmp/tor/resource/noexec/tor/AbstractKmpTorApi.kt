@@ -89,20 +89,19 @@ protected actual constructor(
         throw IllegalStateException("Failed to load torjni", t)
     }
 
-    private class RealTorJob(
-        @Volatile
-        private var libTor: String,
-        @Volatile
-        private var args: Array<String>,
-    ): TorJob, Runnable {
+    private class RealTorJob(libTor: String, args: Array<String>): TorJob, Runnable {
 
+        @Volatile
+        private var _args = Array(args.size) { i -> args[i].toCharArray() }
+        @Volatile
+        private var _libTor = libTor.toCharArray()
         @Volatile
         private var _error: String? = null
 
         override fun checkError(): String? = _error
 
         override fun run() {
-            val e = kmpTorRunBlocking(libTor, args)
+            val e = kmpTorRunBlocking(_libTor, _args)
             _error = e
         }
     }
@@ -127,7 +126,7 @@ protected actual constructor(
         internal const val ALIAS_LIBTORJNI: String = "libtorjni"
 
         @JvmStatic
-        private external fun kmpTorRunBlocking(libTor: String, args: Array<String>): String?
+        private external fun kmpTorRunBlocking(libTor: CharArray, args: Array<CharArray>): String?
         @JvmStatic
         private external fun kmpTorState(): Int
         @JvmStatic
