@@ -13,8 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
+package io.matthewnelson.kmp.tor.resource.noexec.tor
 
-internal fun interface TorJob {
-    fun checkError(): String?
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ENV_KEY_LIBTOR
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.toKString
+import platform.posix.getenv
+import platform.posix.setenv
+
+@OptIn(ExperimentalForeignApi::class)
+class AndroidNativeResourceLoadFailureTest: AndroidResourceLoadFailureBaseTest() {
+    override fun environmentLibTorGet(): String? {
+        return getenv(ENV_KEY_LIBTOR)?.toKString()
+    }
+    override fun environmentLibTorSet(value: String) {
+        setenv(ENV_KEY_LIBTOR, value, 1)
+    }
 }

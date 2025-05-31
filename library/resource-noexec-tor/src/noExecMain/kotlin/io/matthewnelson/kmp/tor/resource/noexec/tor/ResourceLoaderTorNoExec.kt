@@ -30,6 +30,7 @@ import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_GEO
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP6
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorThread
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.threadSleep
 import kotlin.concurrent.Volatile
 import kotlin.jvm.JvmStatic
@@ -119,16 +120,21 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
         registerShutdownHook: Boolean,
     ): AbstractKmpTorApi(resourceDir, registerShutdownHook) {
 
+        @Volatile
+        private var torThread: TorThread? = null
         private val lock = synchronizedObject()
 
         @Throws(IllegalStateException::class, IOException::class)
-        public override fun torRunMain(args: Array<String>) {
+        protected override fun torRunMain(args: Array<String>) {
             val error = synchronized(lock) {
-                val s = state()
-                check(s == State.OFF) { "state[$s] != State.OFF" }
+                state().let { state ->
+                    check(state == State.OFF) { "current[State.$state] != expected[State.OFF]" }
+                }
 
-                val libTor = libTor()
-                val job = runInThread(libTor.path, args)
+                val (thread, job) = run {
+                    val libTor = libTor()
+                    startTorThread(libTor.path, args)
+                }
 
                 var e: String? = null
 
@@ -139,7 +145,7 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
                         10.milliseconds.threadSleep()
                     } catch (_: InterruptedException) {}
 
-                    when (state()) {
+                    when (nativeState()) {
                         State.OFF,
                         State.STARTING -> e = job.checkError()
 
@@ -151,10 +157,17 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
                 }
 
                 if (e != null) {
-                    // To clean up the Native Worker thread. kmp_tor.c
-                    // will just return -1 because it will already be
-                    // in State.OFF if it returned an error.
-                    terminateAndAwaitResult()
+                    while (true) {
+                        try {
+                            // Jvm can throw InterruptedException if this
+                            // thread has been interrupted. Ignore it and
+                            // go again.
+                            thread.awaitCompletion()
+                            break
+                        } catch (_: InterruptedException) {}
+                    }
+                } else {
+                    torThread = thread
                 }
 
                 e
@@ -162,6 +175,71 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
             throw IllegalStateException(error)
         }
+
+        public override fun state(): State = when (val s = nativeState()) {
+            State.STARTING,
+            State.STARTED,
+            State.STOPPED -> s
+
+            // Native state could be shutdown, but the platform thread
+            // could still be running awaiting completion. Because there
+            // is no "STOPPING" state, return STOPPED until the reference
+            // is cleared via terminateAndAwaitResult.
+            State.OFF -> if (torThread == null) s else State.STOPPED
+        }
+
+        public override fun terminateAndAwaitResult(): Int {
+            val thread = synchronized(lock) {
+                val t = torThread ?: return@synchronized null
+
+                // Another caller from a different thread is requesting
+                // termination
+                if (t is TorThreadRefWaiter) return@synchronized t
+
+                // First invocation of terminateAndAwaitResult for this
+                // torRunMain job. Set up a waiter so subsequent calls
+                // from different threads will also block until the
+                // reference is cleared.
+                torThread = TorThreadRefWaiter {
+                    while (true) {
+                        if (torThread == null) break
+
+                        try {
+                            10.milliseconds.threadSleep()
+                        } catch (_: InterruptedException) {}
+                    }
+                }
+
+                TorThread {
+                    try {
+                        while (true) {
+                            try {
+                                // Jvm can throw InterruptedException if this
+                                // thread has been interrupted. We ignore it
+                                // and go again.
+                                t.awaitCompletion()
+                                break
+                            } catch (_: InterruptedException) {}
+                        }
+                    } finally {
+                        torThread = null
+                    }
+                }
+            }
+
+            val result = kmpTorTerminateAndAwaitResult()
+            thread?.awaitCompletion()
+            return result
+        }
+
+        // Native Worker can only call terminate once, so this is utilized
+        // as a stopgap if there are multiple calls to terminateAndAwaitResult.
+        // They will simply block the thread reference to be dropped before
+        // returning.
+        private fun interface TorThreadRefWaiter: TorThread
+
+        @Suppress("NOTHING_TO_INLINE")
+        private inline fun nativeState(): State = State.entries.elementAt(kmpTorState())
     }
 
     @Throws(IllegalStateException::class)
