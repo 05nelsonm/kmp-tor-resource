@@ -20,6 +20,8 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor
 import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
+import io.matthewnelson.kmp.tor.common.core.OSHost
+import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIBTOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorThread
@@ -28,6 +30,9 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.Throws
 import kotlin.concurrent.Volatile
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 // jvmAndroid
 @OptIn(InternalKmpTorApi::class)
@@ -99,8 +104,36 @@ protected actual constructor(
         override fun checkError(): String? = _error
 
         override fun run() {
+            ifNeedsSleep {
+                try {
+                    Thread.sleep(100)
+                } catch (t: InterruptedException) {
+                    _error = "Thread[${Thread.currentThread().name}] was interrupted"
+                    throw t
+                }
+            }
+
             val e = kmpTorRunBlocking(_libTor, _args)
             _error = e
+
+            ifNeedsSleep { Thread.sleep(150) }
+        }
+
+        // For some reason on Linux the libjvm thread implementation has
+        // issues with calling into the JNI layer for a blocking call.
+        // A little Thread.sleep before/after seems to help?
+        @Suppress("NOTHING_TO_INLINE")
+        @OptIn(ExperimentalContracts::class)
+        private inline fun ifNeedsSleep(block: () -> Unit) {
+            contract {
+                callsInPlace(block, InvocationKind.AT_MOST_ONCE)
+            }
+
+            when (OSInfo.INSTANCE.osHost) {
+                is OSHost.Linux.Libc,
+                is OSHost.Linux.Musl -> block()
+                else -> return
+            }
         }
     }
 
