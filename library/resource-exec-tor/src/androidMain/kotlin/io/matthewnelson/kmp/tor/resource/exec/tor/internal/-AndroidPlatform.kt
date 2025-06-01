@@ -17,6 +17,7 @@
 
 package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
+import android.annotation.SuppressLint
 import android.os.Build
 import android.system.Os
 import io.matthewnelson.kmp.file.File
@@ -31,6 +32,12 @@ import io.matthewnelson.kmp.tor.resource.lib.tor.tryConfigureTestTorResources
 @OptIn(InternalKmpTorApi::class)
 internal actual inline fun Resource.Config.Builder.configureTorResources() {
     if (OSInfo.INSTANCE.isAndroidRuntime()) {
+        @SuppressLint("ObsoleteSdkInt")
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            error("Android API 21+ is required")
+            return
+        }
+
         var isNotExtracted = false
         var isMissing = false
 
