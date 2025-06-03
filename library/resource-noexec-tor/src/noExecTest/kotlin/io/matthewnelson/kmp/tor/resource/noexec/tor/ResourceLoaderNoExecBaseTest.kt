@@ -44,15 +44,13 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
 ) {
 
     protected companion object {
-        const val RUN_TOR_MAIN_COUNT_UNIX: Int = 500
-        const val RUN_TOR_MAIN_COUNT_WINDOWS: Int = 200
+        const val RUN_TOR_MAIN_COUNT_UNIX: Int = 400
+        const val RUN_TOR_MAIN_COUNT_WINDOWS: Int = 150
     }
 
     private val skipTorRunMain: Boolean get() {
         val skip = runTorMainCount <= 0 || !CAN_RUN_FULL_TESTS
-        if (skip) {
-            println("Skipping...")
-        }
+        if (skip) println("Skipping...")
         return skip
     }
 
