@@ -25,13 +25,13 @@ import kotlin.native.concurrent.TransferMode
 import kotlin.native.concurrent.Worker
 
 @OptIn(ObsoleteWorkersApi::class)
-internal fun Worker.executeTorJob(libTor: String, args: Array<String>): TorJob {
-    val job = NativeTorJob(libTor, args)
+internal fun Worker.executeTorThreadJob(libTor: String, args: Array<String>): TorThread.Job {
+    val job = NativeTorThreadJob(libTor, args)
     execute(TransferMode.SAFE, { job }) { it.execute() }
     return job
 }
 
-private class NativeTorJob(private val libTor: String, private val args: Array<String>): TorJob {
+private class NativeTorThreadJob(private val libTor: String, private val args: Array<String>): TorThread.Job {
 
     @Volatile
     private var error: String? = null

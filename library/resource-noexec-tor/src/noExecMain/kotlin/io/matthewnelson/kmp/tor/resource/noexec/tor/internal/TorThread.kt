@@ -15,6 +15,14 @@
  **/
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
-internal fun interface TorJob {
-    fun checkError(): String?
+import io.matthewnelson.kmp.file.InterruptedException
+
+internal fun interface TorThread {
+
+    @Throws(InterruptedException::class)
+    fun awaitCompletion()
+
+    interface Job {
+        fun checkError(): String?
+    }
 }

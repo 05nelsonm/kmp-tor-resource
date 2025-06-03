@@ -20,7 +20,7 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.IOException
 import io.matthewnelson.kmp.tor.common.api.TorApi
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorJob
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorThread
 
 // noExec
 internal expect sealed class AbstractKmpTorApi
@@ -30,11 +30,15 @@ protected constructor(
     registerShutdownHook: Boolean,
 ): TorApi {
 
-    public final override fun state(): State
-    public final override fun terminateAndAwaitResult(): Int
+    protected fun startTorThread(
+        libTor: String,
+        args: Array<String>,
+        threadName: String,
+    ): Pair<TorThread, TorThread.Job>
 
-    @Throws(IllegalStateException::class)
-    protected fun runInThread(libTor: String, args: Array<String>): TorJob
+    protected fun kmpTorState(): Int
+    protected fun kmpTorStopStage1InterruptAndAwaitResult(): Int
+    protected fun kmpTorStopStage2PostThreadExitCleanup(): Int
 
     @Throws(IllegalStateException::class, IOException::class)
     protected fun libTor(): File

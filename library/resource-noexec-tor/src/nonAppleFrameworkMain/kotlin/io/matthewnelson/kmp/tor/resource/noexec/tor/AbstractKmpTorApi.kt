@@ -20,9 +20,15 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor
 import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.*
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIBTOR
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorThread
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.executeTorThreadJob
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.findLibs
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_state
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_stop_stage1_interrupt_and_await_result
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_stop_stage2_post_thread_exit_cleanup
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlin.concurrent.AtomicReference
 import kotlin.native.concurrent.ObsoleteWorkersApi
 import kotlin.native.concurrent.Worker
 
@@ -35,25 +41,19 @@ protected actual constructor(
     registerShutdownHook: Boolean,
 ): TorApi() {
 
-    private val worker = AtomicReference<Worker?>(null)
-
-    public actual final override fun state(): State = State.entries.elementAt(kmp_tor_state())
-
-    public actual final override fun terminateAndAwaitResult(): Int {
-        val result = kmp_tor_terminate_and_await_result()
-        worker.getAndSet(null)?.requestTermination(false)?.result
-        return result
+    protected actual fun startTorThread(
+        libTor: String,
+        args: Array<String>,
+        threadName: String,
+    ): Pair<TorThread, TorThread.Job> {
+        val w = Worker.start(name = threadName)
+        val job = w.executeTorThreadJob(libTor, args)
+        return TorThread { w.requestTermination(processScheduledJobs = false).result } to job
     }
 
-    @Throws(IllegalStateException::class)
-    protected actual fun runInThread(libTor: String, args: Array<String>): TorJob {
-        check(worker.value == null) { "Worker != null. terminateAndAwaitResult is required" }
-
-        val w = Worker.start(name = "tor_run_main")
-        val job = w.executeTorJob(libTor, args)
-        worker.value = w
-        return job
-    }
+    protected actual fun kmpTorState(): Int = kmp_tor_state()
+    protected actual fun kmpTorStopStage1InterruptAndAwaitResult(): Int = kmp_tor_stop_stage1_interrupt_and_await_result()
+    protected actual fun kmpTorStopStage2PostThreadExitCleanup(): Int = kmp_tor_stop_stage2_post_thread_exit_cleanup()
 
     @Throws(IllegalStateException::class, IOException::class)
     protected actual fun libTor(): File = extractLibTor(isInit = false)
