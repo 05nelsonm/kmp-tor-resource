@@ -97,7 +97,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         if (skipTorRunMain) return
 
         repeat(runTorMainCount) { index ->
-            if ((index + 1) % 10 == 0) {
+            if (index < 4 || (index + 1) % 10 == 0) {
                 println("RUN[${index + 1}]")
             }
 
@@ -203,7 +203,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         job.invokeOnCompletion { bgDispatcher.close() }
 
         repeat(runTorMainCount / 10) { index ->
-            if ((index + 1) % 5 == 0) {
+            if (index < 4 || (index + 1) % 5 == 0) {
                 println("RUN_TOR[${index + 1}]")
             }
 

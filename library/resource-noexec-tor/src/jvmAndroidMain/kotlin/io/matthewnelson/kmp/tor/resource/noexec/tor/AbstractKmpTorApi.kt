@@ -90,7 +90,15 @@ protected actual constructor(
         override fun checkError(): String? = _error
 
         override fun run() {
-            val e = kmpTorRunBlocking(_libTor, _args)
+            val (args, libTor) = synchronized(this) {
+                val a = _args
+                val lt = _libTor
+                _args = emptyArray()
+                _libTor = CharArray(0)
+                a to lt
+            }
+
+            val e = kmpTorRunBlocking(libTor, args)
             _error = e
         }
     }
