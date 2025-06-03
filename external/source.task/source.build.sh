@@ -227,11 +227,13 @@ fi
   esac
 
   # ZLIB
-  CONF_ZLIB='./configure --static \
+  CONF_ZLIB='./configure \
+    --static \
     --prefix="$DIR_SCRIPT/zlib"'
 
   # LZMA
-  CONF_XZ='./configure --disable-doc \
+  CONF_XZ='./configure \
+    --disable-doc \
     --disable-lzma-links \
     --disable-lzmadec \
     --disable-lzmainfo \
@@ -246,51 +248,64 @@ fi
     --prefix="$DIR_SCRIPT/xz"'
 
   # OPENSSL
-  CONF_OPENSSL='./Configure no-shared \
+  CONF_OPENSSL='./Configure \
     no-asm \
+    no-async \
     no-atexit \
+    no-autoload-config \
+    no-camellia \
     no-comp \
+    no-docs \
     no-dso \
     no-dtls \
-    no-err \
-    no-psk \
-    no-srp \
-    no-weak-ssl-ciphers \
-    no-camellia \
+    no-dynamic-engine \
+    no-ec2m \
+    no-engine \
+    no-hw \
     no-idea \
-    no-md2 \
     no-md4 \
+    no-mdc2 \
+    no-module \
+    no-pinshared \
+    no-psk \
     no-rc2 \
     no-rc4 \
-    no-rc5 \
     no-rmd160 \
+    no-shared \
+    no-srp \
+    no-static-engine \
     no-whirlpool \
     no-ui-console \
+    no-zlib \
+    no-zlib-dynamic \
+    no-zstd \
+    no-zstd-dynamic \
     enable-pic'
 
   if [ "${os_arch: -2}" = "64" ]; then
     __build:OPENSSL 'enable-ec_nistp_64_gcc_128'
   fi
 
-  case "$os_name" in
-    "android")
-      __build:OPENSSL '-D__ANDROID_API__=21'
-      ;;
-    "mingw")
-      # Even though -static is declared in CFLAGS, it is declared here
-      # because openssl's Configure file is jank.
-      __build:OPENSSL '-static'
-      ;;
-  esac
+  if [ "$os_name" = "android" ]; then
+    __build:OPENSSL '-D__ANDROID_API__=21'
+  fi
+
+  if [ "$os_name" = "mingw" ]; then
+    # Even though -static is declared in CFLAGS, it is declared here
+    # because openssl's Configure file is jank.
+    __build:OPENSSL '-static'
+  else
+    __build:OPENSSL 'no-default-thread-pool'
+    __build:OPENSSL 'no-thread-pool'
+  fi
 
   __build:OPENSSL '--libdir=lib'
-  __build:OPENSSL '--with-zlib-lib="$DIR_SCRIPT/zlib/lib"'
-  __build:OPENSSL '--with-zlib-include="$DIR_SCRIPT/zlib/include"'
   __build:OPENSSL '--prefix="$DIR_SCRIPT/openssl"'
   __build:OPENSSL "$openssl_target"
 
   # LIBEVENT
-  CONF_LIBEVENT='./configure --disable-debug-mode \
+  CONF_LIBEVENT='./configure \
+    --disable-debug-mode \
     --disable-doxygen-html \
     --disable-libevent-regress \
     --disable-openssl \
@@ -314,7 +329,8 @@ fi
   __build:LIBEVENT '--prefix="$DIR_SCRIPT/libevent"'
 
   # TOR
-  CONF_TOR='./configure --disable-asciidoc \
+  CONF_TOR='./configure \
+    --disable-asciidoc \
     --disable-html-manual \
     --disable-manpage \
     --disable-system-torrc \
