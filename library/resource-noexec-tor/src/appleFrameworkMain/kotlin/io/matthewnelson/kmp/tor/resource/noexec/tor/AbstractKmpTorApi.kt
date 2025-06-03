@@ -23,19 +23,17 @@ import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.IOException
 import io.matthewnelson.kmp.file.toFile
 import io.matthewnelson.kmp.tor.common.api.TorApi
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorThread
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.executeTorThreadJob
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_run_main
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_state
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_stop_stage1_interrupt_and_await_result
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_stop_stage2_post_thread_exit_cleanup
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_terminate_and_await_result
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.toCStringArray
+import kotlinx.cinterop.toKString
 import platform.Foundation.NSBundle
-import kotlin.concurrent.Volatile
-import kotlin.native.concurrent.ObsoleteWorkersApi
-import kotlin.native.concurrent.Worker
 
 // appleFramework
-@OptIn(ExperimentalForeignApi::class, ObsoleteWorkersApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal actual sealed class AbstractKmpTorApi
 @Throws(IllegalStateException::class, IOException::class)
 protected actual constructor(
@@ -43,19 +41,20 @@ protected actual constructor(
     registerShutdownHook: Boolean,
 ): TorApi() {
 
-    @Volatile
-    private var threadNo = 0L
     private val bundle: NSBundle
 
-    protected actual fun startTorThread(libTor: String, args: Array<String>): Pair<TorThread, TorThread.Job> {
-        val w = Worker.start(name = "tor_run_main-${++threadNo}")
-        val job = w.executeTorThreadJob(libTor, args)
-        return TorThread { w.requestTermination(processScheduledJobs = false).result } to job
+    protected actual fun kmpTorRunMain(libTor: String, args: Array<String>): String? {
+        return memScoped {
+            kmp_tor_run_main(
+                lib_tor = libTor,
+                argc = args.size,
+                argv = args.toCStringArray(autofreeScope = this)
+            )?.toKString()
+        }
     }
 
     protected actual fun kmpTorState(): Int = kmp_tor_state()
-    protected actual fun kmpTorStopStage1InterruptAndAwaitResult(): Int = kmp_tor_stop_stage1_interrupt_and_await_result()
-    protected actual fun kmpTorStopStage2PostThreadExitCleanup(): Int = kmp_tor_stop_stage2_post_thread_exit_cleanup()
+    protected actual fun kmpTorTerminateAndAwaitResult(): Int = kmp_tor_terminate_and_await_result()
 
     @Throws(IllegalStateException::class, IOException::class)
     protected actual fun libTor(): File {

@@ -22,12 +22,8 @@ import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIBTOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorThread
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.findLibs
-import java.util.concurrent.Executors
-import java.util.concurrent.atomic.AtomicLong
 import kotlin.Throws
-import kotlin.concurrent.Volatile
 
 // jvmAndroid
 @OptIn(InternalKmpTorApi::class)
@@ -38,27 +34,14 @@ protected actual constructor(
     registerShutdownHook: Boolean,
 ): TorApi() {
 
-    private val executor = run {
-        val threadNo = AtomicLong()
-        Executors.newFixedThreadPool(/* nThreads = */ 1) { runnable ->
-            Thread(runnable).apply {
-                name = "tor_run_main-${threadNo.incrementAndGet()}"
-                isDaemon = true
-                priority = Thread.MAX_PRIORITY
-            }
-        }
+    private external fun kmpTorRunMain(libTor: CharArray, args: Array<CharArray>): String?
+    protected actual fun kmpTorRunMain(libTor: String, args: Array<String>): String? {
+        val cLibTor = libTor.toCharArray()
+        val cArgs = Array(args.size) { i -> args[i].toCharArray() }
+        return kmpTorRunMain(cLibTor, cArgs)
     }
-
-    private external fun kmpTorRunBlocking(libTor: CharArray, args: Array<CharArray>): String?
     protected actual external fun kmpTorState(): Int
-    protected actual external fun kmpTorStopStage1InterruptAndAwaitResult(): Int
-    protected actual external fun kmpTorStopStage2PostThreadExitCleanup(): Int
-
-    protected actual fun startTorThread(libTor: String, args: Array<String>): Pair<TorThread, TorThread.Job> {
-        val job = TorThreadJob(libTor, args)
-        val future = executor.submit(job)
-        return TorThread { future.get() } to job
-    }
+    protected actual external fun kmpTorTerminateAndAwaitResult(): Int
 
     @Throws(IllegalStateException::class, IOException::class)
     protected actual fun libTor(): File = extractLibTor(isInit = false)
@@ -83,38 +66,8 @@ protected actual constructor(
         throw IllegalStateException("Failed to load torjni", t)
     }
 
-    private inner class TorThreadJob(libTor: String, args: Array<String>): TorThread.Job, Runnable {
-
-        @Volatile
-        private var _args = Array(args.size) { i -> args[i].toCharArray() }
-        @Volatile
-        private var _libTor = libTor.toCharArray()
-        @Volatile
-        private var _error: String? = null
-
-        override fun checkError(): String? = _error
-
-        override fun run() {
-            val (args, libTor) = synchronized(this) {
-                val a = _args
-                val lt = _libTor
-                _args = emptyArray()
-                _libTor = CharArray(0)
-                a to lt
-            }
-
-            val e = kmpTorRunBlocking(libTor, args)
-            _error = e
-        }
-    }
-
     init {
-        try {
-            extractLibTor(isInit = true)
-        } catch (t: Throwable) {
-            executor.shutdown()
-            throw t
-        }
+        extractLibTor(isInit = true)
 
         if (registerShutdownHook) {
             val t = Thread { terminateAndAwaitResult() }

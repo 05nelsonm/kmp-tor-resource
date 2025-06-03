@@ -55,7 +55,7 @@ JCharArrayToCString(JNIEnv *env, jcharArray a)
 }
 
 JNIEXPORT jstring JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunBlocking
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMain
 (JNIEnv *env, jobject thiz, jcharArray lib_tor, jobjectArray args)
 {
   if (lib_tor == NULL) {
@@ -106,7 +106,7 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunBlo
   }
 
   if (copy_args == 0) {
-    error = kmp_tor_run_blocking(c_lib_tor, c_argc, c_argv);
+    error = kmp_tor_run_main(c_lib_tor, c_argc, c_argv);
   } else {
     error = "Failed to copy arguments to C";
   }
@@ -137,15 +137,8 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorState
 }
 
 JNIEXPORT jint JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorStopStage1InterruptAndAwaitResult
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorTerminateAndAwaitResult
 (JNIEnv *env, jobject thiz)
 {
-  return kmp_tor_stop_stage1_interrupt_and_await_result();
-}
-
-JNIEXPORT jint JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorStopStage2PostThreadExitCleanup
-(JNIEnv *env, jobject thiz)
-{
-  return kmp_tor_stop_stage2_post_thread_exit_cleanup();
+  return kmp_tor_terminate_and_await_result();
 }

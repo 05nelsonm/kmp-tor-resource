@@ -20,7 +20,7 @@
 #include <jni.h>
 
 JNIEXPORT jstring JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunBlocking
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMain
 (JNIEnv *, jobject, jcharArray, jobjectArray);
 
 JNIEXPORT jint JNICALL
@@ -28,11 +28,7 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorState
 (JNIEnv *, jobject);
 
 JNIEXPORT jint JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorStopStage1InterruptAndAwaitResult
-(JNIEnv *, jobject);
-
-JNIEXPORT jint JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorStopStage2PostThreadExitCleanup
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorTerminateAndAwaitResult
 (JNIEnv *, jobject);
 
 #endif /* !defined(KMP_TOR_JNI_H) */
