@@ -229,13 +229,6 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
             val result = kmpTorStopStage1InterruptAndAwaitResult()
             thread?.awaitCompletion()
-
-            if (thread is TorThreadStopStage2) {
-                try {
-                    100.milliseconds.threadSleep()
-                } catch (_: InterruptedException) {}
-            }
-
             kmpTorStopStage2PostThreadExitCleanup()
 
             if (thread is TorThreadStopStage2) {

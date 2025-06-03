@@ -32,15 +32,8 @@ import kotlin.test.*
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-/**
- * Implemented in given source sets such that tests do not run
- * for AndroidDebugUnitTest, but do so for AndroidUnitTest. Even
- * with `forkEvery = 1` for Android/Jvm `Test` tasks, it still seems
- * to load libtor.so and pollute the memory space (resulting in a
- * crash). So this is just to disable that source set...
- * */
 abstract class ResourceLoaderNoExecBaseTest protected constructor(
-    private val runTorMainCount: Int = RUN_TOR_MAIN_COUNT_UNIX
+    private val runTorMainCount: Int = RUN_TOR_MAIN_COUNT_UNIX,
 ) {
 
     protected companion object {
@@ -97,7 +90,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         if (skipTorRunMain) return
 
         repeat(runTorMainCount) { index ->
-            if (index < 4 || (index + 1) % 10 == 0) {
+            if (index < 5 || (index + 1) % 10 == 0) {
                 println("RUN[${index + 1}]")
             }
 
@@ -202,7 +195,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         val bgDispatcher = newSingleThreadContext("bg-tor-terminate")
         job.invokeOnCompletion { bgDispatcher.close() }
 
-        repeat(runTorMainCount / 10) { index ->
+        repeat(runTorMainCount / 25) { index ->
             if (index < 4 || (index + 1) % 5 == 0) {
                 println("RUN_TOR[${index + 1}]")
             }

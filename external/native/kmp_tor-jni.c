@@ -26,7 +26,7 @@ JCharArrayToCString(JNIEnv *env, jcharArray a)
   }
 
   char *c_arg = NULL;
-  jsize len = 0;
+  int len = -1;
 
   len = (*env)->GetArrayLength(env, a);
   if (len < 0) {
@@ -97,9 +97,6 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunBlo
 
     jcharArray j_arg = (jcharArray) (*env)->GetObjectArrayElement(env, args, i);
     c_argv[c_argc] = JCharArrayToCString(env, j_arg);
-    if (j_arg != NULL) {
-      (*env)->DeleteLocalRef(env, j_arg);
-    }
 
     if (c_argv[c_argc] == NULL) {
       copy_args = -1;

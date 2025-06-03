@@ -518,6 +518,8 @@ kmp_tor_stop_stage2_post_thread_exit_cleanup()
     return -1;
   }
 
+  usleep((useconds_t) (100 * 1000));
+
   lib_load_close(lib_t);
   lib_t = NULL;
 
