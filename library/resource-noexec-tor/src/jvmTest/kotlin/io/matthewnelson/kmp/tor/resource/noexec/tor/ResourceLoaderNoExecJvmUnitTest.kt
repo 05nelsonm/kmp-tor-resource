@@ -26,7 +26,7 @@ class ResourceLoaderNoExecJvmUnitTest: ResourceLoaderNoExecBaseTest(
     runTorMainCount = when (OSInfo.INSTANCE.osHost) {
         is OSHost.Windows -> RUN_TOR_MAIN_COUNT_WINDOWS
         else -> RUN_TOR_MAIN_COUNT_UNIX
-    }
+    },
 ) {
 
     @Test

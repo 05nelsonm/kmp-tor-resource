@@ -17,30 +17,46 @@
 #include "kmp_tor.h"
 
 #include <stdlib.h>
-#include <string.h>
 
 static char *
-JStringDup(JNIEnv *env, jstring s)
+JCharArrayToCString(JNIEnv *env, jcharArray a)
 {
-  if (s == NULL) {
+  if (a == NULL) {
     return NULL;
   }
 
-  char *dup = NULL;
-  const char *c_arg = NULL;
+  char *c_arg = NULL;
+  int len = -1;
 
-  c_arg = (*env)->GetStringUTFChars(env, s, NULL);
-  if (c_arg != NULL) {
-    dup = strdup(c_arg);
-    (*env)->ReleaseStringUTFChars(env, s, c_arg);
+  len = (*env)->GetArrayLength(env, a);
+  if (len < 0) {
+    return NULL;
   }
 
-  return dup;
+  c_arg = malloc((len + 1) * sizeof(char *));
+  if (c_arg == NULL) {
+    return NULL;
+  } else {
+    c_arg[len] = '\0';
+  }
+
+  if (len == 0) {
+    return c_arg;
+  }
+
+  jchar buf[len];
+  (*env)->GetCharArrayRegion(env, a, 0, len, buf);
+
+  for (jsize i = 0; i < len; i++) {
+    c_arg[i] = buf[i];
+  }
+
+  return c_arg;
 }
 
 JNIEXPORT jstring JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunBlocking
-(JNIEnv *env, jobject thiz, jstring lib_tor, jobjectArray args)
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMain
+(JNIEnv *env, jobject thiz, jcharArray lib_tor, jobjectArray args)
 {
   if (lib_tor == NULL) {
     return (*env)->NewStringUTF(env, "lib_tor cannot be NULL");
@@ -49,8 +65,8 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunBlo
     return (*env)->NewStringUTF(env, "args cannot be NULL");
   }
 
-  jsize argc = (*env)->GetArrayLength(env, args);
-  if (argc <= 0) {
+  jsize j_argc = (*env)->GetArrayLength(env, args);
+  if (j_argc <= 0) {
     return (*env)->NewStringUTF(env, "args cannot be empty");
   }
 
@@ -60,30 +76,27 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunBlo
   char *c_lib_tor = NULL;
   const char *error = NULL;
 
-  c_lib_tor = JStringDup(env, lib_tor);
+  c_lib_tor = JCharArrayToCString(env, lib_tor);
   if (c_lib_tor == NULL) {
-    return (*env)->NewStringUTF(env, "JStringDup failed to copy lib_tor");
+    return (*env)->NewStringUTF(env, "JCharArrayToCString failed to copy lib_tor");
   }
 
-  c_argv = malloc(argc * sizeof(char *));
+  c_argv = malloc(j_argc * sizeof(char *));
   if (c_argv == NULL) {
     free(c_lib_tor);
+    c_lib_tor = NULL;
     return (*env)->NewStringUTF(env, "Failed to create c_argv");
   }
 
-  for (jsize i = 0; i < argc; i++) {
+  for (jsize i = 0; i < j_argc; i++) {
     if (copy_args != 0) {
-      c_argv[c_argc++] = NULL;
+      c_argv[c_argc] = NULL;
+      c_argc++;
       continue;
     }
 
-    jstring j_arg = (jstring) (*env)->GetObjectArrayElement(env, args, i);
-    if (j_arg == NULL) {
-      c_argv[c_argc] = NULL;
-    } else {
-      c_argv[c_argc] = JStringDup(env, j_arg);
-      (*env)->DeleteLocalRef(env, j_arg);
-    }
+    jcharArray j_arg = (jcharArray) (*env)->GetObjectArrayElement(env, args, i);
+    c_argv[c_argc] = JCharArrayToCString(env, j_arg);
 
     if (c_argv[c_argc] == NULL) {
       copy_args = -1;
@@ -93,7 +106,7 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunBlo
   }
 
   if (copy_args == 0) {
-    error = kmp_tor_run_blocking(c_lib_tor, c_argc, c_argv);
+    error = kmp_tor_run_main(c_lib_tor, c_argc, c_argv);
   } else {
     error = "Failed to copy arguments to C";
   }
@@ -101,10 +114,13 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunBlo
   for (int i = 0; i < c_argc; i++) {
     if (c_argv[i] != NULL) {
       free(c_argv[i]);
+      c_argv[i] = NULL;
     }
   }
   free(c_argv);
+  c_argv = NULL;
   free(c_lib_tor);
+  c_lib_tor = NULL;
 
   if (error != NULL) {
     return (*env)->NewStringUTF(env, error);

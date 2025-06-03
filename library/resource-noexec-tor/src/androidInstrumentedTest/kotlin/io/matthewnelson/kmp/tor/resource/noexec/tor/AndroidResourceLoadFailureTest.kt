@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Matthew Nelson
+ * Copyright (c) 2025 Matthew Nelson
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,17 @@
  **/
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
-import kotlin.experimental.ExperimentalNativeApi
+import android.system.Os
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ENV_KEY_LIBTOR
 import kotlin.test.Test
 
-@OptIn(ExperimentalNativeApi::class)
-class ResourceLoaderNoExecNativeUnitTest: ResourceLoaderNoExecBaseTest(
-    runTorMainCount = when (Platform.osFamily) {
-        OsFamily.WINDOWS -> RUN_TOR_MAIN_COUNT_WINDOWS
-        else -> RUN_TOR_MAIN_COUNT_UNIX
-    },
-) {
+class AndroidResourceLoadFailureTest: AndroidResourceLoadFailureBaseTest() {
+    override fun environmentLibTorGet(): String? {
+        return Os.getenv(ENV_KEY_LIBTOR)
+    }
+    override fun environmentLibTorSet(value: String) {
+        Os.setenv(ENV_KEY_LIBTOR, value, true)
+    }
 
     @Test
     fun stub() {}

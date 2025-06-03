@@ -128,6 +128,7 @@ lib_load_open(const char *lib)
   if (handle_t->lib == NULL) {
     fprintf(stderr, "KmpTor: Failed to allocate memory to lib_handle_t.lib for lib[%s]\n", lib);
     lib_load_free(handle_t);
+    handle_t = NULL;
     return NULL;
   }
 #ifdef _WIN32
@@ -136,6 +137,7 @@ lib_load_open(const char *lib)
   if (handle_t->err_buf == NULL) {
     fprintf(stderr, "KmpTor: Failed to allocate memory to lib_handle_t.err_buf for lib[%s]\n", lib);
     lib_load_free(handle_t);
+    handle_t = NULL;
     return NULL;
   }
   handle_t->err_buf[0] = 0;
@@ -146,12 +148,14 @@ lib_load_open(const char *lib)
   len = MultiByteToWideChar(CP_THREAD_ACP, 0, handle_t->lib, -1, NULL, 0);
   if (len == 0) {
     lib_load_free(handle_t);
+    handle_t = NULL;
     return NULL;
   }
 
   w_lib = malloc(len * sizeof(*w_lib));
   if (w_lib == NULL) {
     lib_load_free(handle_t);
+    handle_t = NULL;
     return NULL;
   }
 
@@ -165,22 +169,20 @@ lib_load_open(const char *lib)
   free(w_lib);
 #else
 
-  // RTLD_NOW:   kmp-tor compiles tor as shared lib and uses
-  //             export maps to only expose what is available
-  //             in tor_api.h (so only a few functions). No use
-  //             in specifying RTLD_LAZY because right after
-  //             opening we'll be getting pointers to all
-  //             those functions.
+  // RTLD_LAZY:  Even though we will be obtaining function pointers
+  //             immediately after this, we only want resolution
+  //             of those we need to achieve startup.
   // RTLD_LOCAL: Even though this is documented as the default
   //             for Linux/Android when not present, it is NOT
   //             the default for macOS (RTLD_GLOBAL is).
-  handle_t->handle = dlopen(handle_t->lib, RTLD_NOW | RTLD_LOCAL);
+  handle_t->handle = dlopen(handle_t->lib, RTLD_LAZY | RTLD_LOCAL);
 #endif // _WIN32
 
   if (handle_t->handle == NULL) {
     char *err = lib_load_error(handle_t);
     fprintf(stderr, "KmpTor: Failed to open lib[%s] - error[%s]\n", handle_t->lib, err);
     lib_load_free(handle_t);
+    handle_t = NULL;
     return NULL;
   }
 
