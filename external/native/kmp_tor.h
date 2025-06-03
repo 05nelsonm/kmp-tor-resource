@@ -25,30 +25,51 @@
 /**
  * Returns NULL on successful startup. Otherwise, an error message.
  *
- * After successful startup, `kmp_tor_terminate_and_await_result` can be called
- * to interrupt tor's main loop.
- *
- * `kmp_tor_terminate_and_await_result` MUST be called when done to release resources.
+ * After successful startup, `kmp_tor_stop_stage1_interrupt_and_await_result` can be called
+ * to interrupt tor's main loop, followed by `kmp_tor_stop_stage2_post_thread_exit_cleanup`
+ * after the thread calling this function has exited.
  **/
 const char *kmp_tor_run_blocking(const char *lib_tor, int argc, char *argv[]);
 
 /**
  * Returns current state.
- *  - (0) KMP_TOR_STATE_OFF:       Nothing happening. Free to call `kmp_tor_run_blocking`
- *  - (1) KMP_TOR_STATE_STARTING:  `kmp_tor_run_blocking` was called and awaiting return
- *  - (2) KMP_TOR_STATE_STARTED:   tor's `tor_run_main` is running in its thread
- *  - (3) KMP_TOR_STATE_STOPPED:   tor's `tor_run_main` returned and the thread is ready
- *                                 for cleanup via `kmp_tor_terminate_and_await_result`.
+ *  - (0) KMP_TOR_STATE_OFF:       Nothing happening. Free to call `kmp_tor_run_blocking`.
+ *  - (1) KMP_TOR_STATE_STARTING:  `kmp_tor_run_blocking` is mid-execution. State will
+ *                                 either move into KMP_TOR_STATE_OFF and an error message
+ *                                 will be returned, or it will move to KMP_TOR_STATE_STARTED
+ *                                 whereby no errors occurred and `tor_run_main` has been called.
+ *  - (2) KMP_TOR_STATE_STARTED:   `tor_run_main` is executing
+ *  - (3) KMP_TOR_STATE_STOPPED:   `tor_run_main` returned. `kmp_tor_stop_stage1_interrupt_and_await_result`
+ *                                 is ready to be called to retrieve the result, followed by a final call
+ *                                 to `kmp_tor_stop_stage2_post_thread_exit_cleanup` after the thread which
+ *                                 `kmp-tor_run_blocking` was called on has exited.
  **/
 int kmp_tor_state();
 
 /**
- * This MUST be called to release resources before calling `kmp_tor_run_blocking` again. It
- * should be called as soon as possible (i.e. when `kmp_tor_state` is `KMP_TOR_STATE_STOPPED`).
+ * A "Stage 1" of a shutdown sequence for tor. If tor's main loop is running, it will interrupt it
+ * and wait for it's result. This MUST be called before `kmp_tor_stop_stage2_post_thread_exit_cleanup`
+ * can be called.
  *
- * Returns -1 if state is `KMP_TOR_STATE_OFF`. Otherwise, will return whatever `tor_run_main`
- * completed with.
+ * Returns the result of `tor_run_main` on success (0-255), or -1 on failure. Failure can be a result
+ * of `kmp_tor_state` was KMP_TOR_STATE_OFF, or this function was called from multiple threads and
+ * was "beat out" by another thread.
  **/
-int kmp_tor_terminate_and_await_result();
+int kmp_tor_stop_stage1_interrupt_and_await_result();
+
+/**
+ * A "Stage 2" of a shutdown sequence for tor. After `kmp_tor_stop_stage1_interrupt_and_await_result`
+ * has returned successfully and then the thread for which `kmp_tor_run_blocking` was called from
+ * has exited, this should be called in order to finalize cleanup and set `kmp_tor_state` to
+ * KMP_TOR_STATE_OFF.
+ *
+ * The reason for this function is that tor and some of its dependencies use pthread_key for cleaning
+ * up thread local resources via its deconstructor. Only after that has occurred can the library be
+ * safely unloaded via dlclose/FreeLibrary.
+ *
+ * Returns 0 on success, or -1 on failure. Failure can be a result of `kmp_tor_stop_stage1_interrupt_and_await_result`
+ * not being called yet.
+ * */
+int kmp_tor_stop_stage2_post_thread_exit_cleanup();
 
 #endif /* !defined(KMP_TOR_H) */

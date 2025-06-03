@@ -64,22 +64,12 @@ typedef struct {
 
 static pthread_mutex_t      s_kmp_tor_lock          = PTHREAD_MUTEX_INITIALIZER;
 
-// Static things which are referenced from different threads. No memory
-// allocated references here, as all allocated resources live and die
-// within the body of the kmp_tor_run_blocking function.
-//
-// Any and all modifications to these variables are done while holding
-// s_kmp_tor_lock.
+// Any and all modifications to these variables are done while holding s_kmp_tor_lock.
 static int                  s_kmp_tor_state         = KMP_TOR_STATE_OFF;
 static int                  s_tor_run_main_result   = KMP_TOR_RESULT_AWAITING;
 static kmp_tor_socket_t     s_ctrl_socket           = KMP_TOR_SOCKET_INVALID;
-
-static void
-kmp_tor_sleep(int millis)
-{
-  assert(millis > 0);
-  usleep((useconds_t) millis * 1000);
-}
+static int                  s_stop_stage2_ready     = -1;
+static lib_handle_t        *s_lib_t                 = NULL;
 
 static void
 kmp_tor_closesocket(kmp_tor_socket_t s)
@@ -125,12 +115,15 @@ kmp_tor_free(kmp_tor_handle_t *handle_t, int tor_run_main_was_called)
   }
 
   if (handle_t->OPENSSL_cleanup != NULL) {
+    // Needs to be called from the same thread that tor was
+    // started with because under the hood this invokes
+    // OPENSSL_thread_stop and CRYPTO_THREAD_cleanup_local.
     handle_t->OPENSSL_cleanup();
     handle_t->OPENSSL_cleanup = NULL;
 
-    // Always give OPENSSL a moment to release any
-    // resources before libtor is unloaded.
-    kmp_tor_sleep(25);
+    if (tor_run_main_was_called == 0) {
+      usleep((useconds_t) (50 * 1000));
+    }
   }
 
   if (handle_t->lib_t != NULL) {
@@ -148,9 +141,9 @@ kmp_tor_free(kmp_tor_handle_t *handle_t, int tor_run_main_was_called)
   free(handle_t);
 
   if (tor_run_main_was_called == 0) {
-    // State will be updated by kmp_tor_terminate_and_await_result caller
-    // to ensure any resources allocated from Kotlin code get cleaned up
-    // before another startup can be had.
+    // State will be updated by kmp_tor_stop_stage2_post_thread_exit_cleanup
+    // caller to ensure any resources allocated from Kotlin code get cleaned
+    // up before another startup can be had.
     return;
   }
 
@@ -349,6 +342,7 @@ kmp_tor_run_blocking(const char *lib_tor, int argc, char *argv[])
   handle_t->was_win32_sockets_initialized = win32_sockets_init();
   if (handle_t->was_win32_sockets_initialized != 0) {
     kmp_tor_free(handle_t, -1);
+    handle_t = NULL;
     return "Failed to initialize windows sockets";
   }
 #endif
@@ -360,6 +354,7 @@ kmp_tor_run_blocking(const char *lib_tor, int argc, char *argv[])
   handle_t->argv = malloc(handle_t->argc * sizeof(char *));
   if (handle_t->argv == NULL) {
     kmp_tor_free(handle_t, -1);
+    handle_t = NULL;
     return "Failed to create argv";
   }
 
@@ -385,18 +380,21 @@ kmp_tor_run_blocking(const char *lib_tor, int argc, char *argv[])
 
   if (i_result != 0) {
     kmp_tor_free(handle_t, -1);
+    handle_t = NULL;
     return "Failed to copy arguments to argv";
   }
 
   c_result = kmp_tor_configure_lib_t(lib_tor, handle_t);
   if (c_result != NULL) {
     kmp_tor_free(handle_t, -1);
+    handle_t = NULL;
     return c_result;
   }
 
   c_result = kmp_tor_configure_tor(handle_t);
   if (c_result != NULL) {
     kmp_tor_free(handle_t, -1);
+    handle_t = NULL;
     return c_result;
   }
 
@@ -404,7 +402,7 @@ kmp_tor_run_blocking(const char *lib_tor, int argc, char *argv[])
     s_kmp_tor_state = KMP_TOR_STATE_STARTED;
     s_tor_run_main_result = KMP_TOR_RESULT_AWAITING;
 
-    // Provide access for kmp_tor_terminate_and_await_result
+    // Provide access for kmp_tor_stop_stage1_interrupt_and_await_result
     // so it can interrupt tor's main loop if need be.
     s_ctrl_socket = handle_t->ctrl_socket;
   pthread_mutex_unlock(&s_kmp_tor_lock);
@@ -414,29 +412,41 @@ kmp_tor_run_blocking(const char *lib_tor, int argc, char *argv[])
     i_result = 1;
   }
 
-  kmp_tor_sleep(100);
+  usleep((useconds_t) (200 * 1000));
 
   pthread_mutex_lock(&s_kmp_tor_lock);
     s_kmp_tor_state = KMP_TOR_STATE_STOPPED;
 
     // Take back the ctrl socket and clear static reference. If
-    // kmp_tor_terminate_and_await_result closed the socket and
-    // set it to invalid, need to ensure we have the updated value
-    // before freeing kmp_tor_handle_t
+    // kmp_tor_stop_stage1_interrupt_and_await_result closed the
+    // socket and set it to invalid, need to ensure we have the
+    // updated value before freeing kmp_tor_handle_t.
     handle_t->ctrl_socket = s_ctrl_socket;
     s_ctrl_socket = KMP_TOR_SOCKET_INVALID;
   pthread_mutex_unlock(&s_kmp_tor_lock);
 
-  // Free all resources, but do not set state to off. This will
-  // require kmp_tor_terminate_and_await_result to be called in
-  // order to ensure any resources allocated from Kotlin side get
-  // cleaned up.
-  kmp_tor_free(handle_t, 0);
+  // Ensure lib_tor does not get unloaded before this thread exits.
+  // It may result in a segmentation fault if deconstructors are
+  // triggered and the memory address pointing to something does not
+  // exist b/c we unloaded too soon.
+  lib_handle_t *lib_t = handle_t->lib_t;
+  handle_t->lib_t = NULL;
 
-  // Set the result so that kmp_tor_terminate_and_await can pick
-  // it up and complete.
+  // Clean everything up, but do not update state; that will be done
+  // by kmp_tor_stop_stage2_post_thread_exit_cleanup after lib_tor
+  // is unloaded.
+  kmp_tor_free(handle_t, 0);
+  handle_t = NULL;
+
   pthread_mutex_lock(&s_kmp_tor_lock);
+    // Set the result so that kmp_tor_stop_stage1_interrupt_and_await_result
+    // can pick it up and "approve" kmp_tor_stop_stage2_post_thread_exit_cleanup
+    // execution.
     s_tor_run_main_result = i_result;
+
+    // Set the handle so that kmp_tor_stop_stage2_post_thread_exit_cleanup
+    // has it available to unload.
+    s_lib_t = lib_t;
   pthread_mutex_unlock(&s_kmp_tor_lock);
 
   return NULL;
@@ -453,14 +463,14 @@ kmp_tor_state()
 }
 
 int
-kmp_tor_terminate_and_await_result()
+kmp_tor_stop_stage1_interrupt_and_await_result()
 {
   int result = KMP_TOR_RESULT_AWAITING;
 
   while (result == KMP_TOR_RESULT_AWAITING) {
     pthread_mutex_lock(&s_kmp_tor_lock);
-      if (s_kmp_tor_state == KMP_TOR_STATE_OFF) {
-        // Nothing happening. Pop out.
+      if (s_kmp_tor_state == KMP_TOR_STATE_OFF || s_stop_stage2_ready == 0) {
+        // Pop out.
         result = KMP_TOR_RESULT_AWAITING - 1;
       } else {
         // interrupt tor's main loop if possible
@@ -470,15 +480,17 @@ kmp_tor_terminate_and_await_result()
         result = s_tor_run_main_result;
         if (result >= 0) {
           // kmp_tor_run_blocking completed
-          s_kmp_tor_state = KMP_TOR_STATE_OFF;
+
           s_tor_run_main_result = KMP_TOR_RESULT_AWAITING;
+          // Signal that kmp_tor_stop_stage2_post_thread_exit_cleanup can be called
+          s_stop_stage2_ready = 0;
         }
       }
     pthread_mutex_unlock(&s_kmp_tor_lock);
 
     // Waiting for kmp_tor_run_blocking to complete
     if (result == KMP_TOR_RESULT_AWAITING) {
-      kmp_tor_sleep(10);
+      usleep((useconds_t) (10 * 1000));
     }
   }
 
@@ -488,4 +500,31 @@ kmp_tor_terminate_and_await_result()
   }
 
   return result;
+}
+
+int
+kmp_tor_stop_stage2_post_thread_exit_cleanup()
+{
+  lib_handle_t *lib_t = NULL;
+
+  pthread_mutex_lock(&s_kmp_tor_lock);
+    if (s_stop_stage2_ready == 0) {
+      lib_t = s_lib_t;
+      s_lib_t = NULL;
+    }
+  pthread_mutex_unlock(&s_kmp_tor_lock);
+
+  if (lib_t == NULL) {
+    return -1;
+  }
+
+  lib_load_close(lib_t);
+  lib_t = NULL;
+
+  pthread_mutex_lock(&s_kmp_tor_lock);
+    s_kmp_tor_state = KMP_TOR_STATE_OFF;
+    s_stop_stage2_ready = -1;
+  pthread_mutex_unlock(&s_kmp_tor_lock);
+
+  return 0;
 }
