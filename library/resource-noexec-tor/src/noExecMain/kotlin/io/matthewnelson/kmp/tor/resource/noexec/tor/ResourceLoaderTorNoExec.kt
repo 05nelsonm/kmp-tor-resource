@@ -121,8 +121,6 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
     ): AbstractKmpTorApi(resourceDir, registerShutdownHook) {
 
         @Volatile
-        private var threadNo = 0L
-        @Volatile
         private var torThread: TorThread? = null
         private val lock = synchronizedObject()
 
@@ -135,7 +133,7 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
                 val (thread, job) = run {
                     val libTor = libTor()
-                    startTorThread(libTor.path, args, "tor_run_main-${++threadNo}")
+                    startTorThread(libTor.path, args)
                 }
 
                 var e: String? = null

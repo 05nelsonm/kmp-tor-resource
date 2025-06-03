@@ -30,6 +30,7 @@ import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_stop_stage1
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.kmp_tor_stop_stage2_post_thread_exit_cleanup
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.NSBundle
+import kotlin.concurrent.Volatile
 import kotlin.native.concurrent.ObsoleteWorkersApi
 import kotlin.native.concurrent.Worker
 
@@ -42,14 +43,12 @@ protected actual constructor(
     registerShutdownHook: Boolean,
 ): TorApi() {
 
+    @Volatile
+    private var threadNo = 0L
     private val bundle: NSBundle
 
-    protected actual fun startTorThread(
-        libTor: String,
-        args: Array<String>,
-        threadName: String,
-    ): Pair<TorThread, TorThread.Job> {
-        val w = Worker.start(name = threadName)
+    protected actual fun startTorThread(libTor: String, args: Array<String>): Pair<TorThread, TorThread.Job> {
+        val w = Worker.start(name = "tor_run_main-${++threadNo}")
         val job = w.executeTorThreadJob(libTor, args)
         return TorThread { w.requestTermination(processScheduledJobs = false).result } to job
     }

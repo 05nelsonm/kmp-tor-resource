@@ -24,6 +24,8 @@ import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIBTOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.TorThread
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.findLibs
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.Throws
 import kotlin.concurrent.Volatile
 
@@ -36,23 +38,26 @@ protected actual constructor(
     registerShutdownHook: Boolean,
 ): TorApi() {
 
+    private val executor = run {
+        val threadNo = AtomicLong()
+        Executors.newFixedThreadPool(/* nThreads = */ 1) { runnable ->
+            Thread(runnable).apply {
+                name = "tor_run_main-${threadNo.incrementAndGet()}"
+                isDaemon = true
+                priority = Thread.MAX_PRIORITY
+            }
+        }
+    }
+
     private external fun kmpTorRunBlocking(libTor: CharArray, args: Array<CharArray>): String?
     protected actual external fun kmpTorState(): Int
     protected actual external fun kmpTorStopStage1InterruptAndAwaitResult(): Int
     protected actual external fun kmpTorStopStage2PostThreadExitCleanup(): Int
 
-    protected actual fun startTorThread(
-        libTor: String,
-        args: Array<String>,
-        threadName: String,
-    ): Pair<TorThread, TorThread.Job> {
+    protected actual fun startTorThread(libTor: String, args: Array<String>): Pair<TorThread, TorThread.Job> {
         val job = TorThreadJob(libTor, args)
-        val t = Thread(job)
-        t.name = threadName
-        t.isDaemon = true
-        t.priority = Thread.MAX_PRIORITY
-        t.start()
-        return TorThread { t.join() } to job
+        val future = executor.submit(job)
+        return TorThread { future.get() } to job
     }
 
     @Throws(IllegalStateException::class, IOException::class)
@@ -104,7 +109,12 @@ protected actual constructor(
     }
 
     init {
-        extractLibTor(isInit = true)
+        try {
+            extractLibTor(isInit = true)
+        } catch (t: Throwable) {
+            executor.shutdown()
+            throw t
+        }
 
         if (registerShutdownHook) {
             val t = Thread { terminateAndAwaitResult() }

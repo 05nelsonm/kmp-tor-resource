@@ -30,11 +30,7 @@ protected constructor(
     registerShutdownHook: Boolean,
 ): TorApi {
 
-    protected fun startTorThread(
-        libTor: String,
-        args: Array<String>,
-        threadName: String,
-    ): Pair<TorThread, TorThread.Job>
+    protected fun startTorThread(libTor: String, args: Array<String>): Pair<TorThread, TorThread.Job>
 
     protected fun kmpTorState(): Int
     protected fun kmpTorStopStage1InterruptAndAwaitResult(): Int
