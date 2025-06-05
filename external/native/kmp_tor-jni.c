@@ -55,7 +55,7 @@ JCharArrayToCString(JNIEnv *env, jcharArray a)
 }
 
 JNIEXPORT jstring JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMain
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMain
 (JNIEnv *env, jobject thiz, jcharArray lib_tor, jobjectArray args)
 {
   if (lib_tor == NULL) {
@@ -130,14 +130,14 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorRunMai
 }
 
 JNIEXPORT jint JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorState
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorState
 (JNIEnv *env, jobject thiz)
 {
   return kmp_tor_state();
 }
 
 JNIEXPORT jint JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_AbstractKmpTorApi_kmpTorTerminateAndAwaitResult
+Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorTerminateAndAwaitResult
 (JNIEnv *env, jobject thiz)
 {
   return kmp_tor_terminate_and_await_result();

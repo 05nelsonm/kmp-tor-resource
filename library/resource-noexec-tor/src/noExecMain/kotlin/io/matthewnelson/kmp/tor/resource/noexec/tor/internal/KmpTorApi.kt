@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Matthew Nelson
+ * Copyright (c) 2025 Matthew Nelson
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,26 @@
  **/
 @file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 
-package io.matthewnelson.kmp.tor.resource.noexec.tor
+package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.IOException
 import io.matthewnelson.kmp.tor.common.api.TorApi
 
 // noExec
-internal expect sealed class AbstractKmpTorApi
-@Throws(IllegalStateException::class, IOException::class)
-protected constructor(
-    resourceDir: File,
-    registerShutdownHook: Boolean,
-): TorApi {
-
-    protected fun kmpTorRunMain(libTor: String, args: Array<String>): String?
-    protected fun kmpTorState(): Int
-    protected fun kmpTorTerminateAndAwaitResult(): Int
+internal expect class KmpTorApi: TorApi {
 
     @Throws(IllegalStateException::class, IOException::class)
-    protected fun libTor(): File
+    override fun torRunMain(args: Array<String>)
+    override fun state(): State
+    override fun terminateAndAwaitResult(): Int
+
+    internal companion object {
+
+        @Throws(IllegalStateException::class, IOException::class)
+        internal fun of(
+            resourceDir: File,
+            registerShutdownHook: Boolean,
+        ): KmpTorApi
+    }
 }
