@@ -105,7 +105,7 @@ kmp_tor_execute(void *arg)
     rv = 1;
   }
 
-  usleep((useconds_t) (200 * 1000));
+  usleep((useconds_t) (100 * 1000));
 
   tor_api_cfg_free(cfg);
   OPENSSL_cleanup();
@@ -332,6 +332,7 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
   int i_result = 0;
   const char *c_result = NULL;
   kmp_tor_handle_t *handle_t = NULL;
+  pthread_attr_t attr_t;
 
   pthread_mutex_lock(&s_kmp_tor_lock);
     i_result = s_kmp_tor_state;
@@ -441,12 +442,27 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
     return c_result;
   }
 
+  if (pthread_attr_init(&attr_t) != 0) {
+    kmp_tor_free(handle_t);
+    handle_t = NULL;
+    return "Failed to initialize pthread_attr_t";
+  }
+
+  if (pthread_attr_setdetachstate(&attr_t, PTHREAD_CREATE_JOINABLE) != 0) {
+    pthread_attr_destroy(&attr_t);
+    kmp_tor_free(handle_t);
+    handle_t = NULL;
+    return "Failed to set pthread_attr_t detachstate to PTHREAD_CREATE_JOINABLE";
+  }
+
   pthread_mutex_lock(&s_kmp_tor_lock);
-    if (pthread_create(&handle_t->thread_id, NULL, kmp_tor_execute, NULL) == 0) {
+    if (pthread_create(&handle_t->thread_id, &attr_t, kmp_tor_execute, NULL) == 0) {
       s_handle_t = handle_t;
       handle_t = NULL;
     }
   pthread_mutex_unlock(&s_kmp_tor_lock);
+
+  pthread_attr_destroy(&attr_t);
 
   if (handle_t != NULL) {
     kmp_tor_free(handle_t);

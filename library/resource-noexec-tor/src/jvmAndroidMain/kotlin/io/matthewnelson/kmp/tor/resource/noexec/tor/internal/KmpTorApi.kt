@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Matthew Nelson
+ * Copyright (c) 2025 Matthew Nelson
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,38 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING", "LocalVariableName")
+@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 
-package io.matthewnelson.kmp.tor.resource.noexec.tor
+package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
-import io.matthewnelson.kmp.file.*
+import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.file.IOException
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.ALIAS_LIBTOR
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.findLibs
-import kotlin.Throws
 
 // jvmAndroid
 @OptIn(InternalKmpTorApi::class)
-internal actual sealed class AbstractKmpTorApi
-@Throws(IllegalStateException::class, IOException::class)
-protected actual constructor(
+internal actual class KmpTorApi private constructor(
     private val resourceDir: File,
     registerShutdownHook: Boolean,
 ): TorApi() {
 
-    private external fun kmpTorRunMain(libTor: CharArray, args: Array<CharArray>): String?
-    protected actual fun kmpTorRunMain(libTor: String, args: Array<String>): String? {
-        val cLibTor = libTor.toCharArray()
-        val cArgs = Array(args.size) { i -> args[i].toCharArray() }
-        return kmpTorRunMain(cLibTor, cArgs)
-    }
-    protected actual external fun kmpTorState(): Int
-    protected actual external fun kmpTorTerminateAndAwaitResult(): Int
-
     @Throws(IllegalStateException::class, IOException::class)
-    protected actual fun libTor(): File = extractLibTor(isInit = false)
+    actual override fun torRunMain(args: Array<String>) {
+        val cLibTor = synchronized(Companion) { extractLibTor(isInit = false) }.path.toCharArray()
+        val cArgs = Array(args.size) { i -> args[i].toCharArray() }
+        val error: String = kmpTorRunMain(cLibTor, cArgs) ?: return
+        throw IllegalStateException(error)
+    }
+
+    actual override fun state(): State = State.entries.elementAt(kmpTorState())
+    actual override fun terminateAndAwaitResult(): Int = kmpTorTerminateAndAwaitResult()
 
     @Throws(IllegalStateException::class, IOException::class)
     private fun extractLibTor(isInit: Boolean): File = try {
@@ -53,6 +47,10 @@ protected actual constructor(
             .findLibs()
 
         if (isInit) {
+            // This is OK for Android because libtor.so is being found
+            // via BaseDexClassLoader.findLibrary which returns absolute
+            // paths either located in ApplicationInfo.nativeLibraryDir,
+            // or uncompressed and aligned within base.apk (API 23+).
             @Suppress("UnsafeDynamicallyLoadedCode")
             System.load(libs.getValue(ALIAS_LIBTORJNI).path)
         }
@@ -77,7 +75,22 @@ protected actual constructor(
         }
     }
 
-    internal companion object {
+    internal actual companion object {
+
         internal const val ALIAS_LIBTORJNI: String = "libtorjni"
+
+        @JvmSynthetic
+        @Throws(IllegalStateException::class, IOException::class)
+        internal actual fun of(
+            resourceDir: File,
+            registerShutdownHook: Boolean,
+        ): KmpTorApi = KmpTorApi(resourceDir, registerShutdownHook)
+
+        @JvmStatic
+        private external fun kmpTorRunMain(libTor: CharArray, args: Array<CharArray>): String?
+        @JvmStatic
+        private external fun kmpTorState(): Int
+        @JvmStatic
+        private external fun kmpTorTerminateAndAwaitResult(): Int
     }
 }

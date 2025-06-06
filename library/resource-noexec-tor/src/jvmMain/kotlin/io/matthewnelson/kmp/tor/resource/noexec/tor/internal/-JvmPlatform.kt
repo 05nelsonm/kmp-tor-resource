@@ -21,7 +21,7 @@ import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.lib.tor.configureNoExecTorResource
-import io.matthewnelson.kmp.tor.resource.noexec.tor.AbstractKmpTorApi.Companion.ALIAS_LIBTORJNI
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.KmpTorApi.Companion.ALIAS_LIBTORJNI
 import io.matthewnelson.kmp.tor.resource.noexec.tor.ResourceLoaderTorNoExec
 import kotlin.Throws
 

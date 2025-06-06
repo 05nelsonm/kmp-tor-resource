@@ -13,12 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
-import kotlin.time.Duration
+import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.file.IOException
+import io.matthewnelson.kmp.tor.common.api.TorApi
 
-@Suppress("NOTHING_TO_INLINE")
-@Throws(InterruptedException::class)
-internal actual inline fun Duration.threadSleep() {
-    Thread.sleep(this.inWholeMilliseconds)
+// noExec
+internal expect class KmpTorApi: TorApi {
+
+    @Throws(IllegalStateException::class, IOException::class)
+    override fun torRunMain(args: Array<String>)
+    override fun state(): State
+    override fun terminateAndAwaitResult(): Int
+
+    internal companion object {
+
+        @Throws(IllegalStateException::class, IOException::class)
+        internal fun of(
+            resourceDir: File,
+            registerShutdownHook: Boolean,
+        ): KmpTorApi
+    }
 }

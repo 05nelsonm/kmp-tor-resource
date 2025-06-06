@@ -18,14 +18,13 @@
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.matthewnelson.kmp.file.File
-import io.matthewnelson.kmp.file.IOException
-import io.matthewnelson.kmp.file.path
 import io.matthewnelson.kmp.tor.common.api.GeoipFiles
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_GEOIPS
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP6
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.KmpTorApi
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import kotlin.concurrent.Volatile
 import kotlin.jvm.JvmStatic
@@ -50,7 +49,7 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
         ): ResourceLoader.Tor = NoExec.getOrCreate(
             resourceDir = resourceDir,
             extract = ::extractGeoips,
-            create = { dir -> KmpTorApi(dir, registerShutdownHook) },
+            create = { dir -> KmpTorApi.of(dir, registerShutdownHook) },
             toString = ::toString,
         )
 
@@ -99,28 +98,6 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
             }
 
             append(']')
-        }
-    }
-
-    @OptIn(InternalKmpTorApi::class)
-    private class KmpTorApi(
-        resourceDir: File,
-        registerShutdownHook: Boolean,
-    ): AbstractKmpTorApi(resourceDir, registerShutdownHook) {
-
-        @Throws(IllegalStateException::class, IOException::class)
-        protected override fun torRunMain(args: Array<String>) {
-            val libTor = libTor()
-            val error: String = kmpTorRunMain(libTor.path, args) ?: return
-            throw IllegalStateException(error)
-        }
-
-        public override fun state(): State {
-            return State.entries.elementAt(kmpTorState())
-        }
-
-        public override fun terminateAndAwaitResult(): Int {
-            return kmpTorTerminateAndAwaitResult()
         }
     }
 
