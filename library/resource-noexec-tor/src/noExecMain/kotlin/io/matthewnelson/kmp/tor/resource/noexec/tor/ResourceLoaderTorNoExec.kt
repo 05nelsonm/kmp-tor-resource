@@ -39,7 +39,7 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
             resourceDir: File,
         ): ResourceLoader.Tor = getOrCreate(
             resourceDir = resourceDir,
-            registerShutdownHook = true,
+            registerShutdownHook = false,
         )
 
         @JvmStatic
