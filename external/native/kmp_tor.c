@@ -38,6 +38,11 @@ typedef int kmp_tor_socket_t;
 #define __closesocket close
 #endif // _WIN32
 
+#ifndef _WIN32
+#include <errno.h>
+#include <fcntl.h>
+#endif // _WIN32
+
 #define KMP_TOR_RESULT_AWAITING -1
 
 typedef struct {
@@ -56,8 +61,8 @@ typedef struct {
 
   int was_win32_sockets_initialized;
 #endif // _WIN32
-  kmp_tor_socket_t ctrl_socket;
-  kmp_tor_socket_t ctrl_socket_owned;
+  kmp_tor_socket_t ctrl_socket_0;
+  kmp_tor_socket_t ctrl_socket_1;
 
   pthread_t thread_id;
   lib_handle_t *lib_t;
@@ -69,6 +74,15 @@ static pthread_mutex_t      s_kmp_tor_lock          = PTHREAD_MUTEX_INITIALIZER;
 static int                  s_kmp_tor_state         = KMP_TOR_STATE_OFF;
 static kmp_tor_handle_t    *s_handle_t              = NULL;
 
+static void
+kmp_tor_closesocket(kmp_tor_socket_t s)
+{
+  if (s == KMP_TOR_SOCKET_INVALID) {
+    return;
+  }
+  __closesocket(s);
+}
+
 static void *
 kmp_tor_execute(void *arg)
 {
@@ -77,6 +91,7 @@ kmp_tor_execute(void *arg)
   int (*tor_api_run_main)(void *cfg) = NULL;
   void (*tor_api_cfg_free)(void *cfg) = NULL;
   void (*OPENSSL_cleanup)(void) = NULL;
+  kmp_tor_socket_t ctrl_socket_1 = KMP_TOR_SOCKET_INVALID;
   assert(arg == NULL);
 
   pthread_mutex_lock(&s_kmp_tor_lock);
@@ -85,11 +100,13 @@ kmp_tor_execute(void *arg)
       tor_api_run_main = s_handle_t->tor_api_run_main;
       tor_api_cfg_free = s_handle_t->tor_api_cfg_free;
       OPENSSL_cleanup = s_handle_t->OPENSSL_cleanup;
+      ctrl_socket_1 = s_handle_t->ctrl_socket_1;
 
       s_handle_t->cfg = NULL;
       s_handle_t->tor_api_run_main = NULL;
       s_handle_t->tor_api_cfg_free = NULL;
       s_handle_t->OPENSSL_cleanup = NULL;
+      s_handle_t->ctrl_socket_1 = KMP_TOR_SOCKET_INVALID;
 
       s_kmp_tor_state = KMP_TOR_STATE_STARTED;
     }
@@ -99,13 +116,16 @@ kmp_tor_execute(void *arg)
   assert(tor_api_run_main != NULL);
   assert(tor_api_cfg_free != NULL);
   assert(OPENSSL_cleanup != NULL);
+#ifndef _WIN32
+  assert(ctrl_socket_1 != KMP_TOR_SOCKET_INVALID);
+#endif // _WIN32
 
   rv = tor_api_run_main(cfg);
   if (rv < 0 || rv > 255) {
     rv = 1;
   }
 
-  usleep((useconds_t) (100 * 1000));
+  usleep((useconds_t) (250 * 1000));
 
   tor_api_cfg_free(cfg);
   OPENSSL_cleanup();
@@ -114,6 +134,16 @@ kmp_tor_execute(void *arg)
   tor_api_run_main = NULL;
   tor_api_cfg_free = NULL;
   OPENSSL_cleanup = NULL;
+
+#ifndef _WIN32
+  if (fcntl(ctrl_socket_1, F_GETFL) < 0 && errno == EBADF) {
+    // tor closed it's end of the descriptor we passed to it for
+    // __OwningControllerFD, which is asinine because we opened
+    // it so should be responsible for closing it.
+    ctrl_socket_1 = KMP_TOR_SOCKET_INVALID;
+  }
+#endif // _WIN32
+  kmp_tor_closesocket(ctrl_socket_1);
 
   pthread_mutex_lock(&s_kmp_tor_lock);
     s_kmp_tor_state = KMP_TOR_STATE_STOPPED;
@@ -129,23 +159,14 @@ kmp_tor_execute(void *arg)
 }
 
 static void
-kmp_tor_closesocket(kmp_tor_socket_t s)
-{
-  if (s == KMP_TOR_SOCKET_INVALID) {
-    return;
-  }
-  __closesocket(s);
-}
-
-static void
 kmp_tor_free(kmp_tor_handle_t *handle_t)
 {
   assert(handle_t != NULL);
 
-  kmp_tor_closesocket(handle_t->ctrl_socket);
-  kmp_tor_closesocket(handle_t->ctrl_socket_owned);
-  handle_t->ctrl_socket = KMP_TOR_SOCKET_INVALID;
-  handle_t->ctrl_socket_owned = KMP_TOR_SOCKET_INVALID;
+  kmp_tor_closesocket(handle_t->ctrl_socket_0);
+  kmp_tor_closesocket(handle_t->ctrl_socket_1);
+  handle_t->ctrl_socket_0 = KMP_TOR_SOCKET_INVALID;
+  handle_t->ctrl_socket_1 = KMP_TOR_SOCKET_INVALID;
 
   handle_t->tor_api_cfg_new = NULL;
   handle_t->tor_api_cfg_set_command_line = NULL;
@@ -280,8 +301,8 @@ kmp_tor_configure_tor(kmp_tor_handle_t *handle_t)
   }
 
   if (result == 0) {
-    handle_t->ctrl_socket = fds[0];
-    handle_t->ctrl_socket_owned = fds[1];
+    handle_t->ctrl_socket_0 = fds[0];
+    handle_t->ctrl_socket_1 = fds[1];
     handle_t->argv[handle_t->argc - 2] = s1;
     handle_t->argv[handle_t->argc - 1] = s2;
   } else {
@@ -301,11 +322,11 @@ kmp_tor_configure_tor(kmp_tor_handle_t *handle_t)
     handle_t->argc = handle_t->argc - 2;
 
     // Try tor's implementation
-    handle_t->ctrl_socket = handle_t->tor_api_cfg_set_ctrl_socket(handle_t->cfg);
+    handle_t->ctrl_socket_0 = handle_t->tor_api_cfg_set_ctrl_socket(handle_t->cfg);
 #endif // _WIN32
   }
 
-  if (handle_t->ctrl_socket == KMP_TOR_SOCKET_INVALID) {
+  if (handle_t->ctrl_socket_0 == KMP_TOR_SOCKET_INVALID) {
     return "Failed to setup controller socket";
   }
 
@@ -376,8 +397,8 @@ kmp_tor_run_main(const char *lib_tor, int argc, char *argv[])
     handle_t->tor_api_cfg_set_ctrl_socket = NULL;
     handle_t->was_win32_sockets_initialized = -1;
 #endif // _WIN32
-    handle_t->ctrl_socket = KMP_TOR_SOCKET_INVALID;
-    handle_t->ctrl_socket_owned = KMP_TOR_SOCKET_INVALID;
+    handle_t->ctrl_socket_0 = KMP_TOR_SOCKET_INVALID;
+    handle_t->ctrl_socket_1 = KMP_TOR_SOCKET_INVALID;
     handle_t->lib_t = NULL;
     handle_t->tor_run_main_result = KMP_TOR_RESULT_AWAITING;
   }
@@ -509,8 +530,8 @@ kmp_tor_terminate_and_await_result()
         result = KMP_TOR_RESULT_AWAITING - 1;
       } else {
         if (s_handle_t != NULL) {
-          kmp_tor_closesocket(s_handle_t->ctrl_socket);
-          s_handle_t->ctrl_socket = KMP_TOR_SOCKET_INVALID;
+          kmp_tor_closesocket(s_handle_t->ctrl_socket_0);
+          s_handle_t->ctrl_socket_0 = KMP_TOR_SOCKET_INVALID;
 
           result = s_handle_t->tor_run_main_result;
           if (result != KMP_TOR_RESULT_AWAITING) {
