@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING", "RemoveRedundantQualifierName")
+@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING", "RemoveRedundantQualifierName", "DEPRECATION")
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
@@ -39,10 +39,11 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
             resourceDir: File,
         ): ResourceLoader.Tor = getOrCreate(
             resourceDir = resourceDir,
-            registerShutdownHook = true,
+            registerShutdownHook = false,
         )
 
         @JvmStatic
+        @Deprecated("ShutdownHook registration causes abnormal application exit behavior for Java/Android")
         public fun getOrCreate(
             resourceDir: File,
             registerShutdownHook: Boolean,
