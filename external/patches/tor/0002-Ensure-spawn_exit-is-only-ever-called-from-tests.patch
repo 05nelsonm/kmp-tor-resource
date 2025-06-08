@@ -1,7 +1,7 @@
-From be2868162228b157b22cd1ac923c47a42b1636dc Mon Sep 17 00:00:00 2001
+From bd5499f2cf84bc60cb00699de8a56ba5de4904d1 Mon Sep 17 00:00:00 2001
 From: Matthew Nelson <developer@matthewnelson.io>
-Date: Thu, 5 Jun 2025 08:54:16 -0400
-Subject: [PATCH 2/2] Ensure spawn_exit is only ever called from tests
+Date: Sun, 8 Jun 2025 02:51:01 -0400
+Subject: [PATCH 2/3] Ensure spawn_exit is only ever called from tests
 
 ---
  src/lib/thread/compat_pthreads.c   | 2 ++
