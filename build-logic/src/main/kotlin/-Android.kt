@@ -44,6 +44,10 @@ fun KmpConfigurationContainerDsl.androidLibrary(
                 testInstrumentationRunnerArguments["disableAnalytics"] = true.toString()
                 testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
             }
+
+            testOptions {
+                targetSdk = compileSdk
+            }
         }
 
         kotlinJvmTarget = javaVersion
