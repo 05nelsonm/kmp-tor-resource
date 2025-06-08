@@ -48,16 +48,16 @@ internal actual inline fun Resource.Config.Builder.configureTorResources() {
         // allow execution from data directory on API 28+ (cannot
         // download executables and run them).
         arrayOf(ENV_KEY_LIBTOR, ENV_KEY_LIBTOREXEC).forEach { key ->
-            val lib = Os.getenv(key)?.toFile()
-            if (lib == null) {
+            val lib = Os.getenv(key)
+            if (lib.isNullOrBlank()) {
                 error("LIB[${key.envKeyLibName()}] not found")
                 isMissing = true
                 return@forEach
             }
 
-            // Check both exist, indicative that they have been
+            // Check file exist, indicative that they have been
             // extracted to the nativeLibraryDir
-            if (lib.exists()) return@forEach
+            if (lib.toFile().exists()) return@forEach
             error("LIB[${key.envKeyLibName()}].exists() != true")
             isNotExtracted = true
         }
@@ -121,6 +121,7 @@ internal actual inline fun MutableMap<String, String>.configureProcessEnvironmen
 @Throws(IllegalStateException::class)
 internal actual inline fun Map<String, File>.findLibTorExec(): Map<String, File> {
     if (contains(ALIAS_TOREXEC)) return this
+
     @OptIn(InternalKmpTorApi::class)
     if (!OSInfo.INSTANCE.isAndroidRuntime()) return this
 

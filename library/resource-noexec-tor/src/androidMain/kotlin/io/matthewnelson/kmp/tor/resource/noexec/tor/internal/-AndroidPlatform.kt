@@ -41,18 +41,10 @@ internal actual inline fun Resource.Config.Builder.configureLibTorResources() {
 
         var isMissing = false
 
-        // Is Android Runtime.
-        //
-        // Binaries are extracted on application install to the
-        // nativeLibraryDir. This is required as Android does not
-        // allow execution from data directory on API 28+ (cannot
-        // download executables and run them).
         arrayOf(ENV_KEY_LIBTOR, ENV_KEY_LIBTORJNI).forEach { key ->
-            val lib = Os.getenv(key)?.toFile()
-            if (lib == null) {
+            if (Os.getenv(key).isNullOrBlank()) {
                 error("LIB[${key.envKeyLibName()}] not found")
                 isMissing = true
-                return@forEach
             }
         }
 
@@ -75,7 +67,6 @@ internal actual inline fun Resource.Config.Builder.configureLibTorResources() {
         aliasTor = null,
     )
 }
-
 
 @Suppress("NOTHING_TO_INLINE")
 @Throws(IllegalStateException::class)
