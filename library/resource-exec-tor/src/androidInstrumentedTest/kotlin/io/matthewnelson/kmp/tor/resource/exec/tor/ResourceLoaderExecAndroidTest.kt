@@ -37,6 +37,18 @@ class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
     private val ctx = ApplicationProvider.getApplicationContext<Context>()
     private val nativeLibraryDir = ctx.applicationInfo.nativeLibraryDir
 
+    override fun MutableMap<String, String>.fixAndroidEnvironment() {
+        if (Build.VERSION.SDK_INT !in 24..32) return
+        val envOS = Os.environ()
+        if (envOS.isNullOrEmpty()) return
+        clear()
+        envOS.forEach { line ->
+            val i = line.indexOf('=')
+            if (i == -1) return@forEach
+            this[line.substring(0, i)] = line.substring(i + 1, line.length)
+        }
+    }
+
     @Test
     fun givenAndroidNative_whenExecuteTestBinary_thenIsSuccessful() {
         val executable = nativeLibraryDir.toFile().resolve("libTestExec.so")
@@ -46,18 +58,7 @@ class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
         try {
             p = ProcessBuilder(listOf(executable.path)).apply {
                 redirectErrorStream(true)
-
-                // https://github.com/05nelsonm/kmp-process/issues/149
-                if (Build.VERSION.SDK_INT in 24..32) {
-                    val envOs = Os.environ() ?: return@apply
-                    val envP = environment()
-                    envP.clear()
-                    envOs.forEach { line ->
-                        val i = line.indexOf('=')
-                        if (i == -1) return@forEach
-                        envP[line.substring(0, i)] = line.substring(i + 1, line.length)
-                    }
-                }
+                environment().fixAndroidEnvironment()
             }.start()
 
             p.outputStream.close()
