@@ -163,7 +163,6 @@ function __sign:generate:detached:macos {
         rm -rf "$DIR_TASK/codesign/$out_tor_dirname/$out_os_dirname/$1/$lib_name$diff_ext"
 
         ../tooling diff-cli create \
-          --static-time "true" \
           --diff-ext-name "$diff_ext" \
           "$DIR_TASK/build/out/$out_tor_dirname/$out_os_dirname/$1/$lib_name" \
           "$dir_bundle_macos/$out_tor_dirname/$out_os_dirname/$1/$lib_name" \
