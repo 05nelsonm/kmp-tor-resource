@@ -49,7 +49,6 @@ encoding-base64             = { module = "io.matthewnelson.encoding:base64", ver
 kotlinx-coroutines-test     = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 ktor-client-core            = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-curl            = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
-ktor-client-darwin          = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-okhttp          = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 
 okio-okio                   = { module = "com.squareup.okio:okio", version.ref = "okio" }

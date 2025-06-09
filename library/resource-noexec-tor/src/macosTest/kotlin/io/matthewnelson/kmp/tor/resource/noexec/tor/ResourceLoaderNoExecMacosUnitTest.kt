@@ -16,11 +16,11 @@
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.ktor.client.engine.HttpClientEngineFactory
-import io.ktor.client.engine.darwin.Darwin
+import io.ktor.client.engine.curl.Curl
 import kotlin.test.Test
 
-class ResourceLoaderNoExecDarwinUnitTest: ResourceLoaderNoExecBaseTest() {
-    override val factory: HttpClientEngineFactory<*>? = Darwin
+class ResourceLoaderNoExecMacosUnitTest: ResourceLoaderNoExecBaseTest() {
+    override val factory: HttpClientEngineFactory<*>? = Curl
 
     @Test
     fun stub() {}

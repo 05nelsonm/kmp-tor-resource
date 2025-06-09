@@ -193,7 +193,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     "androidInstrumented" to libs.ktor.client.okhttp,
 //                    "jvm" to libs.ktor.client.okhttp,
                     "linux" to libs.ktor.client.curl,
-                    "darwin" to libs.ktor.client.darwin,
+                    "macos" to libs.ktor.client.curl,
                     "mingw" to libs.ktor.client.curl,
                 ).forEach { (name, ktorDependency) ->
                     findByName(name + "Test")?.dependencies {
