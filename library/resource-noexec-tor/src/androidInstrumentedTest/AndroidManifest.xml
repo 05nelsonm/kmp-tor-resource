@@ -22,6 +22,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
+        android:usesCleartextTraffic="true"
         android:extractNativeLibs="true"
         tools:targetApi="m"/>
 

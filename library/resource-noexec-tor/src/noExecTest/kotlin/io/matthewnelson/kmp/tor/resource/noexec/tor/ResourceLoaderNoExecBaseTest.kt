@@ -15,11 +15,18 @@
  **/
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.HttpClientEngineFactory
+import io.ktor.client.engine.ProxyBuilder
+import io.ktor.client.engine.http
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
+import io.matthewnelson.kmp.file.IOException
 import io.matthewnelson.kmp.file.path
 import io.matthewnelson.kmp.file.readBytes
 import io.matthewnelson.kmp.file.readUtf8
 import io.matthewnelson.kmp.file.resolve
-import io.matthewnelson.kmp.tor.common.api.GeoipFiles
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.LOADER
@@ -32,6 +39,7 @@ import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 abstract class ResourceLoaderNoExecBaseTest protected constructor(
@@ -48,6 +56,8 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         if (skip) println("Skipping...")
         return skip
     }
+
+    protected abstract val factory: HttpClientEngineFactory<*>?
 
     @AfterTest
     fun cleanUp() {
@@ -129,7 +139,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         return runTest(timeout = (count * 4).seconds) {
             if (skipTorRunMain) return@runTest
 
-            val helper = TorApiRunHelper.getOrNull(scope = this)
+            val helper = TorApiHelper(scope = this)
             if (helper == null) {
                 println("Skipping...")
                 return@runTest
@@ -192,7 +202,112 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         }
     }
 
-    private class TorApiRunHelper private constructor(val job: Job, val geoipFiles: GeoipFiles) {
+    @Test
+    fun givenTor_whenQueryCheckTorProject_thenConnectionIsUsingTor() = runTest(timeout = 7.minutes) {
+        val factory = factory
+        if (factory == null) {
+            println("Skipping...")
+            return@runTest
+        }
+        val helper = TorApiHelper(scope = this, disableNetwork = "0")
+        if (helper == null) {
+            println("Skipping...")
+            return@runTest
+        }
+
+        val api = LOADER.withApi(TestRuntimeBinder) { this }
+        api.torRunMain(helper.args)
+        helper.job.invokeOnCompletion { api.terminateAndAwaitResult() }
+
+        val (proxyHttp, proxySocks) = withContext(helper.bgDispatcher) {
+            var http = ""
+            var socks = ""
+            while (true) {
+                if (api.state() != TorApi.State.STARTED) {
+                    throw AssertionError("Tor stopped unexpectedly\n\n")
+                }
+
+                delay(1.seconds)
+
+                val text = try {
+                    helper.logFile.readUtf8()
+                } catch (_: IOException) {
+                    continue
+                }
+
+                if (!text.contains("Bootstrapped 100%")) continue
+
+                text.lines().forEach { line ->
+                    if (!line.contains("Opened ")) return@forEach
+                    val i = line.indexOfLast { it.isWhitespace() }
+                    if (i == -1) return@forEach
+                    val address = line.substring(i + 1, line.length)
+
+                    if (line.contains("HTTP tunnel listener connection")) {
+                        http = address
+                    }
+                    if (line.contains("Socks listener connection")) {
+                        socks = address
+                    }
+                }
+                break
+            }
+            check(http.isNotBlank()) { "http port was blank" }
+            check(socks.isNotBlank()) { "socks port was blank" }
+            http to socks
+        }
+
+        val clientHttp = HttpClient(factory) {
+            engine {
+                proxy = ProxyBuilder.http("http://$proxyHttp")
+            }
+        }
+
+        val clientSocks = HttpClient(factory) {
+            engine {
+                proxy = ProxyBuilder.socks(
+                    host = proxySocks.substringBefore(':'),
+                    port = proxySocks.substringAfter(':').toInt(),
+                )
+            }
+        }
+
+        helper.job.invokeOnCompletion { clientHttp.close() }
+        helper.job.invokeOnCompletion { clientSocks.close() }
+
+        // Ensure asynchronous functionality works properly by
+        // launching multiple requests simultaneously.
+        val congratulations = Array(10) { i ->
+            val client = if (i % 2 == 0) clientHttp else clientSocks
+
+            async {
+                val response = try {
+                    client.get("https://check.torproject.org/")
+                } catch (_: Throwable) {
+                    println("FAILED_CALL[$i]")
+                    return@async null
+                }
+
+                if (response.status != HttpStatusCode.OK) {
+                    println("FAILED_STATUS[$i]")
+                    response.cancel()
+                    null
+                } else {
+                    response.bodyAsText()
+                }
+            }
+        }.toList().awaitAll().mapNotNull { response ->
+            response?.contains("Congratulations.")
+        }
+
+        assertTrue(congratulations.isNotEmpty())
+        congratulations.forEach { congratulation ->
+            assertTrue(congratulation, "check.torproject.org failure. We are NOT using tor...")
+        }
+        println("SUCCESS!")
+    }
+
+    private class TorApiHelper private constructor(val job: Job) {
 
         val logFile = LOADER.resourceDir.resolve("test.log")
         val cacheDir = LOADER.resourceDir.resolve("cache")
@@ -208,8 +323,8 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
             add("--CacheDirectory"); add(cacheDir.path)
             add("--DataDirectory"); add(dataDir.path)
 
-            add("--GeoIPFile"); add(geoipFiles.geoip.path)
-            add("--GeoIPv6File"); add(geoipFiles.geoip6.path)
+            add("--SocksPort"); add("auto")
+            add("--HTTPTunnelPort"); add("auto")
 
             add("--Log"); add("notice file $logFile")
             add("--TruncateLogFile"); add("1")
@@ -246,21 +361,20 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
 
         companion object {
 
-            fun getOrNull(
-                scope: TestScope,
-                socksPort: String = "0",
-                disableNetwork: String = "1"
-            ): TorApiRunHelper? {
+            operator fun invoke(scope: TestScope, disableNetwork: String = "1"): TorApiHelper? {
                 if (!CAN_RUN_FULL_TESTS) return null
 
                 val geoipFiles = LOADER.extract()
+                // Mock resources
                 if (geoipFiles.geoip.readBytes().size < 50_000) return null
-                val h = TorApiRunHelper(scope.coroutineContext.job, geoipFiles)
-                h.args.apply {
-                    add("--SocksPort"); add(socksPort)
+
+                val helper = TorApiHelper(scope.coroutineContext.job)
+                helper.args.apply {
                     add("--DisableNetwork"); add(disableNetwork)
+                    add("--GeoIPFile"); add(geoipFiles.geoip.path)
+                    add("--GeoIPv6File"); add(geoipFiles.geoip6.path)
                 }
-                return h
+                return helper
             }
         }
     }
