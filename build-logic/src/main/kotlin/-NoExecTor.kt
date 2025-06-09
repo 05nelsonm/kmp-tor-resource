@@ -187,6 +187,23 @@ fun KmpConfigurationExtension.configureNoExecTor(
         }
 
         kotlin {
+            with(sourceSets) {
+                listOf(
+                    "noExec" to libs.ktor.client.core,
+                    "androidInstrumented" to libs.ktor.client.okhttp,
+//                    "jvm" to libs.ktor.client.okhttp,
+                    "linux" to libs.ktor.client.curl,
+                    "darwin" to libs.ktor.client.darwin,
+                    "mingw" to libs.ktor.client.curl,
+                ).forEach { (name, ktorDependency) ->
+                    findByName(name + "Test")?.dependencies {
+                        implementation(ktorDependency)
+                    }
+                }
+            }
+        }
+
+        kotlin {
             val externalNativeDir = project.rootDir
                 .resolve("external")
                 .resolve("native")
