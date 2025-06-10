@@ -50,6 +50,7 @@ kotlinx-coroutines-test     = { module = "org.jetbrains.kotlinx:kotlinx-coroutin
 ktor-client-core            = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-curl            = { module = "io.ktor:ktor-client-curl", version.ref = "ktor" }
 ktor-client-okhttp          = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-winhttp         = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
 
 okio-okio                   = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakeFileSystem         = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }

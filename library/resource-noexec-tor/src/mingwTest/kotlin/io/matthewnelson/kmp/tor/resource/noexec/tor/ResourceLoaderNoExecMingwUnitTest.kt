@@ -16,11 +16,11 @@
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.ktor.client.engine.HttpClientEngineFactory
-import io.ktor.client.engine.curl.Curl
+import io.ktor.client.engine.winhttp.WinHttp
 import kotlin.test.Test
 
 class ResourceLoaderNoExecMingwUnitTest: ResourceLoaderNoExecBaseTest(RUN_TOR_MAIN_COUNT_WINDOWS) {
-    override val factory: HttpClientEngineFactory<*>? = Curl
+    override val factory: HttpClientEngineFactory<*>? = WinHttp
 
     @Test
     fun stub() {}

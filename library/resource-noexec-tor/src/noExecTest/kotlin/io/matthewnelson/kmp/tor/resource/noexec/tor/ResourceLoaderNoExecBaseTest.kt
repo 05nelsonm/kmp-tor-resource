@@ -263,7 +263,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
             }
         }
 
-        // Unsupported by Darwin client. /sad
+        // Unsupported by Darwin/WinHttp clients.
         val clientSocks = try {
             HttpClient(factory) {
                 engine {
@@ -280,8 +280,6 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         helper.job.invokeOnCompletion { clientHttp.close() }
         helper.job.invokeOnCompletion { clientSocks?.close() }
 
-        // Ensure asynchronous functionality works properly by
-        // launching multiple requests simultaneously.
         val congratulations = Array(10) { i ->
             val client = if (i % 2 == 0) clientHttp else clientSocks ?: clientHttp
 

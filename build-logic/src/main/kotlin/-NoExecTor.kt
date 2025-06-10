@@ -194,7 +194,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
 //                    "jvm" to libs.ktor.client.okhttp,
                     "linux" to libs.ktor.client.curl,
                     "macos" to libs.ktor.client.curl,
-                    "mingw" to libs.ktor.client.curl,
+                    "mingw" to libs.ktor.client.winhttp,
                 ).forEach { (name, ktorDependency) ->
                     findByName(name + "Test")?.dependencies {
                         implementation(ktorDependency)
