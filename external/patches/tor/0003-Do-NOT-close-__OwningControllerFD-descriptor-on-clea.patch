@@ -1,6 +1,6 @@
-From 37a9c2451514a5af544983848ed5c9f7fb038eac Mon Sep 17 00:00:00 2001
+From 3cf375a0e886ffe80105d586b94be5eadb2fe4f2 Mon Sep 17 00:00:00 2001
 From: Matthew Nelson <developer@matthewnelson.io>
-Date: Sun, 8 Jun 2025 02:51:02 -0400
+Date: Tue, 10 Jun 2025 13:43:49 -0400
 Subject: [PATCH 3/3] Do NOT close __OwningControllerFD descriptor on cleanup,
  leave it to whoever opened it.
 
