@@ -250,7 +250,6 @@ fi
   # OPENSSL
   CONF_OPENSSL='./Configure \
     no-asm \
-    no-async \
     no-atexit \
     no-autoload-config \
     no-camellia \
@@ -294,9 +293,6 @@ fi
     # Even though -static is declared in CFLAGS, it is declared here
     # because openssl's Configure file is jank.
     __build:OPENSSL '-static'
-  else
-    __build:OPENSSL 'no-default-thread-pool'
-    __build:OPENSSL 'no-thread-pool'
   fi
 
   __build:OPENSSL '--libdir=lib'

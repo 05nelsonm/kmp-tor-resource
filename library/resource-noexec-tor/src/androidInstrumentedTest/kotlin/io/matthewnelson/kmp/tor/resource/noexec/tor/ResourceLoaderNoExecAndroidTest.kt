@@ -19,6 +19,8 @@ import android.content.Context
 import android.os.Build
 import android.system.Os
 import androidx.test.core.app.ApplicationProvider
+import io.ktor.client.engine.HttpClientEngineFactory
+import io.ktor.client.engine.okhttp.OkHttp
 import io.matthewnelson.kmp.file.toFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -36,6 +38,13 @@ class ResourceLoaderNoExecAndroidTest: ResourceLoaderNoExecBaseTest() {
 
     private val ctx = ApplicationProvider.getApplicationContext<Context>()
     private val nativeLibraryDir = ctx.applicationInfo.nativeLibraryDir
+
+    override val factory: HttpClientEngineFactory<*>? = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.N) {
+        // https://github.com/square/okhttp/issues/4496
+        null
+    } else {
+        OkHttp
+    }
 
     @Test
     fun givenAndroidNative_whenExecuteTestBinary_thenIsSuccessful() {

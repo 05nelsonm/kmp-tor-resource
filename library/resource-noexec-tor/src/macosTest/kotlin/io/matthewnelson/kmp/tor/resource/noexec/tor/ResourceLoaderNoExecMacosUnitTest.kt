@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Matthew Nelson
+ * Copyright (c) 2025 Matthew Nelson
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,12 @@
  **/
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
-import kotlin.experimental.ExperimentalNativeApi
+import io.ktor.client.engine.HttpClientEngineFactory
+import io.ktor.client.engine.curl.Curl
 import kotlin.test.Test
 
-@OptIn(ExperimentalNativeApi::class)
-class ResourceLoaderNoExecNativeUnitTest: ResourceLoaderNoExecBaseTest(
-    runTorMainCount = when (Platform.osFamily) {
-        OsFamily.WINDOWS -> RUN_TOR_MAIN_COUNT_WINDOWS
-        else -> RUN_TOR_MAIN_COUNT_UNIX
-    },
-) {
+class ResourceLoaderNoExecMacosUnitTest: ResourceLoaderNoExecBaseTest() {
+    override val factory: HttpClientEngineFactory<*>? = Curl
 
     @Test
     fun stub() {}
