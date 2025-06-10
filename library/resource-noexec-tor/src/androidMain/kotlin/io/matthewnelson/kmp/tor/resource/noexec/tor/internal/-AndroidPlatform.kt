@@ -20,10 +20,10 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 import android.annotation.SuppressLint
 import android.os.Build
 import android.system.Os
+import io.matthewnelson.kmp.file.ANDROID
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.toFile
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
-import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.lib.tor.tryConfigureTestTorResources
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.KmpTorApi.Companion.ALIAS_LIBTORJNI
@@ -32,7 +32,7 @@ import kotlin.Throws
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
 internal actual inline fun Resource.Config.Builder.configureLibTorResources() {
-    if (OSInfo.INSTANCE.isAndroidRuntime()) {
+    if (ANDROID.SDK_INT != null) {
         @SuppressLint("ObsoleteSdkInt")
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             error("Android API 21+ is required")
@@ -73,8 +73,7 @@ internal actual inline fun Resource.Config.Builder.configureLibTorResources() {
 internal actual inline fun Map<String, File>.findLibs(): Map<String, File> {
     if (contains(ALIAS_LIBTOR) && contains(ALIAS_LIBTORJNI)) return this
 
-    @OptIn(InternalKmpTorApi::class)
-    if (!OSInfo.INSTANCE.isAndroidRuntime()) return this
+    if (ANDROID.SDK_INT == null) return this
 
     // Error from ResourceConfig would hit before this function has
     // a chance to be called, but...

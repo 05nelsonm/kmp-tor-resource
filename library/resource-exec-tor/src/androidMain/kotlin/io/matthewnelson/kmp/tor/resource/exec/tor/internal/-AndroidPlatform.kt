@@ -20,6 +20,7 @@ package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 import android.annotation.SuppressLint
 import android.os.Build
 import android.system.Os
+import io.matthewnelson.kmp.file.ANDROID
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.toFile
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
@@ -31,7 +32,7 @@ import io.matthewnelson.kmp.tor.resource.lib.tor.tryConfigureTestTorResources
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
 internal actual inline fun Resource.Config.Builder.configureTorResources() {
-    if (OSInfo.INSTANCE.isAndroidRuntime()) {
+    if (ANDROID.SDK_INT != null) {
         @SuppressLint("ObsoleteSdkInt")
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             error("Android API 21+ is required")
@@ -97,7 +98,7 @@ internal actual inline fun Resource.Config.Builder.configureTorResources() {
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
 internal actual inline fun MutableMap<String, String>.configureProcessEnvironment(resourceDir: File) {
-    if (OSInfo.INSTANCE.isAndroidRuntime()) {
+    if (ANDROID.SDK_INT != null) {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) return
         // API 23-
 
@@ -122,8 +123,7 @@ internal actual inline fun MutableMap<String, String>.configureProcessEnvironmen
 internal actual inline fun Map<String, File>.findLibTorExec(): Map<String, File> {
     if (contains(ALIAS_TOREXEC)) return this
 
-    @OptIn(InternalKmpTorApi::class)
-    if (!OSInfo.INSTANCE.isAndroidRuntime()) return this
+    if (ANDROID.SDK_INT == null) return this
 
     // Error from ResourceConfig would hit before this function has
     // a chance to be called, but...
