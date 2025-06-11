@@ -1,5 +1,77 @@
 # CHANGELOG
 
+## Version 408.16.4 (2025-06-11)
+ - Updates `kotlin` to `2.1.21` [[#130]][130]
+ - Updates `android-gradle-plugin` to `8.9.3` [[#130]][130]
+ - Updates `kmp-tor-common` to `2.3.0` [[#131]][131] [[#154]][154]
+ - Updates `tor` to `maint-0.4.8` commit `f84d461b5560d5675d2a4ce86a040c301b814b51` [[#153]][153]
+     - This is `tor` version `0.4.8.16-dev` which includes a critical bug fix for tor's thread pool 
+       shutdown sequence which is being incorporated in this release of `kmp-tor-resource` while 
+       awaiting `tor` version `0.4.8.17` to come out sometime in July.
+     - Consumers of the `resource-exec-tor{-gpl}` dependency are not affected as all resources are 
+       relinquished back to the system on process exit.
+     - See [[tor-#844]][tor-844]
+ - Adds support for the following targets [[#131]][131] [[#135]][135] [[#137]][137]
+     - `androidNativeArm32`
+     - `androidNativeArm64`
+     - `androidNativeX64`
+     - `androidNativeX86`
+ - Adds publications `resource-compilation-exec-tor`, `resource-compilation-exec-tor-gpl`, 
+   `resource-compilation-lib-tor` and `resource-compilation-lib-tor-gpl` to distribute `libtor.so` 
+   and `libtorexec.so` compilations for Android such that they can be consumed by Android Native 
+   users' applications independently [[#131]][131].
+     - Android consumers are unaffected by this modification as these publications are now transitive 
+       dependencies that are automatically pulled in when using the `resource-exec-tor{-gpl}` or 
+       `resource-noexec-tor{-gpl}` dependencies.
+ - Adds `proguard` rules for Kotlin/Jvm `resource-noexec-tor{-gpl}` [[#149]][149]
+ - Deprecates `resource-noexec-tor{-gpl}` shutdownhook registration for Jvm/Android [[#150]][150]
+     - The default `ResourceLoaderTorNoExec.getOrCreate` behavior has been changed to **not** 
+       automatically add a shutdownhook.
+ - Fixes a file descriptor double closure when using `__OwningControllerFD` which was triggering 
+   `SIGABRT` crashes on Android API 30+ related to `fdsan` [[#151]][151]
+     - Tor no longer "takes ownership" over, or closes the descriptor passed to it by the option 
+       `__OwningControllerFD`. The responsibility lies with whomever opened it to ensure proper 
+       descriptor closure after tor stops, be it via `tor_api.h/tor_main_configuration_free` if 
+       `tor_api.h/tor_main_configuration_setup_control_socket` was used to open it, or otherwise.
+ - Refactors `kmp_tor-jni.c` [[#143]][143]
+     - `CharArray` is now used instead of `String` for JNI function arguments to mitigate any native 
+       memory allocation by `libjvm` or `libandroid` from use of `GetStringUTFChars`.
+     - Removes unnecessary use of `DeleteLocalRef`.
+ - `lib_load.c` now uses `RTLD_LAZY` instead of `RTLD_NOW` when loading libtor via `dlopen` [[#143]][143]
+ - Refactors `kmp_tor.c` [[#143]][143]
+     - `OPENSSL_cleanup` is now properly called from the thread which `tor_api.h/tor_run_main` is called 
+       from, after `tor_api.h/tor_run_main` returns.
+     - `tor_api.h/tor_main_configuration_free` is now called from the thread which `tor_api.h/tor_run_main` 
+       is called from, after `tor_api.h/tor_run_main` returns.
+     - Simplifies the `kmp_tor_handle_t` structure and interactions between `kmp_tor_run_main`, the thread 
+       for which tor runs in, and `kmp_tor_terminate_and_await_result`.
+     - Control Socket descriptors for `__OwningControllerFD` for Unix-like systems are now configured with 
+       the appropriate `CLOEXEC` flag, be it via `SOCK_CLOEXEC` if available, or `fcntl` with `FD_CLOEXEC`.
+ - Adds a patch to `tor` to ensure `OPENSSL_stop_thread` is called upon thread shutdown for all threads that 
+   tor starts [[#144]][144]
+     - This is necessary because `openssl` is compiled statically, inhibiting automatic thread local cleanup 
+       of any resources that may have been allocated.
+ - Updates the following conifiguration flags for `openssl` compilation [[#143]][143] [[#152]][152]
+     - Adds `no-autoload-config`
+     - Adds `no-docs`
+     - Adds `no-dynamic-engine`
+     - Adds `no-ec2m`
+     - Adds `no-engine`
+     - Adds `no-hw`
+     - Adds `no-mdc2`
+     - Adds `no-module`
+     - Adds `no-pinshared`
+     - Adds `no-static-engine`
+     - Adds `no-zlib`
+     - Adds `no-zlib-dynamic`
+     - Adds `no-zstd`
+     - Adds `no-zstd-dynamic`
+     - Removes `no-err`
+     - Removes `no-md2` (a default setting)
+     - Removes `no-rc5` (a default setting)
+     - Removes `--with-zlib-lib`
+     - Removes `--with-zlib-include`
+
 ## Version 408.16.3 (2025-05-20)
  - Fix `macOS`, `iOS` and `iOS-simulator` compilations by removing linker flag `-no_uuid`. [[#129]][129]
      - `macOS` version `15.4.1+` now requires binaries running on the machine to contain a `LC_UUID` 
@@ -25,7 +97,7 @@
 
 ## Version 408.14.0 (2025-02-26)
  - Updates `kotin` to `2.1.10` [[#108]][108]
- - Updates `kmp-tor-common` to `0.2.0` [[#108]][108]
+ - Updates `kmp-tor-common` to `2.2.0` [[#108]][108]
  - Updates `android-gradle-plugin` to `8.7.3` [[#108]][108]
  - Updates `tor` to `0.4.8.14` [[#110]][110]
  - Updates [build-env][url-build-env] to `0.3.0` [[#110]][110]
@@ -64,7 +136,19 @@
 [122]: https://github.com/05nelsonm/kmp-tor-resource/pull/122
 [124]: https://github.com/05nelsonm/kmp-tor-resource/pull/124
 [129]: https://github.com/05nelsonm/kmp-tor-resource/pull/129
+[130]: https://github.com/05nelsonm/kmp-tor-resource/pull/130
+[131]: https://github.com/05nelsonm/kmp-tor-resource/pull/131
+[135]: https://github.com/05nelsonm/kmp-tor-resource/pull/135
+[137]: https://github.com/05nelsonm/kmp-tor-resource/pull/137
+[143]: https://github.com/05nelsonm/kmp-tor-resource/pull/143
+[144]: https://github.com/05nelsonm/kmp-tor-resource/pull/144
+[149]: https://github.com/05nelsonm/kmp-tor-resource/pull/149
+[151]: https://github.com/05nelsonm/kmp-tor-resource/pull/151
+[152]: https://github.com/05nelsonm/kmp-tor-resource/pull/152
+[153]: https://github.com/05nelsonm/kmp-tor-resource/pull/153
+[154]: https://github.com/05nelsonm/kmp-tor-resource/pull/154
 
+[tor-844]: https://gitlab.torproject.org/tpo/core/tor/-/merge_requests/844
 [url-build-env]: https://github.com/05nelsonm/build-env
 [url-cklib]: https://github.com/touchlab/cklib
 [url-resource-filterjar-gradle-plugin]: https://github.com/05nelsonm/kmp-tor-resource/tree/master/library/resource-filterjar-gradle-plugin
