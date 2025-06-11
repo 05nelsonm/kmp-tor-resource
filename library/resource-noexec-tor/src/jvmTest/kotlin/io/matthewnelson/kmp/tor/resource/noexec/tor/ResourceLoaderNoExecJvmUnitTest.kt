@@ -15,6 +15,7 @@
  **/
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
+import io.ktor.client.engine.HttpClientEngineFactory
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSHost
 import io.matthewnelson.kmp.tor.common.core.OSInfo
@@ -26,8 +27,10 @@ class ResourceLoaderNoExecJvmUnitTest: ResourceLoaderNoExecBaseTest(
     runTorMainCount = when (OSInfo.INSTANCE.osHost) {
         is OSHost.Windows -> RUN_TOR_MAIN_COUNT_WINDOWS
         else -> RUN_TOR_MAIN_COUNT_UNIX
-    }
+    },
 ) {
+
+    override val factory: HttpClientEngineFactory<*>? = null
 
     @Test
     @Ignore("stub")

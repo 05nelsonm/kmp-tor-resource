@@ -21,6 +21,8 @@ import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
 import kotlin.test.Test
 import kotlin.test.assertTrue
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @OptIn(InternalKmpTorApi::class)
 class ResourceConfigUnitTest {
@@ -28,8 +30,13 @@ class ResourceConfigUnitTest {
     @Test
     fun givenGeoipFiles_whenAddedToConfig_thenAreExtracted() {
         val config = Resource.Config.create { configureGeoipResources() }
-        val dir = SysTempDir.resolve("kmp-tor-resource/geoip")
-        val paths = config.extractTo(dir, onlyIfDoesNotExist = false)
+
+        @OptIn(ExperimentalUuidApi::class)
+        val tmpDir = SysTempDir
+            .resolve(Uuid.random().toHexString())
+            .resolve("geoip")
+
+        val paths = config.extractTo(tmpDir, onlyIfDoesNotExist = false)
         val geoip = paths[ALIAS_GEOIP]!!
         val geoip6 = paths[ALIAS_GEOIP6]!!
 
@@ -39,7 +46,7 @@ class ResourceConfigUnitTest {
         } finally {
             geoip.delete()
             geoip6.delete()
-            dir.delete()
+            tmpDir.delete()
         }
     }
 }

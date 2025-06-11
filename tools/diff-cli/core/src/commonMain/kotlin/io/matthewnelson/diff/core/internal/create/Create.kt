@@ -26,8 +26,8 @@ import io.matthewnelson.diff.core.internal.hashLengthOf
 import io.matthewnelson.diff.core.internal.checkIsDirOrNull
 import io.matthewnelson.diff.core.internal.checkExistsAndIsFile
 import io.matthewnelson.encoding.core.ExperimentalEncodingApi
-import kotlinx.datetime.Clock
 import okio.*
+import kotlin.time.ExperimentalTime
 
 internal sealed class Create private constructor() {
 
@@ -67,6 +67,7 @@ internal sealed class Create private constructor() {
             val diffFile = canonicalDiffDir.resolve(file1.name + options.diffFileExtensionName)
 
             try {
+                @OptIn(ExperimentalTime::class)
                 val header = Header(options.schema, options.time(), file1.name, f1Hash, f2Hash)
 
                 HashingSink.sha256(fs.sink(diffFile, mustCreate = true)).use { hsDiff ->

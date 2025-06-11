@@ -70,6 +70,10 @@ if (CHECK_PUBLICATION != null) {
             "npmjs",
             "resource-android-unit-test-tor",
             "resource-android-unit-test-tor-gpl",
+            "resource-compilation-exec-tor",
+            "resource-compilation-exec-tor-gpl",
+            "resource-compilation-lib-tor",
+            "resource-compilation-lib-tor-gpl",
             "resource-exec-tor",
             "resource-exec-tor-gpl",
             "resource-filterjar-gradle-plugin",
@@ -91,4 +95,6 @@ if (CHECK_PUBLICATION != null) {
     ).forEach { module ->
         include(":tools:$module")
     }
+
+    include(":test-android")
 }

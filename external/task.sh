@@ -347,13 +347,13 @@ function package:geoip { ## Packages geoip & geoip6 files
 
 function package:android { ## Packages all Android build/out contents
   local dirname_out="tor"
-  local dirname_final="resource-lib-tor"
+  local dirname_final="resource-compilation-lib-tor"
   __package:android "arm64-v8a" "libtor.so"
   __package:android "armeabi-v7a" "libtor.so"
   __package:android "x86" "libtor.so"
   __package:android "x86_64" "libtor.so"
 
-  dirname_final="resource-exec-tor"
+  dirname_final="resource-compilation-exec-tor"
   __package:android "arm64-v8a" "libtorexec.so"
   __package:android "armeabi-v7a" "libtorexec.so"
   __package:android "x86" "libtorexec.so"
@@ -366,13 +366,13 @@ function package:android { ## Packages all Android build/out contents
   __package:android "x86_64" "libtorjni.so"
 
   dirname_out="tor-gpl"
-  dirname_final="resource-lib-tor-gpl"
+  dirname_final="resource-compilation-lib-tor-gpl"
   __package:android "arm64-v8a" "libtor.so"
   __package:android "armeabi-v7a" "libtor.so"
   __package:android "x86" "libtor.so"
   __package:android "x86_64" "libtor.so"
 
-  dirname_final="resource-exec-tor-gpl"
+  dirname_final="resource-compilation-exec-tor-gpl"
   __package:android "arm64-v8a" "libtorexec.so"
   __package:android "armeabi-v7a" "libtorexec.so"
   __package:android "x86" "libtorexec.so"
@@ -724,14 +724,18 @@ function validate { ## Checks the build/package directory output against expecte
   ./gradlew clean -PKMP_TARGETS="$targets"
   ./gradlew prepareKotlinBuildScriptModel -PKMP_TARGETS="$targets"
 
+  __validate:report "resource-compilation-exec-tor"
+  __validate:report "resource-compilation-exec-tor-gpl"
+  __validate:report "resource-compilation-lib-tor"
+  __validate:report "resource-compilation-lib-tor-gpl"
+  __validate:report "resource-exec-tor"
+  __validate:report "resource-exec-tor-gpl"
+  __validate:report "resource-frameworks-gradle-plugin"
   __validate:report "resource-geoip"
   __validate:report "resource-lib-tor"
   __validate:report "resource-lib-tor-gpl"
-  __validate:report "resource-exec-tor"
-  __validate:report "resource-exec-tor-gpl"
   __validate:report "resource-noexec-tor"
   __validate:report "resource-noexec-tor-gpl"
-  __validate:report "resource-frameworks-gradle-plugin"
 }
 
 function validate:all { ## Includes Android (which are implicitly checked in validate). Requires Java 17+ & Android Studio
@@ -740,11 +744,13 @@ function validate:all { ## Includes Android (which are implicitly checked in val
 }
 
 function validate:all:update_hashes { ## Updates gradle extensions with new hash values. Requires Java 17+ & Android Studio
-  local extension_kt_files="ExecTorResourceValidationExtension.kt"
-  extension_kt_files+=",GeoipResourceValidationExtension.kt"
+  local extension_kt_files="CompilationExecTorResourceValidationExtension.kt"
+  extension_kt_files+=",CompilationLibTorResourceValidationExtension.kt"
+  extension_kt_files+=",ExecTorResourceValidationExtension.kt"
   extension_kt_files+=",LibTorResourceValidationExtension.kt"
-  extension_kt_files+=",NoExecTorResourceValidationExtension.kt"
   extension_kt_files+=",FrameworksResourceValidationExtension.kt"
+  extension_kt_files+=",GeoipResourceValidationExtension.kt"
+  extension_kt_files+=",NoExecTorResourceValidationExtension.kt"
 
   local output=""
   output="$(validate:all | grep "ERROR\[" | grep "did not match")"

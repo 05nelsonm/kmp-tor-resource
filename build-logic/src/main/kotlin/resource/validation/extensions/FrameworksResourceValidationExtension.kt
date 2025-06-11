@@ -48,7 +48,7 @@ open class FrameworksResourceValidationExtension internal constructor(
     companion object {
         internal const val NAME = "frameworksResourceValidation"
 
-        const val HASH_IOS_LIBTOR: String = "4b82012100a3289b071b5d55906585517c4a1b073ecfb9f0161632dfda790bb4"
-        const val HASH_IOS_LIBTOR_GPL: String = "5d31bf4cbc62a04995eafb593690ac7a7f05f09eb1d4661aae6c41aff78d61bc"
+        const val HASH_IOS_LIBTOR: String = "d6f8547d530178828142c143476f1653224bef5ddd073b063d56c3dd71cb7f97"
+        const val HASH_IOS_LIBTOR_GPL: String = "59df34fbe03e944a865d7a6dde706c9329a2d070198dffc22318383cf700190f"
     }
 }

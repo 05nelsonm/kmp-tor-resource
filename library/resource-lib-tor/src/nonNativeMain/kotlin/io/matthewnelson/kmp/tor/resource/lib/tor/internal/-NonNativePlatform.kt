@@ -56,7 +56,6 @@ internal inline fun Resource.Config.Builder.configureExecutableResource(
     }
 
     val arch = OSInfo.INSTANCE.osArch
-
     if (!arch.isSupportedBy(host)) {
         error("Unsupported architecture[$arch] for host[$host]")
         return
@@ -69,7 +68,7 @@ internal inline fun Resource.Config.Builder.configureExecutableResource(
 }
 
 @OptIn(InternalKmpTorApi::class)
-@Suppress("NOTHING_TO_INLINE")
+@Suppress("NOTHING_TO_INLINE", "REDUNDANT_ELSE_IN_WHEN")
 internal inline fun OSArch.isSupportedBy(osHost: OSHost): Boolean = when (osHost) {
     is OSHost.FreeBSD -> emptySet()
     is OSHost.Linux.Android -> setOf(

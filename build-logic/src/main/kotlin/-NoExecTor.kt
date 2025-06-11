@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+import co.touchlab.cklib.gradle.CKlibGradleExtension
 import co.touchlab.cklib.gradle.CompileToBitcode
 import co.touchlab.cklib.gradle.CompileToBitcodeExtension
 import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
@@ -30,6 +31,10 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.konan.target.Family
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
+import org.jetbrains.kotlin.konan.target.TargetSupportException
+import org.jetbrains.kotlin.konan.util.ArchiveType
+import org.jetbrains.kotlin.konan.util.DependencyProcessor
+import org.jetbrains.kotlin.konan.util.DependencySource
 import resource.validation.extensions.NoExecTorResourceValidationExtension
 import java.io.File
 
@@ -154,6 +159,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
         sourceSetConnect(
             newName = "nonAppleFramework",
             existingNames = listOf(
+                "androidNative",
                 "iosSimulatorArm64",
                 "iosX64",
                 "linux",
@@ -162,11 +168,36 @@ fun KmpConfigurationExtension.configureNoExecTor(
             ),
             dependencyName = "native",
         )
+
         kotlin {
             with(sourceSets) {
-                listOf("jvmAndroid", "nonAppleFramework").forEach { name ->
-                    findByName(name + "Main")?.dependencies {
+                listOf(
+                    "jvmAndroid",
+                    "iosSimulatorArm64",
+                    "iosX64",
+                    "linux",
+                    "macos",
+                    "mingw",
+                ).forEach { target ->
+                    findByName(target + "Main")?.dependencies {
                         implementation(project(":library:resource-lib-tor$suffix"))
+                    }
+                }
+            }
+        }
+
+        kotlin {
+            with(sourceSets) {
+                listOf(
+                    "noExec" to libs.ktor.client.core,
+                    "androidInstrumented" to libs.ktor.client.okhttp,
+//                    "jvm" to libs.ktor.client.okhttp,
+                    "linux" to libs.ktor.client.curl,
+                    "macos" to libs.ktor.client.curl,
+                    "mingw" to libs.ktor.client.winhttp,
+                ).forEach { (name, ktorDependency) ->
+                    findByName(name + "Test")?.dependencies {
+                        implementation(ktorDependency)
                     }
                 }
             }
@@ -177,10 +208,11 @@ fun KmpConfigurationExtension.configureNoExecTor(
                 .resolve("external")
                 .resolve("native")
 
-            val generatedNativeDir = generatedSourcesDir.resolve("native")
-            generatedNativeDir.mkdirs()
+            val generatedNativeDir = generatedSourcesDir
+                .resolve("native")
+                .apply { mkdirs() }
 
-            val files = listOf("lib_load", "win32_sockets", "kmp_tor").map { name ->
+            val cFiles = listOf("lib_load", "win32_sockets", "kmp_tor").map { name ->
                 val sb = StringBuilder()
                 sb.appendLine("package = $packageName.internal")
                 sb.appendLine("headers = $name.h")
@@ -190,40 +222,22 @@ fun KmpConfigurationExtension.configureNoExecTor(
                 File("$name.c")
             }
 
-            project.extensions.configure<CompileToBitcodeExtension> {
-                config.kotlinVersion = libs.versions.gradle.kotlin.get()
-
-                create("kmp_tor") {
-                    language = CompileToBitcode.Language.C
-                    srcDirs = project.files(externalNativeDir)
-
-                    val kt = KonanTarget.predefinedTargets[target]!!
-
-                    files.mapNotNull { cFile ->
-                        val name = cFile.name
-                        if (name == "win32_sockets.c" && kt.family != Family.MINGW) {
-                            return@mapNotNull null
-                        }
-                        name
-                    }.let { includeFiles = it }
-                }
-            }
-
-            targets.filterIsInstance<KotlinNativeTarget>().forEach target@ { target ->
+            val interopTaskInfo = targets.filterIsInstance<KotlinNativeTarget>().map { target ->
                 val linkerOpts = when (target.konanTarget.family) {
-                    Family.LINUX,
                     Family.IOS,
+                    Family.LINUX,
                     Family.OSX -> "-lpthread -ldl"
+                    Family.ANDROID -> "-pthread -ldl -llog"
                     Family.MINGW -> ""
                     else -> null
                 }
 
                 check(linkerOpts != null) { "Configuration needed for $target" }
 
-                target.compilations["main"].cinterops.create("kmp_tor") {
+                val interopTaskName = target.compilations["main"].cinterops.create("kmp_tor") {
                     defFile(generatedNativeDir.resolve("$name.def"))
                     includeDirs(externalNativeDir)
-                }
+                }.interopProcessingTaskName
 
                 if (target.konanTarget.family == Family.MINGW) {
                     target.compilations["test"].cinterops.create("win32_sockets") {
@@ -232,9 +246,44 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     }
                 }
 
-                if (linkerOpts.isBlank()) return@target
+                if (linkerOpts.isNotBlank()) {
+                    target.compilerOptions.freeCompilerArgs.addAll("-linker-options", linkerOpts)
+                }
 
-                target.compilerOptions.freeCompilerArgs.addAll("-linker-options", linkerOpts)
+                interopTaskName to target.konanTarget
+            }
+
+            project.extensions.configure<CompileToBitcodeExtension> {
+                config.configure(libs)
+
+                create("kmp_tor") {
+                    language = CompileToBitcode.Language.C
+                    srcDirs = project.files(externalNativeDir)
+
+                    val kt = KonanTarget.predefinedTargets[target]!!
+
+                    cFiles.mapNotNull { cFile ->
+                        val name = cFile.name
+                        if (name == "win32_sockets.c" && kt.family != Family.MINGW) {
+                            return@mapNotNull null
+                        }
+                        name
+                    }.let { includeFiles = it }
+
+                    if (kt.family.isAppleFamily) {
+                        listOf(
+                            "-Wno-unused-command-line-argument",
+                        ).let { compilerArgs.addAll(it) }
+                    }
+
+                    // Ensure the CompileToBitcode task comes after cinterop task such
+                    // that whatever sysroot dependencies are needed get downloaded
+                    // and are available at time of execution.
+                    interopTaskInfo.forEach { (interopTaskName, interopTarget) ->
+                        if (interopTarget != kt) return@forEach
+                        this.dependsOn(interopTaskName)
+                    }
+                }
             }
         }
 
@@ -242,6 +291,9 @@ fun KmpConfigurationExtension.configureNoExecTor(
             with(sourceSets) {
                 val noExecTest = findByName("noExecTest") ?: return@with
 
+                try {
+                    project.evaluationDependsOn(":library:resource-compilation-lib-tor$suffix")
+                } catch (_: Throwable) {}
                 try {
                     project.evaluationDependsOn(":library:resource-lib-tor$suffix")
                 } catch (_: Throwable) {}
@@ -282,6 +334,14 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
                 noExecTest.generateBuildConfig(isErrReportEmpty = { null })
 
+                val reportDirCompilationLibTor = project.rootDir
+                    .resolve("library")
+                    .resolve("resource-compilation-lib-tor$suffix")
+                    .resolve("build")
+                    .resolve("reports")
+                    .resolve("resource-validation")
+                    .resolve("resource-compilation-lib-tor$suffix")
+
                 val reportDirLibTor = project.rootDir
                     .resolve("library")
                     .resolve("resource-lib-tor$suffix")
@@ -296,7 +356,8 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     .resolve(project.name)
 
                 listOf(
-                    Triple("android", "androidInstrumented", listOf(reportDirLibTor, reportDirNoExec)),
+                    Triple("android", "androidInstrumented", listOf(reportDirCompilationLibTor, reportDirNoExec)),
+                    Triple("android", "androidNative", listOf(reportDirCompilationLibTor)),
                     Triple("jvm", "androidUnit", listOf(reportDirLibTor, reportDirNoExec)),
                     Triple("jvm", null, listOf(reportDirLibTor, reportDirNoExec)),
                     Triple("linuxArm64", null, listOf(reportDirLibTor)),
@@ -304,7 +365,6 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     Triple("macosArm64", null, listOf(reportDirLibTor)),
                     Triple("macosX64", null, listOf(reportDirLibTor)),
                     Triple("mingwX64", null, listOf(reportDirLibTor)),
-
                     Triple("iosArm64", null, emptyList()),
                     Triple("iosSimulatorArm64", null, listOf(reportDirLibTor)),
                     Triple("iosX64", null, listOf(reportDirLibTor)),
@@ -338,6 +398,82 @@ fun KmpConfigurationExtension.configureNoExecTor(
             }
         }
 
+        configureAndroidEnvironmentKeysConfig(project)
+        configureAndroidNativeEmulatorTests(project)
+
         action.execute(this)
     }
+}
+
+// CKLib uses too old of a version of LLVM for current version of Kotlin which produces errors for android
+// native due to unsupported link arguments. Below is a supplemental implementation to download and use
+// the -dev llvm compiler for the current kotlin version.
+//
+// The following info can be found in ~/.konan/kotlin-native-prebuild-{os}-{arch}-{kotlin version}/konan/konan.properties
+private object LLVM {
+    const val URL: String = "https://download.jetbrains.com/kotlin/native/resources/llvm"
+    const val VERSION: String = "16.0.0"
+
+    // llvm-{llvm version}-{arch}-{host}-dev-{id}
+    object DevID {
+        object Linux {
+            const val x86_64: Int = 80
+        }
+        object MacOS {
+            const val aarch64: Int = 65
+            const val x86_64: Int = 56
+        }
+        object MinGW {
+            const val x86_64: Int = 56
+        }
+    }
+}
+
+private fun CKlibGradleExtension.configure(libs: LibrariesForLibs) {
+    kotlinVersion = libs.versions.gradle.kotlin.get()
+    check(kotlinVersion == "2.1.21") {
+        "Kotlin version out of date! Download URLs for LLVM need to be updated for ${project.path}"
+    }
+
+    val host = HostManager.simpleOsName()
+    val arch = HostManager.hostArch()
+    val (id, archive) = when (host) {
+        "linux" -> when (arch) {
+            "x86_64" -> LLVM.DevID.Linux.x86_64 to ArchiveType.TAR_GZ
+            else -> null
+        }
+        "macos" -> when (arch) {
+            "aarch64" -> LLVM.DevID.MacOS.aarch64 to ArchiveType.TAR_GZ
+            "x86_64" -> LLVM.DevID.MacOS.x86_64 to ArchiveType.TAR_GZ
+            else -> null
+        }
+        "windows" -> when (arch) {
+            "x86_64" -> LLVM.DevID.MinGW.x86_64 to ArchiveType.ZIP
+            else -> null
+        }
+        else -> null
+    } ?: throw TargetSupportException("Unsupported host[$host] or arch[$arch]")
+
+    val llvmDev = "llvm-${LLVM.VERSION}-${arch}-${host}-dev-${id}"
+    val cklibDir = File(System.getProperty("user.home")).resolve(".cklib")
+    llvmHome = cklibDir.resolve(llvmDev).path
+
+    val source = DependencySource.Remote.Public(subDirectory = "${LLVM.VERSION}-${arch}-${host}")
+
+    DependencyProcessor(
+        dependenciesRoot = cklibDir,
+        dependenciesUrl = LLVM.URL,
+        dependencyToCandidates = mapOf(llvmDev to listOf(source)),
+        homeDependencyCache = cklibDir.resolve("cache"),
+        customProgressCallback = { _, currentBytes, totalBytes ->
+            val total = totalBytes.toString()
+            var current = currentBytes.toString()
+            while (current.length < 15 && current.length < total.length) {
+                current = " $current"
+            }
+
+            println("Downloading[$llvmDev] - $current / $total")
+        },
+        archiveType = archive,
+    ).run()
 }

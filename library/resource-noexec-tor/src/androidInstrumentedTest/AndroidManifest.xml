@@ -16,7 +16,14 @@
  * limitations under the License.
  **/
 -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
     <uses-permission android:name="android.permission.INTERNET" />
-    <application android:debuggable="false" />
+
+    <application
+        android:usesCleartextTraffic="true"
+        android:extractNativeLibs="true"
+        tools:targetApi="m"/>
+
 </manifest>

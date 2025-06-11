@@ -51,7 +51,6 @@ kmpConfiguration {
                     implementation(libs.encoding.base16)
                     implementation(libs.encoding.base64)
                     implementation(kotlincrypto.hash.sha2)
-                    implementation(libs.kotlinx.datetime)
                     implementation(libs.okio.okio)
                 }
             }

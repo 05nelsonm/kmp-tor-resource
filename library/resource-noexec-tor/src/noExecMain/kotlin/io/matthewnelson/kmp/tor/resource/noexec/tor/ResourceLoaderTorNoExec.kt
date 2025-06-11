@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING", "RemoveRedundantQualifierName")
+@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING", "RemoveRedundantQualifierName", "DEPRECATION")
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.matthewnelson.kmp.file.File
-import io.matthewnelson.kmp.file.IOException
-import io.matthewnelson.kmp.file.path
 import io.matthewnelson.kmp.tor.common.api.GeoipFiles
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_GEOIPS
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP6
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.KmpTorApi
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
 import kotlin.concurrent.Volatile
 import kotlin.jvm.JvmStatic
@@ -40,21 +39,20 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
             resourceDir: File,
         ): ResourceLoader.Tor = getOrCreate(
             resourceDir = resourceDir,
-            registerShutdownHook = true,
+            registerShutdownHook = false,
         )
 
         @JvmStatic
+        @Deprecated("ShutdownHook registration causes abnormal application exit behavior for Java/Android")
         public fun getOrCreate(
             resourceDir: File,
             registerShutdownHook: Boolean,
-        ): ResourceLoader.Tor {
-            return NoExec.getOrCreate(
-                resourceDir = resourceDir,
-                extract = ::extractGeoips,
-                create = { dir -> KmpTorApi(dir, registerShutdownHook) },
-                toString = ::toString,
-            )
-        }
+        ): ResourceLoader.Tor = NoExec.getOrCreate(
+            resourceDir = resourceDir,
+            extract = ::extractGeoips,
+            create = { dir -> KmpTorApi.of(dir, registerShutdownHook) },
+            toString = ::toString,
+        )
 
         @Volatile
         private var isFirstExtraction: Boolean = true
@@ -88,7 +86,8 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
             RESOURCE_CONFIG_LIB_TOR.let { config ->
                 // Android may have an empty configuration if not using
-                // test resources. iOS is always empty. Do not include.
+                // test resources. iOS and androidNative are always empty;
+                // do not include if that is the case.
                 if (config.errors.isEmpty() && config.resources.isEmpty()) return@let
 
                 val lines = config.toString().lines()
@@ -101,23 +100,6 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
             append(']')
         }
-    }
-
-    private class KmpTorApi(
-        resourceDir: File,
-        registerShutdownHook: Boolean,
-    ): AbstractKmpTorApi(resourceDir, registerShutdownHook) {
-
-        @Throws(IllegalStateException::class, IOException::class)
-        override fun torRunMain(args: Array<String>) {
-            val libTor = libTor()
-            val error = kmpTorRunMain(libTor.path, args) ?: return
-            throw IllegalStateException(error)
-        }
-
-        override fun state(): State = State.entries.elementAt(kmpTorState())
-
-        override fun terminateAndAwaitResult(): Int = kmpTorTerminateAndAwaitResult()
     }
 
     @Throws(IllegalStateException::class)

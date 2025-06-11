@@ -17,12 +17,13 @@
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor.internal
 
+import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.geoip.configureGeoipResources
 import kotlin.jvm.JvmSynthetic
 
-internal const val ALIAS_LIB_TOR: String = "libtor"
+internal const val ALIAS_LIBTOR: String = "libtor"
 
 @get:JvmSynthetic
 @OptIn(InternalKmpTorApi::class)
@@ -39,3 +40,7 @@ internal val RESOURCE_CONFIG_LIB_TOR: Resource.Config by lazy {
 @Suppress("NOTHING_TO_INLINE")
 @OptIn(InternalKmpTorApi::class)
 internal expect inline fun Resource.Config.Builder.configureLibTorResources()
+
+@Suppress("NOTHING_TO_INLINE")
+@Throws(IllegalStateException::class)
+internal expect inline fun Map<String, File>.findLibs(): Map<String, File>

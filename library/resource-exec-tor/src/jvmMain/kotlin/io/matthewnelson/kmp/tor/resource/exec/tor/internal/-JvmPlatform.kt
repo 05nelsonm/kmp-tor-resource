@@ -26,8 +26,8 @@ import io.matthewnelson.kmp.tor.resource.lib.tor.configureExecTorResource
 @OptIn(InternalKmpTorApi::class)
 internal actual inline fun Resource.Config.Builder.configureTorResources() {
     configureExecTorResource(
-        aliasLibTor = ALIAS_LIB_TOR,
-        aliasTor = ALIAS_TOR,
+        aliasLibTor = ALIAS_LIBTOR,
+        aliasTor = ALIAS_TOREXEC,
         loaderClass = ResourceLoaderTorExec::class.java,
     )
 }

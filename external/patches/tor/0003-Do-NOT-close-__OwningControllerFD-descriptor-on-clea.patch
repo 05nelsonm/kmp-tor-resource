@@ -1,0 +1,114 @@
+From 3cf375a0e886ffe80105d586b94be5eadb2fe4f2 Mon Sep 17 00:00:00 2001
+From: Matthew Nelson <developer@matthewnelson.io>
+Date: Tue, 10 Jun 2025 13:43:49 -0400
+Subject: [PATCH 3/3] Do NOT close __OwningControllerFD descriptor on cleanup,
+ leave it to whoever opened it.
+
+---
+ src/app/config/config.c                     |  3 ++-
+ src/core/mainloop/connection.c              |  3 +++
+ src/feature/control/control.c               | 16 ++++++++++++----
+ src/feature/control/control.h               |  1 +
+ src/feature/control/control_connection_st.h |  3 +++
+ 5 files changed, 21 insertions(+), 5 deletions(-)
+
+diff --git a/src/app/config/config.c b/src/app/config/config.c
+index a10329c552..bfd74af3d1 100644
+--- a/src/app/config/config.c
++++ b/src/app/config/config.c
+@@ -2158,7 +2158,8 @@ options_act,(const or_options_t *old_options))
+       options->OwningControllerFD != UINT64_MAX) {
+     const unsigned ctrl_flags =
+       CC_LOCAL_FD_IS_OWNER |
+-      CC_LOCAL_FD_IS_AUTHENTICATED;
++      CC_LOCAL_FD_IS_AUTHENTICATED |
++      CC_LOCAL_FD_IS_FROM_CONFIG;
+     tor_socket_t ctrl_sock = (tor_socket_t)options->OwningControllerFD;
+     if (control_connection_add_local_fd(ctrl_sock, ctrl_flags) < 0) {
+       log_warn(LD_CONFIG, "Could not add local controller connection with "
+diff --git a/src/core/mainloop/connection.c b/src/core/mainloop/connection.c
+index 5a769f38be..fb41177a45 100644
+--- a/src/core/mainloop/connection.c
++++ b/src/core/mainloop/connection.c
+@@ -924,6 +924,9 @@ connection_free_minimal(connection_t *conn)
+       });
+       smartlist_free(control_conn->ephemeral_onion_services);
+     }
++    if (control_conn->is_from_config) {
++      conn->s = TOR_INVALID_SOCKET;
++    }
+   }
+ 
+   /* Probably already freed by connection_free. */
+diff --git a/src/feature/control/control.c b/src/feature/control/control.c
+index ac37357818..bc553cd081 100644
+--- a/src/feature/control/control.c
++++ b/src/feature/control/control.c
+@@ -98,6 +98,7 @@ control_connection_add_local_fd(tor_socket_t sock, unsigned flags)
+     return -1;
+   const int is_owner = !!(flags & CC_LOCAL_FD_IS_OWNER);
+   const int is_authenticated = !!(flags & CC_LOCAL_FD_IS_AUTHENTICATED);
++  const int is_from_config = !!(flags & CC_LOCAL_FD_IS_FROM_CONFIG);
+   control_connection_t *control_conn = control_connection_new(AF_UNSPEC);
+   connection_t *conn = TO_CONN(control_conn);
+   conn->s = sock;
+@@ -105,9 +106,13 @@ control_connection_add_local_fd(tor_socket_t sock, unsigned flags)
+   conn->port = 1;
+   conn->address = tor_strdup("<local socket>");
+ 
+-  /* We take ownership of this socket so that later, when we close it,
+-   * we don't freak out. */
+-  tor_take_socket_ownership(sock);
++  // Tor should NOT "take ownership" over __OwningControllerFD here; it did
++  // not open the descriptor, it should NOT be closing it.
++  if (!is_from_config) {
++    /* We take ownership of this socket so that later, when we close it,
++     * we don't freak out. */
++    tor_take_socket_ownership(sock);
++  }
+ 
+   if (set_socket_nonblocking(sock) < 0 ||
+       connection_add(conn) < 0) {
+@@ -116,9 +121,12 @@ control_connection_add_local_fd(tor_socket_t sock, unsigned flags)
+   }
+ 
+   control_conn->is_owning_control_connection = is_owner;
++  control_conn->is_from_config = is_from_config;
+ 
+   if (connection_init_accepted_conn(conn, NULL) < 0) {
+-    connection_mark_for_close(conn);
++    if (!is_from_config) {
++      connection_mark_for_close(conn);
++    }
+     return -1;
+   }
+ 
+diff --git a/src/feature/control/control.h b/src/feature/control/control.h
+index fc6196133b..3ce292b00d 100644
+--- a/src/feature/control/control.h
++++ b/src/feature/control/control.h
+@@ -35,6 +35,7 @@ void control_ports_write_to_file(void);
+ 
+ #define CC_LOCAL_FD_IS_OWNER (1u<<0)
+ #define CC_LOCAL_FD_IS_AUTHENTICATED (1u<<1)
++#define CC_LOCAL_FD_IS_FROM_CONFIG (1u<<2)
+ int control_connection_add_local_fd(tor_socket_t sock, unsigned flags);
+ 
+ int connection_control_finished_flushing(control_connection_t *conn);
+diff --git a/src/feature/control/control_connection_st.h b/src/feature/control/control_connection_st.h
+index a4ce0da7c5..750289ed85 100644
+--- a/src/feature/control/control_connection_st.h
++++ b/src/feature/control/control_connection_st.h
+@@ -28,6 +28,9 @@ struct control_connection_t {
+   /** True if we have received a takeownership command on this
+    * connection. */
+   unsigned int is_owning_control_connection:1;
++  /** True if this connection was passed in via __OwningControllerFD,
++   * indicating that whoever opened it should close it. */
++  unsigned int is_from_config:1;
+ 
+   /** List of ephemeral onion services belonging to this connection. */
+   smartlist_t *ephemeral_onion_services;
+-- 
+2.34.1
+

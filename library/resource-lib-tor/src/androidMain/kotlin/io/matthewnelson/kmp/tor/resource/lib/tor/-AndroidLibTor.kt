@@ -15,8 +15,8 @@
  **/
 package io.matthewnelson.kmp.tor.resource.lib.tor
 
+import io.matthewnelson.kmp.file.ANDROID
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
-import io.matthewnelson.kmp.tor.common.core.OSInfo
 import io.matthewnelson.kmp.tor.common.core.Resource
 import io.matthewnelson.kmp.tor.resource.lib.tor.internal.*
 import io.matthewnelson.kmp.tor.resource.lib.tor.internal.configureTorResource
@@ -35,7 +35,7 @@ public fun Resource.Config.Builder.tryConfigureTestTorResources(
         throw IllegalArgumentException("aliasLibTorJni and aliasTor cannot both be non-null")
     }
 
-    check(!OSInfo.INSTANCE.isAndroidRuntime()) {
+    check(ANDROID.SDK_INT == null) {
         "Android runtime detected. Cannot configure test resources."
     }
 

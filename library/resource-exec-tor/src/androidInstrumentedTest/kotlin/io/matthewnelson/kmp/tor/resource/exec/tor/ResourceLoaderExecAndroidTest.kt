@@ -15,10 +15,97 @@
  **/
 package io.matthewnelson.kmp.tor.resource.exec.tor
 
+import android.content.Context
+import android.os.Build
+import android.system.Os
+import androidx.test.core.app.ApplicationProvider
+import io.matthewnelson.kmp.file.toFile
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.TimeSource
 
 class ResourceLoaderExecAndroidTest: ResourceLoaderExecJvmTest() {
 
+    private companion object {
+        private val TIMEOUT: Duration = 2.minutes
+    }
+
+    private val ctx = ApplicationProvider.getApplicationContext<Context>()
+    private val nativeLibraryDir = ctx.applicationInfo.nativeLibraryDir
+
+    override fun MutableMap<String, String>.fixAndroidEnvironment() {
+        if (Build.VERSION.SDK_INT !in 24..32) return
+        val envOS = Os.environ()
+        if (envOS.isNullOrEmpty()) return
+        clear()
+        envOS.forEach { line ->
+            val i = line.indexOf('=')
+            if (i == -1) return@forEach
+            this[line.substring(0, i)] = line.substring(i + 1, line.length)
+        }
+    }
+
     @Test
-    fun stub() {}
+    fun givenAndroidNative_whenExecuteTestBinary_thenIsSuccessful() {
+        val executable = nativeLibraryDir.toFile().resolve("libTestExec.so")
+
+        var p: Process? = null
+        val mark = TimeSource.Monotonic.markNow()
+        try {
+            p = ProcessBuilder(listOf(executable.path)).apply {
+                redirectErrorStream(true)
+                environment().fixAndroidEnvironment()
+            }.start()
+
+            p.outputStream.close()
+
+            var isComplete = false
+            Thread {
+                try {
+                    p.inputStream.use { s ->
+                        val buf = ByteArray(DEFAULT_BUFFER_SIZE * 2)
+                        while (true) {
+                            val read = s.read(buf)
+                            if (read == -1) break
+                            System.out.write(buf, 0, read)
+                        }
+                    }
+                } finally {
+                    isComplete = true
+                }
+            }.apply {
+                isDaemon = true
+                priority = Thread.MAX_PRIORITY
+            }.start()
+
+            var timeout = TIMEOUT
+            while (true) {
+                if (isComplete) break
+                check(timeout > Duration.ZERO) { "Timed out" }
+
+                Thread.sleep(100)
+                timeout -= 100.milliseconds
+            }
+        } finally {
+            p?.destroy()
+        }
+
+        assertNotNull(p)
+
+        var exitCode: Int? = null
+        while (exitCode == null) {
+            try {
+                exitCode = p.exitValue()
+            } catch (_: IllegalThreadStateException) {
+                Thread.sleep(50)
+            }
+        }
+
+        println("RUN LENGTH: ${mark.elapsedNow().inWholeSeconds}s")
+        assertEquals(0, exitCode)
+    }
 }

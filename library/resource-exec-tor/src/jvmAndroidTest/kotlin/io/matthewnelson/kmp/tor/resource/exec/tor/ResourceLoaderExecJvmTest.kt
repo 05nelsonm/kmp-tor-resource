@@ -23,6 +23,9 @@ import kotlin.test.assertTrue
 
 open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
 
+    // https://github.com/05nelsonm/kmp-process/issues/149
+    open fun MutableMap<String, String>.fixAndroidEnvironment() {}
+
     @Test
     fun givenTor_whenProcessExecution_thenRuns() {
         if (!CAN_RUN_FULL_TESTS) {
@@ -48,9 +51,9 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
             val b = loader.process(TestRuntimeBinder) { tor, configureEnv ->
                 ProcessBuilder().apply {
                     val env = environment()
+                    env.fixAndroidEnvironment()
                     env["HOME"] = TEST_RESOURCE_DIR.path
                     env.configureEnv()
-                    redirectErrorStream(true)
 
                     val cmds = mutableListOf<String>().apply {
                         add(tor.path)
@@ -83,6 +86,7 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
 
             var p: Process? = null
             val out = StringBuilder()
+            val err = StringBuilder()
 
             val expected = "Delaying directory fetches: DisableNetwork is set."
             var expectedFound = false
@@ -105,6 +109,23 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
                         }
                     } catch (_: Throwable) {
                     }
+                }.apply {
+                    isDaemon = true
+                    priority = Thread.MAX_PRIORITY
+                }.start()
+
+                Thread {
+                    try {
+                        val reader = p.errorStream.reader().buffered()
+
+                        while (true) {
+                            val line = reader.readLine() ?: break
+                            err.appendLine(line)
+                        }
+                    } catch (_: Throwable) {}
+                }.apply {
+                    isDaemon = true
+                    priority = Thread.MAX_PRIORITY
                 }.start()
 
                 // Can't use Process.waitFor(3, TimeUnit.SECONDS) b/c
@@ -121,12 +142,12 @@ open class ResourceLoaderExecJvmTest: ResourceLoaderExecBaseTest() {
             Thread.sleep(500)
 
             val outString = out.toString()
-            assertTrue(outString.contains(expected), outString)
+            val errString = err.toString()
+            assertTrue(outString.contains(expected), outString + "\n\n" + errString)
 
-            // TODO: Assert no warnings. Issue #49
-            //  Should show up if present on Android b/c redirecting stderr to stdout.
-            if (outString.contains("WARNING: linker:")) {
-                print(outString)
+            if (errString.isNotEmpty()) {
+                println(outString)
+                println(errString)
             }
         }
     }

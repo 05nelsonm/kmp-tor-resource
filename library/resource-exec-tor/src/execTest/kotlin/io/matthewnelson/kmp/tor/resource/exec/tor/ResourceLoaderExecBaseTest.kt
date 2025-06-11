@@ -20,8 +20,8 @@ package io.matthewnelson.kmp.tor.resource.exec.tor
 import io.matthewnelson.kmp.file.*
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
-import io.matthewnelson.kmp.tor.resource.exec.tor.internal.ALIAS_LIB_TOR
-import io.matthewnelson.kmp.tor.resource.exec.tor.internal.ALIAS_TOR
+import io.matthewnelson.kmp.tor.resource.exec.tor.internal.ALIAS_LIBTOR
+import io.matthewnelson.kmp.tor.resource.exec.tor.internal.ALIAS_TOREXEC
 import io.matthewnelson.kmp.tor.resource.exec.tor.internal.RESOURCE_CONFIG_TOR
 import kotlin.jvm.JvmStatic
 import kotlin.test.*
@@ -51,11 +51,11 @@ actual abstract class ResourceLoaderExecBaseTest {
 
         val (torName, libTorName) = try {
             Pair(
-                RESOURCE_CONFIG_TOR[ALIAS_TOR].platform.fsFileName,
-                RESOURCE_CONFIG_TOR[ALIAS_LIB_TOR].platform.fsFileName,
+                RESOURCE_CONFIG_TOR[ALIAS_TOREXEC].platform.fsFileName,
+                RESOURCE_CONFIG_TOR[ALIAS_LIBTOR].platform.fsFileName,
             )
         } catch (_: NoSuchElementException) {
-            // Android Runtime
+            // Android
             "libtorexec.so" to "libtor.so"
         }
 

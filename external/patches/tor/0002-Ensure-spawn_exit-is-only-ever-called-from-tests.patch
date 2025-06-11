@@ -1,0 +1,69 @@
+From 83079e20ca7918bc005b257218f816a4bd922ec2 Mon Sep 17 00:00:00 2001
+From: Matthew Nelson <developer@matthewnelson.io>
+Date: Tue, 10 Jun 2025 13:43:48 -0400
+Subject: [PATCH 2/3] Ensure spawn_exit is only ever called from tests
+
+---
+ src/lib/thread/compat_pthreads.c   | 2 ++
+ src/lib/thread/compat_winthreads.c | 2 ++
+ src/lib/thread/threads.h           | 3 +++
+ 3 files changed, 7 insertions(+)
+
+diff --git a/src/lib/thread/compat_pthreads.c b/src/lib/thread/compat_pthreads.c
+index f0f74ed94b..b665069d42 100644
+--- a/src/lib/thread/compat_pthreads.c
++++ b/src/lib/thread/compat_pthreads.c
+@@ -97,6 +97,7 @@ spawn_func(void (*func)(void *), void *data)
+   return 0;
+ }
+ 
++#ifdef TOR_UNIT_TESTS
+ /** End the current thread/process.
+  */
+ void
+@@ -104,6 +105,7 @@ spawn_exit(void)
+ {
+   pthread_exit(NULL);
+ }
++#endif
+ 
+ /** Return an integer representing this thread. */
+ unsigned long
+diff --git a/src/lib/thread/compat_winthreads.c b/src/lib/thread/compat_winthreads.c
+index f285871496..00f6e8ad9b 100644
+--- a/src/lib/thread/compat_winthreads.c
++++ b/src/lib/thread/compat_winthreads.c
+@@ -87,6 +87,7 @@ spawn_func(void (*func)(void *), void *data)
+   return 0;
+ }
+ 
++#ifdef TOR_UNIT_TESTS
+ /** End the current thread/process.
+  */
+ void
+@@ -100,6 +101,7 @@ spawn_exit(void)
+   _exit(0); // exit ok: unreachable.
+   // LCOV_EXCL_STOP
+ }
++#endif
+ 
+ unsigned long
+ tor_get_thread_id(void)
+diff --git a/src/lib/thread/threads.h b/src/lib/thread/threads.h
+index d74a7dc429..3e5dc21113 100644
+--- a/src/lib/thread/threads.h
++++ b/src/lib/thread/threads.h
+@@ -27,7 +27,10 @@
+ struct timeval;
+ 
+ int spawn_func(void (*func)(void *), void *data);
++
++#ifdef TOR_UNIT_TESTS
+ void spawn_exit(void) ATTR_NORETURN;
++#endif
+ 
+ unsigned long tor_get_thread_id(void);
+ void tor_threads_init(void);
+-- 
+2.34.1
+

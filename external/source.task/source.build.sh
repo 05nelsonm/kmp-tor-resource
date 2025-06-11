@@ -227,11 +227,13 @@ fi
   esac
 
   # ZLIB
-  CONF_ZLIB='./configure --static \
+  CONF_ZLIB='./configure \
+    --static \
     --prefix="$DIR_SCRIPT/zlib"'
 
   # LZMA
-  CONF_XZ='./configure --disable-doc \
+  CONF_XZ='./configure \
+    --disable-doc \
     --disable-lzma-links \
     --disable-lzmadec \
     --disable-lzmainfo \
@@ -246,51 +248,60 @@ fi
     --prefix="$DIR_SCRIPT/xz"'
 
   # OPENSSL
-  CONF_OPENSSL='./Configure no-shared \
+  CONF_OPENSSL='./Configure \
     no-asm \
     no-atexit \
+    no-autoload-config \
+    no-camellia \
     no-comp \
+    no-docs \
     no-dso \
     no-dtls \
-    no-err \
-    no-psk \
-    no-srp \
-    no-weak-ssl-ciphers \
-    no-camellia \
+    no-dynamic-engine \
+    no-ec2m \
+    no-engine \
+    no-hw \
     no-idea \
-    no-md2 \
     no-md4 \
+    no-mdc2 \
+    no-module \
+    no-pinshared \
+    no-psk \
     no-rc2 \
     no-rc4 \
-    no-rc5 \
     no-rmd160 \
+    no-shared \
+    no-srp \
+    no-static-engine \
     no-whirlpool \
     no-ui-console \
+    no-zlib \
+    no-zlib-dynamic \
+    no-zstd \
+    no-zstd-dynamic \
     enable-pic'
 
   if [ "${os_arch: -2}" = "64" ]; then
     __build:OPENSSL 'enable-ec_nistp_64_gcc_128'
   fi
 
-  case "$os_name" in
-    "android")
-      __build:OPENSSL '-D__ANDROID_API__=21'
-      ;;
-    "mingw")
-      # Even though -static is declared in CFLAGS, it is declared here
-      # because openssl's Configure file is jank.
-      __build:OPENSSL '-static'
-      ;;
-  esac
+  if [ "$os_name" = "android" ]; then
+    __build:OPENSSL '-D__ANDROID_API__=21'
+  fi
+
+  if [ "$os_name" = "mingw" ]; then
+    # Even though -static is declared in CFLAGS, it is declared here
+    # because openssl's Configure file is jank.
+    __build:OPENSSL '-static'
+  fi
 
   __build:OPENSSL '--libdir=lib'
-  __build:OPENSSL '--with-zlib-lib="$DIR_SCRIPT/zlib/lib"'
-  __build:OPENSSL '--with-zlib-include="$DIR_SCRIPT/zlib/include"'
   __build:OPENSSL '--prefix="$DIR_SCRIPT/openssl"'
   __build:OPENSSL "$openssl_target"
 
   # LIBEVENT
-  CONF_LIBEVENT='./configure --disable-debug-mode \
+  CONF_LIBEVENT='./configure \
+    --disable-debug-mode \
     --disable-doxygen-html \
     --disable-libevent-regress \
     --disable-openssl \
@@ -314,7 +325,8 @@ fi
   __build:LIBEVENT '--prefix="$DIR_SCRIPT/libevent"'
 
   # TOR
-  CONF_TOR='./configure --disable-asciidoc \
+  CONF_TOR='./configure \
+    --disable-asciidoc \
     --disable-html-manual \
     --disable-manpage \
     --disable-system-torrc \
@@ -579,7 +591,6 @@ function __build:configure:target:finalize:output:shared {
   # NOTE: Android API 23 and below will still need LD_LIBRARY_PATH set
   local exec_ldflags="-Wl,-rpath,'\$ORIGIN'"
 
-  local jni_java_version="java8"
   local jni_name="libtorjni.so"
   local jni_cflags="-shared -Wl,--version-script,exports/kmp_tor-jni.map"
   local jni_ldadd="-ldl -pthread"
@@ -595,7 +606,6 @@ function __build:configure:target:finalize:output:shared {
   case "$os_name" in
     "android")
       exec_name="libtorexec.so"
-      jni_java_version="java6"
       jni_cflags+=" -Wl,-soname,$jni_name"
       jni_ldadd+=" -llog"
       lib_load_cflags="-D__ANDROID__"
@@ -666,7 +676,6 @@ function __build:configure:target:finalize:output:shared {
   esac
 
   if [ -n "$jni_name" ]; then
-    __util:require:var_set "$jni_java_version" "jni_java_version"
     __util:require:var_set "$jni_cflags" "jni_cflags"
   fi
 
@@ -717,7 +726,7 @@ function __build:configure:target:finalize:output:shared {
 
   if [ -n "$jni_name" ]; then
     __build:SCRIPT "  \$CC \$CFLAGS -c kmp_tor.c"
-    __build:SCRIPT "  \$CC \$CFLAGS -I\"\${JNI_H}\"/$jni_java_version/include -c kmp_tor-jni.c"
+    __build:SCRIPT "  \$CC \$CFLAGS -I\"\${JNI_H}\"/java6/include -c kmp_tor-jni.c"
     __build:SCRIPT "  \$CC \$CFLAGS $lib_load_cflags -c lib_load.c"
     if [ "$os_name" = "mingw" ]; then
       __build:SCRIPT '  $CC $CFLAGS -DHAVE_AF_UNIX_H -c win32_sockets.c'
