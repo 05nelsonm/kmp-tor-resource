@@ -23,6 +23,8 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.matthewnelson.kmp.file.IOException
+import io.matthewnelson.kmp.file.delete2
+import io.matthewnelson.kmp.file.mkdirs2
 import io.matthewnelson.kmp.file.path
 import io.matthewnelson.kmp.file.readBytes
 import io.matthewnelson.kmp.file.readUtf8
@@ -64,11 +66,15 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         @OptIn(InternalKmpTorApi::class)
         listOf(RESOURCE_CONFIG_GEOIPS, RESOURCE_CONFIG_LIB_TOR).forEach { config ->
             config.resources.forEach { resource ->
-                LOADER.resourceDir.resolve(resource.platform.fsFileName).delete()
+                LOADER.resourceDir.resolve(resource.platform.fsFileName).delete2(ignoreReadOnly = true)
             }
         }
-        WORK_DIR.delete()
-        TEST_DIR.delete()
+        try {
+            WORK_DIR.delete2()
+        } catch (_: IOException) {}
+        try {
+            TEST_DIR.delete2()
+        } catch (_: IOException) {}
     }
 
     @Test
@@ -148,11 +154,11 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
             val hsDir = LOADER.resourceDir.resolve("hs")
 
             fun deleteHsDir() {
-                hsDir.resolve("authorized_clients").delete()
-                hsDir.resolve("hostname").delete()
-                hsDir.resolve("hs_ed25519_public_key").delete()
-                hsDir.resolve("hs_ed25519_secret_key").delete()
-                hsDir.delete()
+                hsDir.resolve("authorized_clients").delete2()
+                hsDir.resolve("hostname").delete2()
+                hsDir.resolve("hs_ed25519_public_key").delete2()
+                hsDir.resolve("hs_ed25519_secret_key").delete2()
+                hsDir.delete2()
             }
 
             helper.job.invokeOnCompletion { deleteHsDir() }
@@ -181,7 +187,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
 
                 val logText = helper.logFile.readUtf8()
 
-                helper.logFile.delete()
+                helper.logFile.delete2()
                 helper.deleteCacheDir()
                 helper.deleteCacheDir()
                 deleteHsDir()
@@ -337,25 +343,25 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         }
 
         fun deleteCacheDir() {
-            cacheDir.resolve("cached-certs").delete()
-            cacheDir.resolve("cached-microdesc-consensus").delete()
-            cacheDir.resolve("cached-microdescs").delete()
-            cacheDir.resolve("cached-microdescs.new").delete()
-            cacheDir.delete()
+            cacheDir.resolve("cached-certs").delete2()
+            cacheDir.resolve("cached-microdesc-consensus").delete2()
+            cacheDir.resolve("cached-microdescs").delete2()
+            cacheDir.resolve("cached-microdescs.new").delete2()
+            cacheDir.delete2()
         }
 
         fun deleteDataDir() {
-            dataDir.resolve("lock").delete()
-            dataDir.resolve("state").delete()
-            dataDir.resolve("keys").delete()
-            dataDir.delete()
+            dataDir.resolve("lock").delete2()
+            dataDir.resolve("state").delete2()
+            dataDir.resolve("keys").delete2()
+            dataDir.delete2()
         }
 
         init {
-            cacheDir.mkdirs()
-            dataDir.mkdirs()
+            cacheDir.mkdirs2(mode = null)
+            dataDir.mkdirs2(mode = null)
 
-            job.invokeOnCompletion { logFile.delete() }
+            job.invokeOnCompletion { logFile.delete2() }
             job.invokeOnCompletion { deleteCacheDir() }
             job.invokeOnCompletion { deleteDataDir() }
             @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)

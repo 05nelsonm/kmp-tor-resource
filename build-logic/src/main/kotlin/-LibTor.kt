@@ -58,8 +58,34 @@ fun KmpConfigurationExtension.configureLibTor(
             }
         }
 
-        js {
+        // Simulator only
+        iosSimulatorArm64()
+        iosX64()
+
+        linuxAll()
+        macosAll()
+        mingwAll()
+
+        common {
+            pluginIds("resource-validation")
+
             sourceSetMain {
+                dependencies {
+                    implementation(libs.kmp.tor.common.core)
+                }
+            }
+        }
+
+        kotlin { libResourceValidation.configureNativeResources(this) }
+
+        sourceSetConnect(
+            newName = "jsWasmJs",
+            existingNames = listOf(
+                "js",
+                "wasmJs",
+            ),
+            dependencyName = "nonJvm",
+            sourceSetMain = {
                 val srcDir = project.layout
                     .buildDirectory
                     .get()
@@ -67,7 +93,7 @@ fun KmpConfigurationExtension.configureLibTor(
                     .resolve("generated")
                     .resolve("sources")
                     .resolve("buildConfig")
-                    .resolve("jsMain")
+                    .resolve("jsWasmJsMain")
                     .resolve("kotlin")
 
                 val configDir = srcDir
@@ -90,34 +116,13 @@ fun KmpConfigurationExtension.configureLibTor(
                 """.trimIndent())
 
                 kotlin.srcDir(srcDir)
-            }
-        }
-
-        // Simulator only
-        iosSimulatorArm64()
-        iosX64()
-
-        linuxAll()
-        macosAll()
-        mingwAll()
-
-        common {
-            pluginIds("resource-validation")
-
-            sourceSetMain {
-                dependencies {
-                    implementation(libs.kmp.tor.common.core)
-                }
-            }
-        }
-
-        kotlin { libResourceValidation.configureNativeResources(this) }
-
+            },
+        )
         sourceSetConnect(
             newName = "nonNative",
             existingNames = listOf(
                 "jvmAndroid",
-                "js",
+                "jsWasmJs",
             ),
         )
 

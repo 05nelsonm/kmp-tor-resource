@@ -18,6 +18,8 @@
 package io.matthewnelson.kmp.tor.resource.exec.tor
 
 import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.file.IOException
+import io.matthewnelson.kmp.file.absoluteFile2
 import io.matthewnelson.kmp.tor.common.api.GeoipFiles
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
@@ -36,6 +38,17 @@ public actual class ResourceLoaderTorExec: ResourceLoader.Tor.Exec {
 
     public companion object {
 
+        /**
+         * Creates a new instance of [ResourceLoaderTorExec] with provided [resourceDir]. If
+         * an instance of [ResourceLoader.Tor] already exists, that will be returned instead.
+         *
+         * @param [resourceDir] The directory to extract resources to.
+         *
+         * @throws [IOException] If [absoluteFile2] has to reference the filesystem to construct
+         *   an absolute path and fails due to a filesystem security exception.
+         * @throws [UnsupportedOperationException] On Kotlin/JS-Browser if [absoluteFile2]
+         *   references the filesystem to construct an absolute path.
+         * */
         @JvmStatic
         public fun getOrCreate(
             resourceDir: File,

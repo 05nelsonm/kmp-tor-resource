@@ -16,6 +16,7 @@
 package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
 import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.file.exists2
 import io.matthewnelson.kmp.file.parentFile
 import io.matthewnelson.kmp.file.toFile
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
@@ -48,7 +49,7 @@ internal actual inline fun Resource.Config.Builder.configureTorResources() {
         }
         // Check both exist, indicative that they have been
         // extracted to the nativeLibraryDir
-        if (lib.exists()) return@forEach
+        if (lib.exists2()) return@forEach
         error("LIB[${key.envKeyLibName()}].exists() != true")
         isNotExtracted = true
     }

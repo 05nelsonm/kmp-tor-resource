@@ -22,7 +22,10 @@ import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.the
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+import resource.validation.extensions.CompilationExecTorResourceValidationExtension
+import resource.validation.extensions.CompilationLibTorResourceValidationExtension
 import resource.validation.extensions.ExecTorResourceValidationExtension
+import resource.validation.extensions.LibTorResourceValidationExtension
 import java.io.File
 
 fun KmpConfigurationExtension.configureExecTor(
@@ -90,18 +93,6 @@ fun KmpConfigurationExtension.configureExecTor(
             }
         }
 
-        js {
-            // Only add as test dependency. Consumers need to declare the npm dependency
-            // themselves when using `Node.js` because there is not currently a way to
-            // exclude a npm dependency for kotlin when packaging things on a per-platform
-            // basis.
-            sourceSetTest {
-                dependencies {
-                    implementation(npm("kmp-tor.resource-exec-tor${suffix}.all", project.npmVersion))
-                }
-            }
-        }
-
         common {
             pluginIds("resource-validation")
 
@@ -120,6 +111,7 @@ fun KmpConfigurationExtension.configureExecTor(
                 "androidNative",
                 "jvmAndroid",
                 "js",
+                "wasmJs",
                 "linux",
                 "macos",
                 "mingw",
@@ -142,13 +134,14 @@ fun KmpConfigurationExtension.configureExecTor(
             existingNames = listOf(
                 "jvm",
                 "js",
+                "wasmJs",
             ),
             dependencyName = "exec",
             sourceSetMain = {
                 dependencies {
                     implementation(libs.kmp.tor.common.core)
                 }
-            }
+            },
         )
 
         kotlin {
@@ -156,11 +149,12 @@ fun KmpConfigurationExtension.configureExecTor(
                 listOf(
                     "jvmAndroid",
                     "js",
+                    "wasmJs",
                     "linux",
                     "macos",
                     "mingw",
-                ).forEach { target ->
-                    findByName(target + "Main")?.apply {
+                ).forEach { name ->
+                    findByName(name + "Main")?.apply {
                         dependencies {
                             implementation(project(":library:resource-lib-tor$suffix"))
                         }
@@ -171,21 +165,33 @@ fun KmpConfigurationExtension.configureExecTor(
 
         kotlin {
             with(sourceSets) {
-                val execTest = findByName("execTest") ?: return@with
+                listOf(
+                    "js",
+                    "wasmJs",
+                ).forEach { name ->
+                    findByName(name + "Test")?.apply {
+                        // Only add as test dependency. Consumers need to declare the npm dependency
+                        // themselves when using `Node.js` because there is not currently a way to
+                        // exclude a npm dependency for kotlin when packaging things on a per-platform
+                        // basis.
+                        dependencies {
+                            implementation(npm("kmp-tor.resource-exec-tor${suffix}.all", project.npmVersion))
+                        }
+                    }
+                }
+            }
+        }
 
-                try {
-                    project.evaluationDependsOn(":library:resource-compilation-lib-tor$suffix")
-                } catch (_: Throwable) {}
-                try {
-                    project.evaluationDependsOn(":library:resource-lib-tor$suffix")
-                } catch (_: Throwable) {}
+        kotlin {
+            with(sourceSets) {
+                val execTest = findByName("execTest") ?: return@kotlin
 
                 val buildConfigDir = buildDir
                     .resolve("generated")
                     .resolve("sources")
                     .resolve("buildConfig")
 
-                fun KotlinSourceSet.generateBuildConfig(areErrReportsEmpty: () -> Boolean?) {
+                fun KotlinSourceSet.generateBuildConfig(areErrorReportsEmpty: () -> Boolean?) {
                     val kotlinSrcDir = buildConfigDir
                         .resolve(this.name)
                         .resolve("kotlin")
@@ -202,26 +208,26 @@ fun KmpConfigurationExtension.configureExecTor(
                         .path
                         .replace("\\", "\\\\")
 
-                    // Cannot read reports until after resource-lib-tor has been evaluated.
-                    val writeReport = {
-                        val areErrReportsEmptyResult = areErrReportsEmpty.invoke()
+                    val sourceSet = this
+                    project.afterEvaluate {
+                        val areErrorReportsEmptyResult = areErrorReportsEmpty.invoke()
 
                         var lineIsGpl = ""
-                        var lineRunFullTests = "internal actual val CAN_RUN_FULL_TESTS: Boolean = $areErrReportsEmptyResult"
+                        var lineRunFullTests = "internal actual val CAN_RUN_FULL_TESTS: Boolean = $areErrorReportsEmptyResult"
                         var lineTestDir = "internal actual val TEST_DIR: String = \"$testResourcesDir\""
 
-                        if (areErrReportsEmptyResult == null) {
-                            lineIsGpl = "internal val IS_GPL: Boolean = $isGpl"
+                        if (areErrorReportsEmptyResult == null) {
+                            lineIsGpl = "internal const val IS_GPL: Boolean = $isGpl"
                             lineRunFullTests = "internal expect val CAN_RUN_FULL_TESTS: Boolean"
                             lineTestDir = "internal expect val TEST_DIR: String"
                         }
 
-                        if (name.startsWith("android")) {
+                        if (sourceSet.name.startsWith("android")) {
                             lineTestDir = "internal actual val TEST_DIR: String = \"\""
                         }
 
                         @Suppress("DEPRECATION")
-                        dir.resolve("BuildConfig${this.name.capitalized()}.kt").writeText("""
+                        dir.resolve("BuildConfig${sourceSet.name.capitalized()}.kt").writeText("""
                             package $packageName
     
                             $lineIsGpl
@@ -230,72 +236,69 @@ fun KmpConfigurationExtension.configureExecTor(
     
                         """.trimIndent())
                     }
-
-                    project.afterEvaluate { writeReport.invoke() }
                 }
 
-                execTest.generateBuildConfig(areErrReportsEmpty = { null })
+                // root
+                execTest.generateBuildConfig(areErrorReportsEmpty = { null })
 
-                val reportDirCompilationLibTor = project.rootDir
-                    .resolve("library")
-                    .resolve("resource-compilation-lib-tor$suffix")
-                    .resolve("build")
-                    .resolve("reports")
-                    .resolve("resource-validation")
-                    .resolve("resource-compilation-lib-tor$suffix")
+                val resourceValidationExecTor = execResourceValidation
 
-                val reportDirLibTor = project.rootDir
-                    .resolve("library")
-                    .resolve("resource-lib-tor$suffix")
-                    .resolve("build")
-                    .resolve("reports")
-                    .resolve("resource-validation")
-                    .resolve("resource-lib-tor$suffix")
+                val resourceValidationLibTor = if (isGpl) {
+                    LibTorResourceValidationExtension.GPL::class.java
+                } else {
+                    LibTorResourceValidationExtension::class.java
+                }.let { project.extensions.getByType(it) }
 
-                val reportDirCompilationExecTor = project.rootDir
-                    .resolve("library")
-                    .resolve("resource-compilation-exec-tor$suffix")
-                    .resolve("build")
-                    .resolve("reports")
-                    .resolve("resource-validation")
-                    .resolve("resource-compilation-exec-tor$suffix")
+                val resourceValidationCompilationExecTor = if (isGpl) {
+                    CompilationExecTorResourceValidationExtension.GPL::class.java
+                } else {
+                    CompilationExecTorResourceValidationExtension::class.java
+                }.let { project.extensions.getByType(it) }
 
-                val reportDirExecTor = buildDir
-                    .resolve("reports")
-                    .resolve("resource-validation")
-                    .resolve(project.name)
+                val resourceValidationCompilationLibTor = if (isGpl) {
+                    CompilationLibTorResourceValidationExtension.GPL::class.java
+                } else {
+                    CompilationLibTorResourceValidationExtension::class.java
+                }.let { project.extensions.getByType(it) }
+
+                val reportAndroid by lazy {
+                    val exec = resourceValidationCompilationExecTor.errorReportAndroidJniResources()
+                    val lib = resourceValidationCompilationLibTor.errorReportAndroidJniResources()
+                    exec + lib
+                }
+                val reportJvm by lazy {
+                    val exec = resourceValidationExecTor.errorReportJvmNativeLibResources()
+                    val lib = resourceValidationLibTor.errorReportJvmNativeLibResources()
+                    exec + lib
+                }
 
                 listOf(
-                    "android" to "androidInstrumented",
-                    "android" to "androidNative",
+                    "androidInstrumented" to { reportAndroid },
+                    "androidNative" to { reportAndroid },
 
                     // If no errors for JVM resources, then android-unit-test project
                     // dependency and js is not utilizing mock resources and can run tests.
-                    "jvm" to "androidUnit",
-                    "jvm" to "js",
+                    "androidUnit" to { reportJvm },
+                    "js" to { reportJvm },
+                    "wasmJs" to { reportJvm },
 
-                    "jvm" to null,
+                    "jvm" to { reportJvm },
                     "linuxArm64" to null,
                     "linuxX64" to null,
                     "macosArm64" to null,
                     "macosX64" to null,
                     "mingwX64" to null,
-                ).forEach { (reportName, srcSetName) ->
-                    val srcSetTest = findByName("${srcSetName ?: reportName}Test") ?: return@forEach
-                    val isAndroid = reportName == "android"
+                ).forEach { (sourceSetName, reports) ->
+                    val srcSetTest = findByName(sourceSetName + "Test") ?: return@forEach
 
-                    val areErrReportsEmpty = {
-                        val reportLibTor = (if (isAndroid) reportDirCompilationLibTor else reportDirLibTor)
-                            .resolve("${reportName}.err")
-                            .readText()
-                        val reportExecTor = (if (isAndroid) reportDirCompilationExecTor else reportDirExecTor)
-                            .resolve("${reportName}.err")
-                            .readText()
+                    srcSetTest.generateBuildConfig {
+                        val errors = reports?.invoke() ?: listOf(
+                            resourceValidationExecTor.errorReportNativeResource(sourceSetName),
+                            resourceValidationLibTor.errorReportNativeResource(sourceSetName),
+                        ).joinToString("")
 
-                        (reportLibTor + reportExecTor).indexOfFirst { !it.isWhitespace() } == -1
+                        errors.indexOfFirst { !it.isWhitespace() } == -1
                     }
-
-                    srcSetTest.generateBuildConfig(areErrReportsEmpty = areErrReportsEmpty)
                 }
             }
         }

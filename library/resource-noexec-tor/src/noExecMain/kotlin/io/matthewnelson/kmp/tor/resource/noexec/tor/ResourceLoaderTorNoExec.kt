@@ -18,9 +18,12 @@
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.file.IOException
+import io.matthewnelson.kmp.file.absoluteFile2
 import io.matthewnelson.kmp.tor.common.api.GeoipFiles
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
+import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_GEOIPS
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP
 import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP6
@@ -34,6 +37,17 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
     public companion object {
 
+        /**
+         * Creates a new instance of [ResourceLoaderTorNoExec] with provided [resourceDir]. If
+         * an instance of [ResourceLoader.Tor] already exists, that will be returned instead.
+         *
+         * @param [resourceDir] The directory to extract resources to.
+         *
+         * @throws [IOException] If [absoluteFile2] has to reference the filesystem to construct
+         *   an absolute path and fails due to a filesystem security exception.
+         * @throws [UnsupportedOperationException] On Kotlin/JS-Browser if [absoluteFile2]
+         *   references the filesystem to construct an absolute path.
+         * */
         @JvmStatic
         public fun getOrCreate(
             resourceDir: File,
@@ -42,6 +56,22 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
             registerShutdownHook = false,
         )
 
+        /**
+         * DEPRECATED
+         *
+         * Creates a new instance of [ResourceLoaderTorNoExec] with provided [resourceDir]. If
+         * an instance of [ResourceLoader.Tor] already exists, that will be returned instead.
+         *
+         * @param [resourceDir] The directory to extract resources to.
+         * @param [registerShutdownHook] If `true`, a shutdown hook will be registered for Jvm/Android
+         *   which will call [TorApi.terminateAndAwaitResult].
+         *
+         * @throws [IOException] If [absoluteFile2] has to reference the filesystem to construct
+         *   an absolute path and fails due to a filesystem security exception.
+         * @throws [UnsupportedOperationException] On Kotlin/JS-Browser if [absoluteFile2]
+         *   references the filesystem to construct an absolute path.
+         * @suppress
+         * */
         @JvmStatic
         @Deprecated("ShutdownHook registration causes abnormal application exit behavior for Java/Android")
         public fun getOrCreate(

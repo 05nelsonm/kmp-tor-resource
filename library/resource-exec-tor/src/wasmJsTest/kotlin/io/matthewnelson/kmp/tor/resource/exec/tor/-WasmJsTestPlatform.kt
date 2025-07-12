@@ -13,21 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+@file:Suppress("PropertyName")
+
 package io.matthewnelson.kmp.tor.resource.exec.tor
 
 import io.matthewnelson.kmp.file.AccessDeniedException
+import io.matthewnelson.kmp.file.DelicateFileApi
 import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.file.SysFsInfo
+import io.matthewnelson.kmp.file.jsExternTryCatch
 import io.matthewnelson.kmp.file.toIOException
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSHost
 import io.matthewnelson.kmp.tor.common.core.OSInfo
 
 actual fun File.isExecutable(): Boolean {
-    val fs = js("require('fs')")
-    val xOk = fs.constants.X_OK
+    val fs = node_fs
 
     return try {
-        fs.accessSync(toString(), xOk)
+        @OptIn(DelicateFileApi::class)
+        jsExternTryCatch { fs.accessSync(toString(), fs.constants.X_OK) }
         true
     } catch (t: Throwable) {
         val e = t.toIOException(this)
@@ -39,4 +44,21 @@ actual fun File.isExecutable(): Boolean {
 @OptIn(InternalKmpTorApi::class)
 actual val IS_WINDOWS: Boolean by lazy {
     OSInfo.INSTANCE.osHost is OSHost.Windows
+}
+
+private val node_fs by lazy {
+    if (SysFsInfo.name != "FsJsNode") throw UnsupportedOperationException("FileSystem is not FsJsNode...")
+    nodeModuleFs()
+}
+
+private fun nodeModuleFs(): ModuleFs = js("eval('require')('fs')")
+
+private external interface ModuleFs {
+    fun accessSync(path: String, mode: Int)
+
+    val constants: ConstantsFs
+}
+
+private external interface ConstantsFs {
+    val X_OK: Int
 }

@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+
 plugins {
     id("configuration")
     id("resource-validation")
@@ -29,13 +31,20 @@ kmpConfiguration {
             }
         }
 
-        js {
-            sourceSetMain {
-                dependencies {
-                    implementation(npm("kmp-tor.resource-geoip", npmVersion))
-                }
-            }
-        }
+        // TODO: Update Kotlin to 2.2.20
+        //  See https://youtrack.jetbrains.com/issue/KT-77443
+//        @Suppress("RedundantSamConstructor")
+//        @OptIn(ExperimentalWasmDsl::class)
+//        wasmJs {
+//            target {
+//                browser {
+//                    testTask(Action {
+//                        isEnabled = false
+//                    })
+//                }
+//                nodejs()
+//            }
+//        }
 
         common {
             sourceSetMain {
@@ -46,5 +55,19 @@ kmpConfiguration {
         }
 
         kotlin { geoipResourceValidation.configureNativeResources(this) }
+
+        sourceSetConnect(
+            newName = "jsWasmJs",
+            existingNames = listOf(
+                "js",
+                "wasmJs",
+            ),
+            dependencyName = "nonJvm",
+            sourceSetMain = {
+                dependencies {
+                    implementation(npm("kmp-tor.resource-geoip", npmVersion))
+                }
+            },
+        )
     }
 }
