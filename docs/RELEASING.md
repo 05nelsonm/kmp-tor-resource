@@ -143,7 +143,7 @@ git tag -s "$VERSION_NAME" -m "Release v$VERSION_NAME"
 - The [gradle-maven-publish-plugin](https://github.com/vanniktech/gradle-maven-publish-plugin) should have automatically
   closed the staged repositories, but if it did not:
     - Close publications (Don't release yet)
-        - Login to Sonatype OSS Nexus: [oss.sonatype.org](https://s01.oss.sonatype.org/#stagingRepositories)
+        - Login to Central Portal: [central.sonatype.com](https://central.sonatype.com/publishing/deployments)
         - Click on **Staging Repositories**
         - Select all Publications
         - Click **Close** then **Confirm**
@@ -155,23 +155,7 @@ git tag -s "$VERSION_NAME" -m "Release v$VERSION_NAME"
 ./gradlew :tools:check-publication:build --refresh-dependencies -PCHECK_PUBLICATION -DKMP_TARGETS_ALL
 ```
 
-- **Release** publications from Sonatype OSS Nexus StagingRepositories manager
-    - Alternatively, can use Curl with the given repository id's that were output
-      to terminal when publishing, e.g. `iomatthewnelson-1018`
-      ```
-      curl -v -u "<USER NAME>" \
-        -H "Content-Type: application/json" \
-        -H "Accept: application/json" \
-        https://s01.oss.sonatype.org/service/local/staging/bulk/promote --data '
-        {
-          "data": {
-            "stagedRepositoryIds": [
-              "<repository id>"
-            ],
-            "autoDropAfterRelease": true
-          }
-        }'
-      ```
+- **Release** publications from Central Portal UI at [central.sonatype.com](https://central.sonatype.com/publishing/deployments)
 
 - Merge release branch to `master`
 ```

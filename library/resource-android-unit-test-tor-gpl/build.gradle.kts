@@ -18,5 +18,6 @@ plugins {
 }
 
 kmpConfiguration {
+    // See build-logic/src/main/kotlin/-Android.kt
     configureAndroidUnitTestTor(project) {}
 }
