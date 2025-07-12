@@ -90,7 +90,10 @@ open class ExecTorResourceValidationExtension private constructor(
     }
 
     fun jvmNativeLibResourcesSrcDir(): File = jvmNativeLibsResourcesSrcDirProtected()
+    fun errorReportJvmNativeLibResources(): String = errorReportJvmNativeLibsProtected()
     fun configureNativeResources(kmp: KotlinMultiplatformExtension) { configureNativeResourcesProtected(kmp) }
+    @Throws(IllegalArgumentException::class, IllegalStateException::class)
+    fun errorReportNativeResource(sourceSet: String): String = errorReportNativeResourceProtected(sourceSet)
 
     final override val hashes: Set<ValidationHash> by lazy { setOf(
         // jvm linux-android

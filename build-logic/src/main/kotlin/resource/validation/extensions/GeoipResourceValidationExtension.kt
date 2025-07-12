@@ -39,7 +39,9 @@ abstract class GeoipResourceValidationExtension @Inject internal constructor(
     private val geoip6: String = "933c7e3417cbc06db4b66e8d53d03f793c5bf762764e25322f2de473e83c16bf"
 
     fun jvmResourcesSrcDir(): File = jvmResourcesSrcDirProtected(reportName = "jvm-geoip")
+    fun errorReportJvmResources(): String = errorReportJvmResourcesProtected()
     fun configureNativeResources(kmp: KotlinMultiplatformExtension) { configureNativeResourcesProtected(kmp) }
+    fun errorReportNativeResources(): String = errorReportNativeResourceProtected(sourceSet = "native")
 
     final override val hashes: Set<ValidationHash> by lazy { setOf(
         ValidationHash.ResourceJvm(

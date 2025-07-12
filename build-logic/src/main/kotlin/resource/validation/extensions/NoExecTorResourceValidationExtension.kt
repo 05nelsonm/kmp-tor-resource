@@ -73,7 +73,9 @@ open class NoExecTorResourceValidationExtension private constructor(
     }
 
     fun configureAndroidJniResources() { configureLibAndroidProtected() }
+    fun errorReportAndroidJniResources(): String = errorReportLibAndroidProtected()
     fun jvmNativeLibResourcesSrcDir(): File = jvmNativeLibsResourcesSrcDirProtected()
+    fun errorReportJvmNativeLibResources(): String = errorReportJvmNativeLibsProtected()
 
     final override val hashes: Set<ValidationHash> by lazy { setOf(
         // android
