@@ -283,8 +283,16 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
             null
         }
 
-        helper.job.invokeOnCompletion { clientHttp.close() }
-        helper.job.invokeOnCompletion { clientSocks?.close() }
+        helper.job.invokeOnCompletion {
+            try {
+                clientHttp.close()
+            } catch (_: Throwable) {}
+        }
+        helper.job.invokeOnCompletion {
+            try {
+                clientSocks?.close()
+            } catch (_: Throwable) {}
+        }
 
         val congratulations = Array(10) { i ->
             val client = if (i % 2 == 0) clientHttp else clientSocks ?: clientHttp
