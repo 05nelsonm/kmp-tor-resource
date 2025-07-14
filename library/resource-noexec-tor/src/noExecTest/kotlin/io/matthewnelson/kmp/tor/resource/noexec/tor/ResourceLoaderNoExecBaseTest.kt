@@ -32,7 +32,6 @@ import io.matthewnelson.kmp.file.resolve
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.LOADER
-import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.TEST_DIR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.WORK_DIR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_GEOIPS
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
@@ -71,9 +70,6 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         }
         try {
             WORK_DIR.delete2()
-        } catch (_: IOException) {}
-        try {
-            TEST_DIR.delete2()
         } catch (_: IOException) {}
     }
 

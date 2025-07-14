@@ -25,7 +25,7 @@ import kotlin.random.Random
 
 object TestRuntimeBinder: ResourceLoader.RuntimeBinder {
 
-    val TEST_DIR: File by lazy {
+    private val TEST_DIR: File by lazy {
         SysTempDir.resolve("kmp-tor_noexec")
     }
 
