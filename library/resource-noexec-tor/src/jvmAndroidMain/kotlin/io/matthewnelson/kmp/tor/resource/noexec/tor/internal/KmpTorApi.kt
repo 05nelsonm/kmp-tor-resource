@@ -33,8 +33,13 @@ internal actual class KmpTorApi private constructor(
     actual override fun torRunMain(args: Array<String>) {
         val cLibTor = synchronized(Companion) { extractLibTor(isInit = false) }.path.toCharArray()
         val cArgs = Array(args.size) { i -> args[i].toCharArray() }
-        val error: String = kmpTorRunMain(cLibTor, cArgs) ?: return
-        throw IllegalStateException(error)
+        val error = kmpTorRunMain(cLibTor, cArgs)
+
+        // Ensure Java won't GC them until after kmpTorRunMain returns from JNI layer
+        cLibTor.size
+        cArgs.size
+
+        if (error != null) throw IllegalStateException(error)
     }
 
     actual override fun state(): State = State.entries.elementAt(kmpTorState())
