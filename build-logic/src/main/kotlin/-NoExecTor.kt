@@ -375,16 +375,6 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     val srcSetTest = findByName(sourceSetName + "Test") ?: return@forEach
 
                     srcSetTest.generateBuildConfig {
-                        if (sourceSetName == "androidUnit" || sourceSetName == "jvm") {
-                            if (!HostManager.hostIsMingw && JavaVersion.current() < JavaVersion.VERSION_16) {
-                                // Java 15- tests for JVM on UNIX are very problematic due
-                                // to Process and how the tests get run... test runner will
-                                // exit exceptionally crying about memory issues, but it's
-                                // actually OK.
-                                return@generateBuildConfig false
-                            }
-                        }
-
                         val errors = reports.map { it.invoke() }
                         errors.joinToString("").indexOfFirst { !it.isWhitespace() } == -1
                     }
