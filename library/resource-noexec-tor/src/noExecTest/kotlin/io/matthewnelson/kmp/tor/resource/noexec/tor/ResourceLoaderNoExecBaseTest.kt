@@ -22,6 +22,7 @@ import io.ktor.client.engine.http
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.IOException
 import io.matthewnelson.kmp.file.delete2
 import io.matthewnelson.kmp.file.mkdirs2
@@ -150,11 +151,13 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
             val hsDir = LOADER.resourceDir.resolve("hs")
 
             fun deleteHsDir() {
-                hsDir.resolve("authorized_clients").delete2()
-                hsDir.resolve("hostname").delete2()
-                hsDir.resolve("hs_ed25519_public_key").delete2()
-                hsDir.resolve("hs_ed25519_secret_key").delete2()
-                hsDir.delete2()
+                helper.deleteTestFiles(
+                    hsDir.resolve("authorized_clients"),
+                    hsDir.resolve("hostname"),
+                    hsDir.resolve("hs_ed25519_public_key"),
+                    hsDir.resolve("hs_ed25519_secret_key"),
+                    hsDir,
+                )
             }
 
             helper.job.invokeOnCompletion { deleteHsDir() }
@@ -347,29 +350,45 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         }
 
         fun deleteCacheDir() {
-            cacheDir.resolve("cached-certs").delete2()
-            cacheDir.resolve("cached-microdesc-consensus").delete2()
-            cacheDir.resolve("cached-microdescs").delete2()
-            cacheDir.resolve("cached-microdescs.new").delete2()
-            cacheDir.delete2()
+            deleteTestFiles(
+                cacheDir.resolve("cached-certs"),
+                cacheDir.resolve("cached-microdesc-consensus"),
+                cacheDir.resolve("cached-microdescs"),
+                cacheDir.resolve("cached-microdescs.new"),
+                cacheDir,
+            )
         }
 
         fun deleteDataDir() {
-            dataDir.resolve("lock").delete2()
-            dataDir.resolve("state").delete2()
-            dataDir.resolve("keys").delete2()
-            dataDir.delete2()
+            deleteTestFiles(
+                dataDir.resolve("lock"),
+                dataDir.resolve("state"),
+                dataDir.resolve("keys"),
+                dataDir,
+            )
+        }
+
+        fun deleteTestFiles(vararg files: File) {
+            files.forEach { file ->
+                try {
+                    file.delete2(ignoreReadOnly = true)
+                } catch (_: IOException) {}
+            }
         }
 
         init {
             cacheDir.mkdirs2(mode = null)
             dataDir.mkdirs2(mode = null)
 
-            job.invokeOnCompletion { logFile.delete2() }
+            job.invokeOnCompletion { deleteTestFiles(logFile) }
             job.invokeOnCompletion { deleteCacheDir() }
             job.invokeOnCompletion { deleteDataDir() }
             @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
-            job.invokeOnCompletion { (bgDispatcher as CloseableCoroutineDispatcher).close() }
+            job.invokeOnCompletion {
+                try {
+                    (bgDispatcher as CloseableCoroutineDispatcher).close()
+                } catch (_: Throwable) {}
+            }
         }
 
         companion object {
