@@ -75,7 +75,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
     }
 
     @Test
-    fun givenResourceLoaderNoExec_whenExtractGeoipFiles_thenIsSuccessful() {
+    open fun givenResourceLoaderNoExec_whenExtractGeoipFiles_thenIsSuccessful() {
         println(LOADER)
 
         val geoips = LOADER.extract()
@@ -86,7 +86,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
     }
 
     @Test
-    fun givenResourceLoaderNoExec_whenWithApi_thenLoadsSuccessfully() {
+    open fun givenResourceLoaderNoExec_whenWithApi_thenLoadsSuccessfully() {
         if (skipTorRunMain) return
 
         val result = LOADER.withApi(TestRuntimeBinder) {
@@ -101,7 +101,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
     }
 
     @Test
-    fun givenResourceLoaderNoExec_whenMultipleRuns_thenLibTorIsUnloaded() {
+    open fun givenResourceLoaderNoExec_whenMultipleRuns_thenLibTorIsUnloaded() {
         if (skipTorRunMain) return
 
         repeat(runTorMainCount) { index ->
@@ -136,7 +136,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
 
     @Test
     @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
-    fun givenHandle_whenTerminateAndAwait_thenTorExits(): TestResult {
+    open fun givenHandle_whenTerminateAndAwait_thenTorExits(): TestResult {
         val count = runTorMainCount / 25
 
         return runTest(timeout = (count * 4).seconds) {
@@ -208,7 +208,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
     }
 
     @Test
-    fun givenTor_whenQueryCheckTorProject_thenConnectionIsUsingTor() = runTest(timeout = 7.minutes) {
+    open fun givenTor_whenQueryCheckTorProject_thenConnectionIsUsingTor() = runTest(timeout = 7.minutes) {
         val factory = factory
         if (factory == null) {
             println("Skipping...")
