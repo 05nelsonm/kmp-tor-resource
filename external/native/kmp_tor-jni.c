@@ -197,15 +197,19 @@ JNI_OnLoad(JavaVM *vm, void *reserved)
     return JNI_ERR;
   }
 
-  clazz_kmp_tor_api = (*env)->FindClass(env, "io/matthewnelson/kmp/tor/resource/noexec/tor/internal/KmpTorApi");
+  jclass c = (*env)->FindClass(env, "io/matthewnelson/kmp/tor/resource/noexec/tor/internal/KmpTorApi");
+  if (!c) {
+    return JNI_ERR;
+  }
+  clazz_kmp_tor_api = (*env)->NewGlobalRef(env, c);
+  (*env)->DeleteLocalRef(env, c);
   if (!clazz_kmp_tor_api) {
     return JNI_ERR;
   }
-  clazz_kmp_tor_api = (*env)->NewWeakGlobalRef(env, clazz_kmp_tor_api);
 
   ctx = kmp_tor_init();
   if (!ctx) {
-    (*env)->DeleteWeakGlobalRef(env, clazz_kmp_tor_api);
+    (*env)->DeleteGlobalRef(env, clazz_kmp_tor_api);
     clazz_kmp_tor_api = NULL;
     return JNI_ERR;
   }
@@ -214,7 +218,7 @@ JNI_OnLoad(JavaVM *vm, void *reserved)
   if (r != JNI_OK) {
     kmp_tor_deinit(ctx);
     ctx = NULL;
-    (*env)->DeleteWeakGlobalRef(env, clazz_kmp_tor_api);
+    (*env)->DeleteGlobalRef(env, clazz_kmp_tor_api);
     clazz_kmp_tor_api = NULL;
     return JNI_ERR;
   }
@@ -236,6 +240,6 @@ JNI_OnUnload(JavaVM *vm, void *reserved)
     return;
   }
   (*env)->UnregisterNatives(env, clazz_kmp_tor_api);
-  (*env)->DeleteWeakGlobalRef(env, clazz_kmp_tor_api);
+  (*env)->DeleteGlobalRef(env, clazz_kmp_tor_api);
   clazz_kmp_tor_api = NULL;
 }
