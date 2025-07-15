@@ -21,7 +21,7 @@
 static char *
 JCharArrayToCString(JNIEnv *env, jcharArray a)
 {
-  if (a == NULL) {
+  if (!a) {
     return NULL;
   }
 
@@ -34,7 +34,7 @@ JCharArrayToCString(JNIEnv *env, jcharArray a)
   }
 
   c_arg = malloc((len + 1) * sizeof(char *));
-  if (c_arg == NULL) {
+  if (!c_arg) {
     return NULL;
   } else {
     c_arg[len] = '\0';
@@ -58,10 +58,10 @@ JNIEXPORT jstring JNICALL
 Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMain
 (JNIEnv *env, jobject thiz, jcharArray lib_tor, jobjectArray args)
 {
-  if (lib_tor == NULL) {
+  if (!lib_tor) {
     return (*env)->NewStringUTF(env, "lib_tor cannot be NULL");
   }
-  if (args == NULL) {
+  if (!args) {
     return (*env)->NewStringUTF(env, "args cannot be NULL");
   }
 
@@ -77,12 +77,12 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMa
   const char *error = NULL;
 
   c_lib_tor = JCharArrayToCString(env, lib_tor);
-  if (c_lib_tor == NULL) {
+  if (!c_lib_tor) {
     return (*env)->NewStringUTF(env, "JCharArrayToCString failed to copy lib_tor");
   }
 
   c_argv = malloc(j_argc * sizeof(char *));
-  if (c_argv == NULL) {
+  if (!c_argv) {
     free(c_lib_tor);
     c_lib_tor = NULL;
     return (*env)->NewStringUTF(env, "Failed to create c_argv");
@@ -98,7 +98,7 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMa
     jcharArray j_arg = (jcharArray) (*env)->GetObjectArrayElement(env, args, i);
     c_argv[c_argc] = JCharArrayToCString(env, j_arg);
 
-    if (c_argv[c_argc] == NULL) {
+    if (!c_argv[c_argc]) {
       copy_args = -1;
     }
 
@@ -112,7 +112,7 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMa
   }
 
   for (int i = 0; i < c_argc; i++) {
-    if (c_argv[i] != NULL) {
+    if (c_argv[i]) {
       free(c_argv[i]);
       c_argv[i] = NULL;
     }
@@ -122,7 +122,7 @@ Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMa
   free(c_lib_tor);
   c_lib_tor = NULL;
 
-  if (error != NULL) {
+  if (error) {
     return (*env)->NewStringUTF(env, error);
   }
 
