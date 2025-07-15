@@ -20,7 +20,6 @@ import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
-import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.configure
@@ -218,8 +217,83 @@ fun KmpConfigurationExtension.configureNoExecTor(
             val cFiles = listOf("lib_load", "win32_sockets", "kmp_tor").map { name ->
                 val sb = StringBuilder()
                 sb.appendLine("package = $packageName.internal")
-                sb.appendLine("headers = $name.h")
-                sb.appendLine("headerFilter = $name.h")
+                val text = if (name == "kmp_tor") {
+                    // kmp_tor_context_t implementation is not exposed in kmp_tor.h, so
+                    // kotlin complains when trying to access the struct. This simply wraps
+                    // it and all calls so that generated kotlin code for native works
+                    // properly.
+                    """
+                        ---
+                        #include <kmp_tor.h>
+                        #include <stdlib.h>
+
+                        typedef struct __kmp_tor_context_t {
+                          kmp_tor_context_t *ctx;
+                        } __kmp_tor_context_t;
+
+                        static __kmp_tor_context_t *
+                        __kmp_tor_init()
+                        {
+                          __kmp_tor_context_t *__ctx = NULL;
+                          __ctx = malloc(sizeof(__kmp_tor_context_t));
+                          if (!__ctx) {
+                            return NULL;
+                          }
+                          __ctx->ctx = kmp_tor_init();
+                          if (!__ctx->ctx) {
+                            free(__ctx);
+                            return NULL;
+                          }
+                          return __ctx;
+                        }
+
+                        static int
+                        __kmp_tor_deinit(__kmp_tor_context_t *__ctx)
+                        {
+                          int ret = -1;
+                          if (!__ctx) {
+                            return ret;
+                          }
+                          ret = kmp_tor_deinit(__ctx->ctx);
+                          __ctx->ctx = NULL;
+                          free(__ctx);
+                          return ret;
+                        }
+
+                        static const char *
+                        __kmp_tor_run_main(__kmp_tor_context_t *__ctx, const char *lib_tor, int argc, char *argv[])
+                        {
+                          if (!__ctx) {
+                            return "__kmp_tor_context_t cannot be NULL";
+                          }
+                          return kmp_tor_run_main(__ctx->ctx, lib_tor, argc, argv);
+                        }
+
+                        static int
+                        __kmp_tor_state(__kmp_tor_context_t *__ctx)
+                        {
+                          if (!__ctx) {
+                            return -1;
+                          }
+                          return kmp_tor_state(__ctx->ctx);
+                        }
+
+                        static int
+                        __kmp_tor_terminate_and_await_result(__kmp_tor_context_t *__ctx)
+                        {
+                          if (!__ctx) {
+                            return -1;
+                          }
+                          return kmp_tor_terminate_and_await_result(__ctx->ctx);
+                        }
+                    """
+                } else {
+                    """
+                        headers = $name.h
+                        headerFilter = $name.h
+                    """
+                }.trimIndent()
+                sb.appendLine(text)
                 generatedNativeDir.resolve("$name.def").writeText(sb.toString())
 
                 File("$name.c")

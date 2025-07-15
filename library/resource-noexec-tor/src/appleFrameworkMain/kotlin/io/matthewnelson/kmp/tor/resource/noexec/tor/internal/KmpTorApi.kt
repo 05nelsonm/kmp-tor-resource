@@ -27,6 +27,7 @@ import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.common.core.SynchronizedObject
 import io.matthewnelson.kmp.tor.common.core.synchronized
 import io.matthewnelson.kmp.tor.common.core.synchronizedObject
+import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.toCStringArray
@@ -37,6 +38,7 @@ import platform.Foundation.NSBundle
 @OptIn(ExperimentalForeignApi::class, InternalKmpTorApi::class)
 internal actual class KmpTorApi private constructor(): TorApi() {
 
+    private val ctx: CPointer<__kmp_tor_context_t>
     private val bundle: NSBundle
     private val lock: SynchronizedObject
 
@@ -49,7 +51,8 @@ internal actual class KmpTorApi private constructor(): TorApi() {
         }
 
         val error: String = memScoped {
-            val result = kmp_tor_run_main(
+            val result = __kmp_tor_run_main(
+                __ctx = ctx,
                 lib_tor = "$FRAMEWORK_NAME/$EXECUTABLE_NAME",
                 argc = args.size,
                 argv = args.toCStringArray(autofreeScope = this),
@@ -60,8 +63,8 @@ internal actual class KmpTorApi private constructor(): TorApi() {
         throw IllegalArgumentException(error)
     }
 
-    actual override fun state(): State = State.entries.elementAt(kmp_tor_state())
-    actual override fun terminateAndAwaitResult(): Int = kmp_tor_terminate_and_await_result()
+    actual override fun state(): State = State.entries.elementAt(__kmp_tor_state(ctx))
+    actual override fun terminateAndAwaitResult(): Int = __kmp_tor_terminate_and_await_result(ctx)
 
     init {
         val path = NSBundle.mainBundle.bundlePath.toFile()
@@ -77,6 +80,7 @@ internal actual class KmpTorApi private constructor(): TorApi() {
             "$FRAMEWORK_NAME identifier does not match expected[$FRAMEWORK_ID]"
         }
         this.bundle = bundle
+        this.ctx = __kmp_tor_init() ?: throw IllegalStateException("Failed to initialized kmp_tor_context_t")
         this.lock = synchronizedObject()
     }
 
