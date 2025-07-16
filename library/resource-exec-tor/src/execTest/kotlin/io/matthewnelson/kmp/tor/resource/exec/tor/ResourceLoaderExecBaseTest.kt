@@ -67,7 +67,7 @@ actual abstract class ResourceLoaderExecBaseTest {
                 resolve(torName),
                 resolve(libTorName),
                 resolve("tor.exe.local"),
-            ).forEach { it.delete(); assertFalse(it.exists()) }
+            ).forEach { it.delete2(ignoreReadOnly = true); assertFalse(it.exists2()) }
         }
 
         val geoips = loader.extract()
@@ -97,15 +97,15 @@ actual abstract class ResourceLoaderExecBaseTest {
 
         // Native will first write gzipped file to system, then decompress
         // via zlib to separate file. Check to make sure that was cleaned up.
-        assertFalse("${tor.path}.gz".toFile().exists())
-        assertFalse("${sharedLib.path}.gz".toFile().exists())
-        assertFalse("${geoips.geoip.path}.gz".toFile().exists())
-        assertFalse("${geoips.geoip6.path}.gz".toFile().exists())
+        assertFalse("${tor.path}.gz".toFile().exists2())
+        assertFalse("${sharedLib.path}.gz".toFile().exists2())
+        assertFalse("${geoips.geoip.path}.gz".toFile().exists2())
+        assertFalse("${geoips.geoip6.path}.gz".toFile().exists2())
 
         if (IS_WINDOWS) {
-            assertTrue(local.exists())
+            assertTrue(local.exists2())
         } else {
-            assertFalse(local.exists())
+            assertFalse(local.exists2())
 
             assertTrue(tor.isExecutable())
             assertTrue(sharedLib.isExecutable())

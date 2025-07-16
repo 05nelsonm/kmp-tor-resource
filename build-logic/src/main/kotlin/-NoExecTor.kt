@@ -20,7 +20,6 @@ import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
-import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.configure
@@ -35,6 +34,8 @@ import org.jetbrains.kotlin.konan.target.TargetSupportException
 import org.jetbrains.kotlin.konan.util.ArchiveType
 import org.jetbrains.kotlin.konan.util.DependencyProcessor
 import org.jetbrains.kotlin.konan.util.DependencySource
+import resource.validation.extensions.CompilationLibTorResourceValidationExtension
+import resource.validation.extensions.LibTorResourceValidationExtension
 import resource.validation.extensions.NoExecTorResourceValidationExtension
 import java.io.File
 
@@ -147,6 +148,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
             newName = "nonNoExec",
             existingNames = listOf(
                 "js",
+                "wasmJs",
             ),
         )
         sourceSetConnect(
@@ -215,8 +217,83 @@ fun KmpConfigurationExtension.configureNoExecTor(
             val cFiles = listOf("lib_load", "win32_sockets", "kmp_tor").map { name ->
                 val sb = StringBuilder()
                 sb.appendLine("package = $packageName.internal")
-                sb.appendLine("headers = $name.h")
-                sb.appendLine("headerFilter = $name.h")
+                val text = if (name == "kmp_tor") {
+                    // kmp_tor_context_t implementation is not exposed in kmp_tor.h, so
+                    // kotlin complains when trying to access the struct. This simply wraps
+                    // it and all calls so that generated kotlin code for native works
+                    // properly.
+                    """
+                        ---
+                        #include <kmp_tor.h>
+                        #include <stdlib.h>
+
+                        typedef struct __kmp_tor_context_t {
+                          kmp_tor_context_t *ctx;
+                        } __kmp_tor_context_t;
+
+                        static __kmp_tor_context_t *
+                        __kmp_tor_init()
+                        {
+                          __kmp_tor_context_t *__ctx = NULL;
+                          __ctx = malloc(sizeof(__kmp_tor_context_t));
+                          if (!__ctx) {
+                            return NULL;
+                          }
+                          __ctx->ctx = kmp_tor_init();
+                          if (!__ctx->ctx) {
+                            free(__ctx);
+                            return NULL;
+                          }
+                          return __ctx;
+                        }
+
+                        static int
+                        __kmp_tor_deinit(__kmp_tor_context_t *__ctx)
+                        {
+                          int ret = -1;
+                          if (!__ctx) {
+                            return ret;
+                          }
+                          ret = kmp_tor_deinit(__ctx->ctx);
+                          __ctx->ctx = NULL;
+                          free(__ctx);
+                          return ret;
+                        }
+
+                        static const char *
+                        __kmp_tor_run_main(__kmp_tor_context_t *__ctx, const char *lib_tor, int argc, char *argv[])
+                        {
+                          if (!__ctx) {
+                            return "__kmp_tor_context_t cannot be NULL";
+                          }
+                          return kmp_tor_run_main(__ctx->ctx, lib_tor, argc, argv);
+                        }
+
+                        static int
+                        __kmp_tor_state(__kmp_tor_context_t *__ctx)
+                        {
+                          if (!__ctx) {
+                            return -1;
+                          }
+                          return kmp_tor_state(__ctx->ctx);
+                        }
+
+                        static int
+                        __kmp_tor_terminate_and_await_result(__kmp_tor_context_t *__ctx)
+                        {
+                          if (!__ctx) {
+                            return -1;
+                          }
+                          return kmp_tor_terminate_and_await_result(__ctx->ctx);
+                        }
+                    """
+                } else {
+                    """
+                        headers = $name.h
+                        headerFilter = $name.h
+                    """
+                }.trimIndent()
+                sb.appendLine(text)
                 generatedNativeDir.resolve("$name.def").writeText(sb.toString())
 
                 File("$name.c")
@@ -289,18 +366,11 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
         kotlin {
             with(sourceSets) {
-                val noExecTest = findByName("noExecTest") ?: return@with
-
-                try {
-                    project.evaluationDependsOn(":library:resource-compilation-lib-tor$suffix")
-                } catch (_: Throwable) {}
-                try {
-                    project.evaluationDependsOn(":library:resource-lib-tor$suffix")
-                } catch (_: Throwable) {}
+                val noExecTest = findByName("noExecTest") ?: return@kotlin
 
                 val buildConfigDir = generatedSourcesDir.resolve("buildConfig")
 
-                fun KotlinSourceSet.generateBuildConfig(isErrReportEmpty: () -> Boolean?) {
+                fun KotlinSourceSet.generateBuildConfig(areErrorReportsEmpty: () -> Boolean?) {
                     val kotlinSrcDir = buildConfigDir
                         .resolve(this.name)
                         .resolve("kotlin")
@@ -311,89 +381,77 @@ fun KmpConfigurationExtension.configureNoExecTor(
 
                     dir.mkdirs()
 
-                    val writeReport = {
-                        val isErrReportEmptyResult = isErrReportEmpty.invoke()
+                    val sourceSet = this
+                    project.afterEvaluate {
+                        val areErrorReportsEmptyResult = areErrorReportsEmpty.invoke()
 
-                        val textRunFullTests = if (isErrReportEmptyResult == null) {
+                        val lineRunFullTests = if (areErrorReportsEmptyResult == null) {
                             "internal expect val CAN_RUN_FULL_TESTS: Boolean"
                         } else {
-                            "internal actual val CAN_RUN_FULL_TESTS: Boolean = $isErrReportEmptyResult"
+                            "internal actual val CAN_RUN_FULL_TESTS: Boolean = $areErrorReportsEmptyResult"
                         }
 
                         @Suppress("DEPRECATION")
-                        dir.resolve("BuildConfig${this.name.capitalized()}.kt").writeText("""
+                        dir.resolve("BuildConfig${sourceSet.name.capitalized()}.kt").writeText("""
                             package $packageName
     
-                            $textRunFullTests
+                            $lineRunFullTests
     
                         """.trimIndent())
                     }
-
-                    project.afterEvaluate { writeReport.invoke() }
                 }
 
-                noExecTest.generateBuildConfig(isErrReportEmpty = { null })
+                // root
+                noExecTest.generateBuildConfig(areErrorReportsEmpty = { null })
 
-                val reportDirCompilationLibTor = project.rootDir
-                    .resolve("library")
-                    .resolve("resource-compilation-lib-tor$suffix")
-                    .resolve("build")
-                    .resolve("reports")
-                    .resolve("resource-validation")
-                    .resolve("resource-compilation-lib-tor$suffix")
+                val resourceValidationNoExec = noExecResourceValidation
 
-                val reportDirLibTor = project.rootDir
-                    .resolve("library")
-                    .resolve("resource-lib-tor$suffix")
-                    .resolve("build")
-                    .resolve("reports")
-                    .resolve("resource-validation")
-                    .resolve("resource-lib-tor$suffix")
+                val resourceValidationLibTor = if (isGpl) {
+                    LibTorResourceValidationExtension.GPL::class.java
+                } else {
+                    LibTorResourceValidationExtension::class.java
+                }.let { project.extensions.getByType(it) }
 
-                val reportDirNoExec = buildDir
-                    .resolve("reports")
-                    .resolve("resource-validation")
-                    .resolve(project.name)
+                val resourceValidationCompilationLibTor = if (isGpl) {
+                    CompilationLibTorResourceValidationExtension.GPL::class.java
+                } else {
+                    CompilationLibTorResourceValidationExtension::class.java
+                }.let { project.extensions.getByType(it) }
+
+                val reportAndroid by lazy {
+                    val lib = resourceValidationCompilationLibTor.errorReportAndroidJniResources()
+                    val noexec = resourceValidationNoExec.errorReportAndroidJniResources()
+                    lib + noexec
+                }
+
+                val reportJvm by lazy {
+                    val lib = resourceValidationLibTor.errorReportJvmNativeLibResources()
+                    val noexec = resourceValidationNoExec.errorReportJvmNativeLibResources()
+                    lib + noexec
+                }
 
                 listOf(
-                    Triple("android", "androidInstrumented", listOf(reportDirCompilationLibTor, reportDirNoExec)),
-                    Triple("android", "androidNative", listOf(reportDirCompilationLibTor)),
-                    Triple("jvm", "androidUnit", listOf(reportDirLibTor, reportDirNoExec)),
-                    Triple("jvm", null, listOf(reportDirLibTor, reportDirNoExec)),
-                    Triple("linuxArm64", null, listOf(reportDirLibTor)),
-                    Triple("linuxX64", null, listOf(reportDirLibTor)),
-                    Triple("macosArm64", null, listOf(reportDirLibTor)),
-                    Triple("macosX64", null, listOf(reportDirLibTor)),
-                    Triple("mingwX64", null, listOf(reportDirLibTor)),
-                    Triple("iosArm64", null, emptyList()),
-                    Triple("iosSimulatorArm64", null, listOf(reportDirLibTor)),
-                    Triple("iosX64", null, listOf(reportDirLibTor)),
-                ).forEach { (reportName, srcSetName, reportDirs) ->
-                    val srcSetTest = findByName("${srcSetName ?: reportName}Test") ?: return@forEach
+                    "androidInstrumented" to listOf { reportAndroid },
+                    "androidNative" to listOf { reportAndroid },
+                    // If no errors with JVM resources, then android-unit-test project
+                    // dependency is not utilizing mock resources and can run tests.
+                    "androidUnit" to listOf { reportJvm },
+                    "jvm" to listOf { reportJvm },
+                    "linuxArm64" to listOf { resourceValidationLibTor.errorReportNativeResource("linuxArm64") },
+                    "linuxX64" to listOf { resourceValidationLibTor.errorReportNativeResource("linuxX64") },
+                    "macosArm64" to listOf { resourceValidationLibTor.errorReportNativeResource("macosArm64") },
+                    "macosX64" to listOf { resourceValidationLibTor.errorReportNativeResource("macosX64") },
+                    "mingwX64" to listOf { resourceValidationLibTor.errorReportNativeResource("mingwX64") },
+                    "iosArm64" to listOf { "false" /* No tests */ },
+                    "iosSimulatorArm64" to listOf { resourceValidationLibTor.errorReportNativeResource("iosSimulatorArm64") },
+                    "iosX64" to listOf { resourceValidationLibTor.errorReportNativeResource("iosX64") },
+                ).forEach { (sourceSetName, reports) ->
+                    val srcSetTest = findByName(sourceSetName + "Test") ?: return@forEach
 
-                    val isErrReportEmpty = report@ {
-                        if (reportName == "jvm" && !HostManager.hostIsMingw) {
-                            if (JavaVersion.current() < JavaVersion.VERSION_16) {
-                                // Java 15- tests for JVM on UNIX are very problematic due
-                                // to Process and how the tests get run... test runner will
-                                // exit exceptionally crying about memory issues, but it's
-                                // actually OK.
-                                return@report false
-                            }
-                        }
-
-                        var hasError = reportDirs.isEmpty()
-                        reportDirs.forEach readReport@{ dir ->
-                            if (hasError) return@readReport
-                            hasError = dir
-                                .resolve("${reportName}.err")
-                                .readText()
-                                .indexOfFirst { !it.isWhitespace() } == -1
-                        }
-                        hasError
+                    srcSetTest.generateBuildConfig {
+                        val errors = reports.map { it.invoke() }
+                        errors.joinToString("").indexOfFirst { !it.isWhitespace() } == -1
                     }
-
-                    srcSetTest.generateBuildConfig(isErrReportEmpty = isErrReportEmpty)
                 }
             }
         }

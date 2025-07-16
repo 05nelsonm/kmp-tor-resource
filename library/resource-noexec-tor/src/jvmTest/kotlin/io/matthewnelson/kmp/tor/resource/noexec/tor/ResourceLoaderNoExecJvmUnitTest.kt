@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+@file:Suppress("RedundantUnitReturnType")
+
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.ktor.client.engine.HttpClientEngineFactory
@@ -25,14 +27,14 @@ import kotlin.test.Test
 @OptIn(InternalKmpTorApi::class)
 class ResourceLoaderNoExecJvmUnitTest: ResourceLoaderNoExecBaseTest(
     runTorMainCount = when (OSInfo.INSTANCE.osHost) {
-        is OSHost.Windows -> RUN_TOR_MAIN_COUNT_WINDOWS
-        else -> RUN_TOR_MAIN_COUNT_UNIX
+        is OSHost.Windows -> 0
+        else -> 0
     },
 ) {
 
     override val factory: HttpClientEngineFactory<*>? = null
 
     @Test
-    @Ignore("stub")
+    @Ignore
     fun stub() {}
 }

@@ -17,6 +17,7 @@ import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.konan.target.HostManager
 
 fun KmpConfigurationExtension.configureShared(
@@ -56,6 +57,12 @@ fun KmpConfigurationExtension.configureShared(
 
         js {
             target {
+                browser {
+                    @Suppress("RedundantSamConstructor")
+                    testTask(Action {
+                        isEnabled = false
+                    })
+                }
                 nodejs {
                     @Suppress("RedundantSamConstructor")
                     testTask(Action {
@@ -64,6 +71,21 @@ fun KmpConfigurationExtension.configureShared(
                 }
             }
         }
+
+        // TODO: Update Kotlin to 2.2.20
+        //  See https://youtrack.jetbrains.com/issue/KT-77443
+//        @Suppress("RedundantSamConstructor")
+//        @OptIn(ExperimentalWasmDsl::class)
+//        wasmJs {
+//            target {
+//                browser {
+//                    testTask(Action {
+//                        isEnabled = false
+//                    })
+//                }
+//                nodejs()
+//            }
+//        }
 
         if (!excludeNative) {
             androidNativeAll()

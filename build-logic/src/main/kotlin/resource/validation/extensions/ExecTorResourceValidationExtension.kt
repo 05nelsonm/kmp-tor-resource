@@ -53,17 +53,17 @@ open class ExecTorResourceValidationExtension private constructor(
     private val jvmLinuxLibcX86: String = "a42765cf6cd35f8ca4ac619e288e57d0c7284d1fb32720a9cb9df72fd05eb070"
     private val jvmLinuxLibcX86_64: String = "355e61199f19b9ecd0c1fa3f65e7c18d173780a30f694f1fb031ec9e4cf1d900"
 
-    protected open val jvmMacosAarch64: String = "d71f90f5886abda491793444e1c1b3c8e5312482d7132c4411ffd4a4c14862c0"
-    protected open val jvmMacosX86_64: String = "e890b2353cfc77362728867d2f156d4d2fcef9a47224080f81ab6e2f36cdec04"
+    protected open val jvmMacosAarch64: String = "ad024c6c4ca626bc6a7d2bee63c55f437be1d5490f1b7e984412ec8a901ed2dd"
+    protected open val jvmMacosX86_64: String = "57f8c2f6bc10b035f40b547a01f3ddaa19f631437ee2680263afc6d310dc3096"
 
-    protected open val jvmMingwX86: String = "7234e167e70c923666848a62a95941f487110f5ff39ca55cb96596efd6634b8e"
-    protected open val jvmMingwX86_64: String = "6b5e54a4b48aaf99154171150199bb26e7fcdaaab60a5da750f8e9421bceb5a2"
+    protected open val jvmMingwX86: String = "e6b68a800d8c13d09c8c0ba6a7e43bb7831aa61bf92d9418f0205728236c5917"
+    protected open val jvmMingwX86_64: String = "fd52255329e5a101960629eef7674bd0ea5a186c343d4006af21a5d34d7017b8"
 
     private val nativeLinuxArm64: String = jvmLinuxLibcAarch64
     private val nativeLinuxX64: String = jvmLinuxLibcX86_64
 
-    protected open val nativeMacosArm64: String = "0d0855a1e61f2384e3d5ba94c5bc1703cc1464a927a468fa57ac9d2b1912cb59"
-    protected open val nativeMacosX64: String = "989bbaacdd6e1b903ac60960fda0d5b51344b2dce99a9026e37828fe0a8cd46f"
+    protected open val nativeMacosArm64: String = "72ac74efbe045b43922e613c75e082e84545f6caf1b1e5e8e3d93df51dd3df04"
+    protected open val nativeMacosX64: String = "38a3df9b6e8ecd567815369850bea5b84b810e75ee7343252ccac26c4615fce2"
 
     private val nativeMingwX64: String by lazy { jvmMingwX86_64 }
 
@@ -75,14 +75,14 @@ open class ExecTorResourceValidationExtension private constructor(
         project: Project,
     ): ExecTorResourceValidationExtension(project, isGpl = true) {
 
-        override val jvmMacosAarch64: String = "f33ef5e24ccb64e0348567095f693757bc0c8fecbd29a32cc98f014bebbaf3ee"
-        override val jvmMacosX86_64: String = "b4935833949d5ea79ac3c10ffe9c53b75f53aed01a13775818872a0c40521152"
+        override val jvmMacosAarch64: String = "c51e83633ae72f38d5da12cdfa786d633bd9f0cfef2d22fd3aabf2cb7d080ec1"
+        override val jvmMacosX86_64: String = "16f81835b84a3043043d3fa96cfc1e06078b96d514bb5296e15935b30e8e82a2"
 
-        override val jvmMingwX86: String = "093d803a45f9cb06767d11c251cc1672cefea2f67c459b8ccdfdc9a857efbdcc"
-        override val jvmMingwX86_64: String = "93e38c657c45038e2358905e305bd39819cbff1261dc779fb91a9a9602b9ba89"
+        override val jvmMingwX86: String = "32594a3813b5a092ddb94959108e592c40cc24e46510df418d85ef9ae5e84c14"
+        override val jvmMingwX86_64: String = "a9f346ae30e18b6eb0c411a3b494244554bb15c6084ee2f90465b5907539aa8e"
 
-        override val nativeMacosArm64: String = "b145b4af86cc3be0bdc6c07c8abbe9451ba000fe5a7f8f63932414c86fe02822"
-        override val nativeMacosX64: String = "721af6a3da406589e242d2b1953663a861a1ba6f8e23fbfc28af67452b603429"
+        override val nativeMacosArm64: String = "270523fbfbe4ce72be82e01a07e0ffefc93d61130f4922b3cd16033d92b83366"
+        override val nativeMacosX64: String = "2fe61d1386b6914bd434f5978e1bc36dabbd9734536f452227f4c50569982383"
 
         internal companion object {
             internal const val NAME = "execTorGPLResourceValidation"
@@ -90,7 +90,10 @@ open class ExecTorResourceValidationExtension private constructor(
     }
 
     fun jvmNativeLibResourcesSrcDir(): File = jvmNativeLibsResourcesSrcDirProtected()
+    fun errorReportJvmNativeLibResources(): String = errorReportJvmNativeLibsProtected()
     fun configureNativeResources(kmp: KotlinMultiplatformExtension) { configureNativeResourcesProtected(kmp) }
+    @Throws(IllegalArgumentException::class, IllegalStateException::class)
+    fun errorReportNativeResource(sourceSet: String): String = errorReportNativeResourceProtected(sourceSet)
 
     final override val hashes: Set<ValidationHash> by lazy { setOf(
         // jvm linux-android

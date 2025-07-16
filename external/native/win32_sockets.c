@@ -46,7 +46,7 @@ int
 win32_af_unix_socketpair(SOCKET fds[2])
 {
   int result = -1;
-  if (fds == NULL) {
+  if (!fds) {
     return result;
   }
 

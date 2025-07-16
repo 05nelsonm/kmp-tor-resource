@@ -16,6 +16,8 @@
 import com.android.build.gradle.tasks.MergeSourceSetFolders
 import io.matthewnelson.kmp.configuration.extension.container.target.TargetAndroidNativeContainer
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import resource.validation.extensions.CompilationLibTorResourceValidationExtension
+import resource.validation.extensions.NoExecTorResourceValidationExtension
 
 plugins {
     id("configuration")
@@ -63,6 +65,8 @@ kmpConfiguration {
         androidNativeX86 { setup() }
 
         common {
+            pluginIds("resource-validation")
+
             sourceSetMain {
                 dependencies {
                     implementation(project(":library:resource-noexec-tor"))
@@ -112,47 +116,47 @@ kmpConfiguration {
         }
 
         kotlin {
-            try {
-                project.evaluationDependsOn(":library:resource-compilation-lib-tor")
-            } catch (_: Throwable) {}
+            val androidInstrumentedTest = sourceSets.findByName("androidInstrumentedTest") ?: return@kotlin
+
+            val resourceValidationCompilationLibTor = project
+                .extensions
+                .getByType(CompilationLibTorResourceValidationExtension::class.java)
+            val resourceValidationNoExec = project
+                .extensions
+                .getByType(NoExecTorResourceValidationExtension::class.java)
+
+            val reportAndroid by lazy {
+                val lib = resourceValidationCompilationLibTor.errorReportAndroidJniResources()
+                val noexec = resourceValidationNoExec.errorReportAndroidJniResources()
+                lib + noexec
+            }
+
+            val kotlinSrcDir = project
+                .layout
+                .buildDirectory
+                .asFile.get()
+                .resolve("generated")
+                .resolve("sources")
+                .resolve("buildConfig")
+                .resolve("androidInstrumentedTest")
+                .resolve("kotlin")
+
+            val packageName = "io.matthewnelson.kmp.tor.resource.test.android.internal"
+            val dir = kotlinSrcDir.resolve(packageName.replace('.', File.separatorChar))
+            dir.mkdirs()
 
             project.afterEvaluate {
-                val isUsingMocks = project(":library:resource-compilation-lib-tor")
-                    .layout
-                    .buildDirectory
-                    .asFile.get()
-                    .resolve("reports")
-                    .resolve("resource-validation")
-                    .resolve("resource-compilation-lib-tor")
-                    .resolve("android.err")
-                    .readText()
-                    .isNotBlank()
+                val areErrorReportsEmpty = reportAndroid.indexOfFirst { !it.isWhitespace() } == -1
 
-                val srcDir = project
-                    .layout
-                    .buildDirectory
-                    .asFile.get()
-                    .resolve("generated")
-                    .resolve("sources")
-                    .resolve("buildConfig")
-                    .resolve("androidInstrumentedTest")
-                    .resolve("kotlin")
-
-                val packageName = "io.matthewnelson.kmp.tor.resource.test.android.internal"
-                var configDir = srcDir
-                packageName.split('.').forEach { segment ->
-                    configDir = configDir.resolve(segment)
-                }
-                configDir.mkdirs()
-                configDir.resolve("TestBuildConfig.kt").writeText("""
+                dir.resolve("TestBuildConfig.kt").writeText("""
                     package $packageName
 
-                    internal const val IS_USING_MOCK_RESOURCES: Boolean = $isUsingMocks
+                    internal const val IS_USING_MOCK_RESOURCES: Boolean = ${!areErrorReportsEmpty}
 
                 """.trimIndent())
-
-                sourceSets.findByName("androidInstrumentedTest")?.kotlin?.srcDir(srcDir)
             }
+
+            androidInstrumentedTest.kotlin.srcDir(kotlinSrcDir)
         }
 
         kotlin { explicitApi() }

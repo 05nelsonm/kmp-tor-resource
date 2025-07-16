@@ -36,7 +36,7 @@ Tor and its dependencies are compiled from source using the following versions
 |          | git tag                                                         |
 |----------|-----------------------------------------------------------------|
 | libevent | `release-2.1.12-stable`                                         |
-| openssl  | `openssl-3.4.1`                                                 |
+| openssl  | `openssl-3.4.2`                                                 |
 | tor      | `maint-0.4.8` commit `f84d461b5560d5675d2a4ce86a040c301b814b51` |
 | xz       | `v5.8.1`                                                        |
 | zlib     | `v1.3.1`                                                        |
@@ -291,7 +291,7 @@ See [kmp-tor-samples][url-kmp-tor-samples] for more details.
 [badge-androidx-startup]: https://img.shields.io/badge/androidx.startup-1.1.1-6EDB8D.svg?logo=android
 [badge-kotlin]: https://img.shields.io/badge/kotlin-2.1.21-blue.svg?logo=kotlin
 [badge-build-env]: https://img.shields.io/badge/build--env-0.3.0-blue.svg?logo=docker
-[badge-kmp-tor-common]: https://img.shields.io/badge/kmp--tor--common-2.3.0-blue.svg?style=flat
+[badge-kmp-tor-common]: https://img.shields.io/badge/kmp--tor--common-2.3.1--SNAPSHOT-blue.svg?style=flat
 
 <!-- TAG_PLATFORMS -->
 [badge-platform-android]: http://img.shields.io/badge/-android-6EDB8D.svg?style=flat

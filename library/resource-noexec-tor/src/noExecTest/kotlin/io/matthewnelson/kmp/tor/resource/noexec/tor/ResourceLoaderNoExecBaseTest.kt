@@ -22,7 +22,10 @@ import io.ktor.client.engine.http
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.IOException
+import io.matthewnelson.kmp.file.delete2
+import io.matthewnelson.kmp.file.mkdirs2
 import io.matthewnelson.kmp.file.path
 import io.matthewnelson.kmp.file.readBytes
 import io.matthewnelson.kmp.file.readUtf8
@@ -30,7 +33,6 @@ import io.matthewnelson.kmp.file.resolve
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.LOADER
-import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.TEST_DIR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.WORK_DIR
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_GEOIPS
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
@@ -64,15 +66,16 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         @OptIn(InternalKmpTorApi::class)
         listOf(RESOURCE_CONFIG_GEOIPS, RESOURCE_CONFIG_LIB_TOR).forEach { config ->
             config.resources.forEach { resource ->
-                LOADER.resourceDir.resolve(resource.platform.fsFileName).delete()
+                LOADER.resourceDir.resolve(resource.platform.fsFileName).delete2(ignoreReadOnly = true)
             }
         }
-        WORK_DIR.delete()
-        TEST_DIR.delete()
+        try {
+            WORK_DIR.delete2()
+        } catch (_: IOException) {}
     }
 
     @Test
-    fun givenResourceLoaderNoExec_whenExtractGeoipFiles_thenIsSuccessful() {
+    open fun givenResourceLoaderNoExec_whenExtractGeoipFiles_thenIsSuccessful() {
         println(LOADER)
 
         val geoips = LOADER.extract()
@@ -83,7 +86,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
     }
 
     @Test
-    fun givenResourceLoaderNoExec_whenWithApi_thenLoadsSuccessfully() {
+    open fun givenResourceLoaderNoExec_whenWithApi_thenLoadsSuccessfully() {
         if (skipTorRunMain) return
 
         val result = LOADER.withApi(TestRuntimeBinder) {
@@ -98,7 +101,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
     }
 
     @Test
-    fun givenResourceLoaderNoExec_whenMultipleRuns_thenLibTorIsUnloaded() {
+    open fun givenResourceLoaderNoExec_whenMultipleRuns_thenLibTorIsUnloaded() {
         if (skipTorRunMain) return
 
         repeat(runTorMainCount) { index ->
@@ -133,7 +136,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
 
     @Test
     @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
-    fun givenHandle_whenTerminateAndAwait_thenTorExits(): TestResult {
+    open fun givenHandle_whenTerminateAndAwait_thenTorExits(): TestResult {
         val count = runTorMainCount / 25
 
         return runTest(timeout = (count * 4).seconds) {
@@ -148,11 +151,13 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
             val hsDir = LOADER.resourceDir.resolve("hs")
 
             fun deleteHsDir() {
-                hsDir.resolve("authorized_clients").delete()
-                hsDir.resolve("hostname").delete()
-                hsDir.resolve("hs_ed25519_public_key").delete()
-                hsDir.resolve("hs_ed25519_secret_key").delete()
-                hsDir.delete()
+                helper.deleteTestFiles(
+                    hsDir.resolve("authorized_clients"),
+                    hsDir.resolve("hostname"),
+                    hsDir.resolve("hs_ed25519_public_key"),
+                    hsDir.resolve("hs_ed25519_secret_key"),
+                    hsDir,
+                )
             }
 
             helper.job.invokeOnCompletion { deleteHsDir() }
@@ -181,7 +186,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
 
                 val logText = helper.logFile.readUtf8()
 
-                helper.logFile.delete()
+                helper.logFile.delete2()
                 helper.deleteCacheDir()
                 helper.deleteCacheDir()
                 deleteHsDir()
@@ -203,7 +208,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
     }
 
     @Test
-    fun givenTor_whenQueryCheckTorProject_thenConnectionIsUsingTor() = runTest(timeout = 7.minutes) {
+    open fun givenTor_whenQueryCheckTorProject_thenConnectionIsUsingTor() = runTest(timeout = 7.minutes) {
         val factory = factory
         if (factory == null) {
             println("Skipping...")
@@ -277,8 +282,16 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
             null
         }
 
-        helper.job.invokeOnCompletion { clientHttp.close() }
-        helper.job.invokeOnCompletion { clientSocks?.close() }
+        helper.job.invokeOnCompletion {
+            try {
+                clientHttp.close()
+            } catch (_: Throwable) {}
+        }
+        helper.job.invokeOnCompletion {
+            try {
+                clientSocks?.close()
+            } catch (_: Throwable) {}
+        }
 
         val congratulations = Array(10) { i ->
             val client = if (i % 2 == 0) clientHttp else clientSocks ?: clientHttp
@@ -337,29 +350,45 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
         }
 
         fun deleteCacheDir() {
-            cacheDir.resolve("cached-certs").delete()
-            cacheDir.resolve("cached-microdesc-consensus").delete()
-            cacheDir.resolve("cached-microdescs").delete()
-            cacheDir.resolve("cached-microdescs.new").delete()
-            cacheDir.delete()
+            deleteTestFiles(
+                cacheDir.resolve("cached-certs"),
+                cacheDir.resolve("cached-microdesc-consensus"),
+                cacheDir.resolve("cached-microdescs"),
+                cacheDir.resolve("cached-microdescs.new"),
+                cacheDir,
+            )
         }
 
         fun deleteDataDir() {
-            dataDir.resolve("lock").delete()
-            dataDir.resolve("state").delete()
-            dataDir.resolve("keys").delete()
-            dataDir.delete()
+            deleteTestFiles(
+                dataDir.resolve("lock"),
+                dataDir.resolve("state"),
+                dataDir.resolve("keys"),
+                dataDir,
+            )
+        }
+
+        fun deleteTestFiles(vararg files: File) {
+            files.forEach { file ->
+                try {
+                    file.delete2(ignoreReadOnly = true)
+                } catch (_: IOException) {}
+            }
         }
 
         init {
-            cacheDir.mkdirs()
-            dataDir.mkdirs()
+            cacheDir.mkdirs2(mode = null)
+            dataDir.mkdirs2(mode = null)
 
-            job.invokeOnCompletion { logFile.delete() }
+            job.invokeOnCompletion { deleteTestFiles(logFile) }
             job.invokeOnCompletion { deleteCacheDir() }
             job.invokeOnCompletion { deleteDataDir() }
             @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
-            job.invokeOnCompletion { (bgDispatcher as CloseableCoroutineDispatcher).close() }
+            job.invokeOnCompletion {
+                try {
+                    (bgDispatcher as CloseableCoroutineDispatcher).close()
+                } catch (_: Throwable) {}
+            }
         }
 
         companion object {

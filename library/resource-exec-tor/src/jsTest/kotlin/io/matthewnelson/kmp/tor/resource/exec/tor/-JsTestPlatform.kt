@@ -15,7 +15,9 @@
  **/
 package io.matthewnelson.kmp.tor.resource.exec.tor
 
+import io.matthewnelson.kmp.file.AccessDeniedException
 import io.matthewnelson.kmp.file.File
+import io.matthewnelson.kmp.file.toIOException
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.OSHost
 import io.matthewnelson.kmp.tor.common.core.OSInfo
@@ -27,8 +29,10 @@ actual fun File.isExecutable(): Boolean {
     return try {
         fs.accessSync(toString(), xOk)
         true
-    } catch (_: Throwable) {
-        false
+    } catch (t: Throwable) {
+        val e = t.toIOException(this)
+        if (e is AccessDeniedException) return false
+        throw e
     }
 }
 

@@ -17,11 +17,19 @@ package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.engine.curl.Curl
+import io.matthewnelson.kmp.tor.resource.noexec.tor.TestRuntimeBinder.LOADER
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.__kmp_tor_init
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlin.test.Test
+import kotlin.test.assertNull
 
 class ResourceLoaderNoExecLinuxUnitTest: ResourceLoaderNoExecBaseTest() {
     override val factory: HttpClientEngineFactory<*>? = Curl
 
     @Test
-    fun stub() {}
+    fun givenKmpTorContext_whenAlreadyLoaded_thenReturnsNull() {
+        LOADER.withApi(TestRuntimeBinder) {}
+        @OptIn(ExperimentalForeignApi::class)
+        assertNull(__kmp_tor_init())
+    }
 }

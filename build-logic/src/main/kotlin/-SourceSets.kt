@@ -26,14 +26,11 @@ fun KmpConfigurationContainerDsl.sourceSetConnect(
 ) {
     kotlin {
         with(sourceSets) {
-            val sourceSets = existingNames.map { name ->
-                Pair(
-                    findByName(name + "Main"),
-                    findByName(name + "Test"),
-                )
+            val sourceSets = existingNames.mapNotNull { name ->
+                val main = findByName(name + "Main") ?: return@mapNotNull null
+                main to getByName(name + "Test")
             }
-
-            if (sourceSets.find { it.first != null } == null) return@kotlin
+            if (sourceSets.isEmpty()) return@kotlin
 
             val newMain = maybeCreate(newName + "Main")
             val newTest = maybeCreate(newName + "Test")
@@ -41,8 +38,8 @@ fun KmpConfigurationContainerDsl.sourceSetConnect(
             newTest.dependsOn(getByName(dependencyName + "Test"))
 
             sourceSets.forEach { (main, test) ->
-                main?.dependsOn(newMain)
-                test?.dependsOn(newTest)
+                main.dependsOn(newMain)
+                test.dependsOn(newTest)
             }
 
             sourceSetTest?.execute(newTest)

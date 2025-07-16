@@ -1,6 +1,6 @@
-From 83079e20ca7918bc005b257218f816a4bd922ec2 Mon Sep 17 00:00:00 2001
+From 76ae9651d6477fd6c6c9b4acffe0ab914dfa3bb6 Mon Sep 17 00:00:00 2001
 From: Matthew Nelson <developer@matthewnelson.io>
-Date: Tue, 10 Jun 2025 13:43:48 -0400
+Date: Sat, 12 Jul 2025 08:10:18 -0400
 Subject: [PATCH 2/3] Ensure spawn_exit is only ever called from tests
 
 ---

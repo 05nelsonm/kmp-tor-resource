@@ -47,21 +47,21 @@ struct lib_handle_t {
 static void
 lib_load_assert(lib_handle_t *handle_t)
 {
-  assert(handle_t != NULL);
-  assert(handle_t->lib != NULL);
+  assert(handle_t);
+  assert(handle_t->lib);
 #ifdef _WIN32
-  assert(handle_t->err_buf != NULL);
+  assert(handle_t->err_buf);
 #endif // _WIN32
-  assert(handle_t->handle != NULL);
+  assert(handle_t->handle);
   return;
 }
 
 static char *
 lib_load_error(lib_handle_t *handle_t)
 {
-  assert(handle_t != NULL);
+  assert(handle_t);
 #ifdef _WIN32
-  assert(handle_t->err_buf != NULL);
+  assert(handle_t->err_buf);
   handle_t->err_buf[0] = 0;
 
   DWORD result;
@@ -88,15 +88,15 @@ lib_load_error(lib_handle_t *handle_t)
 static void
 lib_load_free(lib_handle_t *handle_t)
 {
-  assert(handle_t != NULL);
-  assert(handle_t->handle == NULL);
+  assert(handle_t);
+  assert(!handle_t->handle);
 
-  if (handle_t->lib != NULL) {
+  if (handle_t->lib) {
     free(handle_t->lib);
     handle_t->lib = NULL;
   }
 #ifdef _WIN32
-  if (handle_t->err_buf != NULL) {
+  if (handle_t->err_buf) {
     free(handle_t->err_buf);
     handle_t->err_buf = NULL;
   }
@@ -108,24 +108,24 @@ lib_load_free(lib_handle_t *handle_t)
 lib_handle_t *
 lib_load_open(const char *lib)
 {
-  if (lib == NULL) {
+  if (!lib) {
     return NULL;
   }
 
   lib_handle_t *handle_t = malloc(sizeof(lib_handle_t));
-  if (handle_t == NULL) {
+  if (!handle_t) {
     fprintf(stderr, "KmpTor: Failed to allocate memory to lib_handle_t for lib[%s]\n", lib);
     return NULL;
   } else {
     handle_t->lib = NULL;
 #ifdef _WIN32
     handle_t->err_buf = NULL;
-#endif
+#endif // _WIN32
     handle_t->handle = NULL;
   }
 
   handle_t->lib = strdup(lib);
-  if (handle_t->lib == NULL) {
+  if (!handle_t->lib) {
     fprintf(stderr, "KmpTor: Failed to allocate memory to lib_handle_t.lib for lib[%s]\n", lib);
     lib_load_free(handle_t);
     handle_t = NULL;
@@ -134,7 +134,7 @@ lib_load_open(const char *lib)
 #ifdef _WIN32
 
   handle_t->err_buf = malloc(2048 * sizeof(char *));
-  if (handle_t->err_buf == NULL) {
+  if (!handle_t->err_buf) {
     fprintf(stderr, "KmpTor: Failed to allocate memory to lib_handle_t.err_buf for lib[%s]\n", lib);
     lib_load_free(handle_t);
     handle_t = NULL;
@@ -153,7 +153,7 @@ lib_load_open(const char *lib)
   }
 
   w_lib = malloc(len * sizeof(*w_lib));
-  if (w_lib == NULL) {
+  if (!w_lib) {
     lib_load_free(handle_t);
     handle_t = NULL;
     return NULL;
@@ -162,7 +162,7 @@ lib_load_open(const char *lib)
   MultiByteToWideChar(CP_THREAD_ACP, 0, handle_t->lib, -1, w_lib, len);
 
   handle_t->handle = LoadLibraryExW(w_lib, NULL, 0);
-  if (handle_t->handle == NULL) {
+  if (!handle_t->handle) {
     handle_t->handle = LoadLibraryW(w_lib);
   }
 
@@ -178,7 +178,7 @@ lib_load_open(const char *lib)
   handle_t->handle = dlopen(handle_t->lib, RTLD_LAZY | RTLD_LOCAL);
 #endif // _WIN32
 
-  if (handle_t->handle == NULL) {
+  if (!handle_t->handle) {
     char *err = lib_load_error(handle_t);
     fprintf(stderr, "KmpTor: Failed to open lib[%s] - error[%s]\n", handle_t->lib, err);
     lib_load_free(handle_t);
@@ -201,7 +201,7 @@ lib_load_resolve(lib_handle_t *handle_t, const char *symbol)
   ptr = dlsym(handle_t->handle, symbol);
 #endif // _WIN32
 
-  if (ptr == NULL) {
+  if (!ptr) {
     char *err = lib_load_error(handle_t);
     fprintf(stderr, "KmpTor: Failed to resolve symbol[%s] - error[%s]\n", symbol, err);
   }

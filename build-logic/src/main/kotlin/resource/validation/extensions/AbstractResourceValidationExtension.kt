@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+@file:Suppress("NOTHING_TO_INLINE")
+
 package resource.validation.extensions
 
 import com.android.build.gradle.LibraryExtension
@@ -76,6 +78,10 @@ sealed class AbstractResourceValidationExtension(
             .resolve(moduleName)
     }
 
+    /////////////
+    // ANDROID //
+    /////////////
+
     @Throws(IllegalStateException::class)
     protected fun configureLibAndroidProtected() {
         check(project.plugins.hasPlugin("com.android.library")) {
@@ -83,6 +89,18 @@ sealed class AbstractResourceValidationExtension(
         }
 
         project.extensions.getByName<LibraryExtension>("android").configureLibAndroid()
+    }
+
+    @Throws(IllegalStateException::class)
+    protected fun errorReportLibAndroidProtected(): String {
+        if (isConfiguredLibAndroid) return errLibAndroid.buildString()
+
+        val hashes = hashes.filterIsInstance<ValidationHash.LibAndroid>()
+        check(hashes.isNotEmpty()) { "No hashes to validate, no jni resources." }
+
+        return hashes.flatMapTo(LinkedHashSet(10)) { libHash ->
+            libHash.validate(dirModulePackage)
+        }.buildString()
     }
 
     @Throws(IllegalStateException::class)
@@ -124,6 +142,11 @@ sealed class AbstractResourceValidationExtension(
         generateReport("android", errLibAndroid)
     }
 
+    ///////////////////////
+    // JVM - NATIVE LIBS //
+    ///////////////////////
+
+    @Throws(IllegalStateException::class)
     protected fun jvmNativeLibsResourcesSrcDirProtected(): File {
         val hashes = hashes.filterIsInstance<ValidationHash.LibJvm>()
         check(hashes.isNotEmpty()) { "No hashes to validate, no jvm resources" }
@@ -151,6 +174,27 @@ sealed class AbstractResourceValidationExtension(
         return if (errLibJvm.isEmpty()) srcResPackage else srcResMock
     }
 
+    @Throws(IllegalStateException::class)
+    protected fun errorReportJvmNativeLibsProtected(): String {
+        if (isConfiguredLibJvm) return errLibJvm.buildString()
+
+        val hashes = hashes.filterIsInstance<ValidationHash.LibJvm>()
+        check(hashes.isNotEmpty()) { "No hashes to validate, no jvm resources" }
+
+        val name = "jvm".toSourceSetName()
+        val srcResPackage = name.sourceSetDir(dirModulePackage)
+            .resolve("resources")
+
+        val dirResNative = srcResPackage
+            .resolve(packageName.replace('.', '/'))
+            .resolve("native")
+
+        return hashes.mapNotNullTo(LinkedHashSet()) { libHash ->
+            libHash.validate(dirResNative)
+        }.buildString()
+    }
+
+    @Throws(IllegalStateException::class)
     protected fun jvmResourcesSrcDirProtected(reportName: String): File {
         val hashes = hashes.filterIsInstance<ValidationHash.ResourceJvm>()
         check(hashes.isNotEmpty()) { "No hashes to validate, no jvm resources" }
@@ -175,7 +219,42 @@ sealed class AbstractResourceValidationExtension(
     }
 
     @Throws(IllegalStateException::class)
+    protected fun errorReportJvmResourcesProtected(): String {
+        if (isConfiguredResJvm) return errResJvm.buildString()
+
+        val hashes = hashes.filterIsInstance<ValidationHash.ResourceJvm>()
+        check(hashes.isNotEmpty()) { "No hashes to validate, no jvm resources" }
+
+        return hashes.mapNotNullTo(LinkedHashSet()) { res ->
+            res.validate(dirModulePackage, packageName)
+        }.buildString()
+    }
+
+    @Throws(IllegalStateException::class)
     protected fun configureNativeResourcesProtected(kmp: KotlinMultiplatformExtension) { kmp.configureResourceNative() }
+
+    @Throws(IllegalArgumentException::class, IllegalStateException::class)
+    protected fun errorReportNativeResourceProtected(sourceSet: String): String {
+        val sourceSetName = sourceSet.toSourceSetName()
+
+        if (isConfiguredResNative) {
+            return errResNative[sourceSetName]?.buildString()
+                ?: throw IllegalStateException("Unknown sourceSet[$sourceSet]")
+        }
+
+        val hashes = hashes.filterIsInstance<ValidationHash.ResourceNative>()
+        check(hashes.isNotEmpty()) { "No hashes to validate, no native resources" }
+
+        var count = 0
+        val errors = hashes.mapNotNullTo(LinkedHashSet()) { res ->
+            if (res.sourceSetName != sourceSetName) return@mapNotNullTo null
+            count++
+            res.validate(dirModulePackage, packageName)
+        }
+        check(count > 0) { "No hashes to validate for sourceSet[$sourceSet]" }
+
+        return errors.buildString()
+    }
 
     private fun KotlinMultiplatformExtension.configureResourceNative() {
         if (isConfiguredResNative) return
@@ -219,7 +298,11 @@ sealed class AbstractResourceValidationExtension(
     private fun generateReport(fileName: String, errors: Set<ERROR>) {
         if (!dirReport.exists()) dirReport.mkdirs()
 
-        val report = buildString { errors.forEach { appendLine(it) } }
+        val report = errors.buildString()
         dirReport.resolve("$fileName.err").writeText(report)
+    }
+
+    private inline fun Set<ERROR>.buildString(): String = buildString build@ {
+        this@buildString.forEach { err -> appendLine(err) }
     }
 }

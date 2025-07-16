@@ -35,11 +35,13 @@ abstract class GeoipResourceValidationExtension @Inject internal constructor(
     packageName = "io.matthewnelson.kmp.tor.resource.geoip",
 ) {
 
-    private val geoip: String = "bd1c82818f527ddff496bd6ccf9b2fd584315d2710f0e9ff0fdbafa1f4657d6f"
-    private val geoip6: String = "933c7e3417cbc06db4b66e8d53d03f793c5bf762764e25322f2de473e83c16bf"
+    private val geoip: String = "62f377067785875d5a6864a279c77d3c1bec0b1066917f00954666a07b8e7de4"
+    private val geoip6: String = "e0897af601cae797e0a26936e52f4998ad71cff7016f04335539c5b355240a45"
 
     fun jvmResourcesSrcDir(): File = jvmResourcesSrcDirProtected(reportName = "jvm-geoip")
+    fun errorReportJvmResources(): String = errorReportJvmResourcesProtected()
     fun configureNativeResources(kmp: KotlinMultiplatformExtension) { configureNativeResourcesProtected(kmp) }
+    fun errorReportNativeResources(): String = errorReportNativeResourceProtected(sourceSet = "native")
 
     final override val hashes: Set<ValidationHash> by lazy { setOf(
         ValidationHash.ResourceJvm(

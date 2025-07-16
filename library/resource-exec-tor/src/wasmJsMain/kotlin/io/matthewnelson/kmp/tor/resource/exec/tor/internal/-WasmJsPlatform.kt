@@ -13,22 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+@file:Suppress("KotlinRedundantDiagnosticSuppress")
 
-#ifndef KMP_TOR_JNI_H
-#define KMP_TOR_JNI_H
+package io.matthewnelson.kmp.tor.resource.exec.tor.internal
 
-#include <jni.h>
+import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
+import io.matthewnelson.kmp.tor.common.core.Resource
+import io.matthewnelson.kmp.tor.resource.lib.tor.configureTorResources
 
-JNIEXPORT jstring JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMain
-(JNIEnv *, jobject, jcharArray, jobjectArray);
-
-JNIEXPORT jint JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorState
-(JNIEnv *, jobject);
-
-JNIEXPORT jint JNICALL
-Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorTerminateAndAwaitResult
-(JNIEnv *, jobject);
-
-#endif /* !defined(KMP_TOR_JNI_H) */
+@Suppress("NOTHING_TO_INLINE")
+@OptIn(InternalKmpTorApi::class)
+internal actual inline fun Resource.Config.Builder.configureTorResources() {
+    configureTorResources(aliasLibTor = ALIAS_LIBTOR, aliasTor = ALIAS_TOREXEC)
+}

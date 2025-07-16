@@ -25,6 +25,7 @@ import io.matthewnelson.kmp.tor.common.api.TorApi
 import io.matthewnelson.kmp.tor.common.core.SynchronizedObject
 import io.matthewnelson.kmp.tor.common.core.synchronized
 import io.matthewnelson.kmp.tor.common.core.synchronizedObject
+import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.toCStringArray
@@ -34,13 +35,15 @@ import kotlinx.cinterop.toKString
 @OptIn(ExperimentalForeignApi::class, InternalKmpTorApi::class)
 internal actual class KmpTorApi private constructor(private val resourceDir: File): TorApi() {
 
+    private val ctx: CPointer<__kmp_tor_context_t>
     private val lock: SynchronizedObject
 
     @Throws(IllegalStateException::class, IOException::class)
     actual override fun torRunMain(args: Array<String>) {
         val libTor = synchronized(lock) { extractLibTor(isInit = false) }.path
         val error: String = memScoped {
-            val result = kmp_tor_run_main(
+            val result = __kmp_tor_run_main(
+                __ctx = ctx,
                 lib_tor = libTor,
                 argc = args.size,
                 argv = args.toCStringArray(autofreeScope = this),
@@ -51,8 +54,8 @@ internal actual class KmpTorApi private constructor(private val resourceDir: Fil
         throw IllegalStateException(error)
     }
 
-    actual override fun state(): State = State.entries.elementAt(kmp_tor_state())
-    actual override fun terminateAndAwaitResult(): Int = kmp_tor_terminate_and_await_result()
+    actual override fun state(): State = State.entries.elementAt(__kmp_tor_state(ctx))
+    actual override fun terminateAndAwaitResult(): Int = __kmp_tor_terminate_and_await_result(ctx)
 
     @Throws(IllegalStateException::class, IOException::class)
     private fun extractLibTor(isInit: Boolean): File = RESOURCE_CONFIG_LIB_TOR
@@ -62,6 +65,7 @@ internal actual class KmpTorApi private constructor(private val resourceDir: Fil
 
     init {
         extractLibTor(isInit = true)
+        ctx = __kmp_tor_init() ?: throw IllegalStateException("Failed to initialized kmp_tor_context_t")
         lock = synchronizedObject()
     }
 

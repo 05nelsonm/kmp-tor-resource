@@ -1,8 +1,7 @@
 {
     global:
-        Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorRunMain;
-        Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorState;
-        Java_io_matthewnelson_kmp_tor_resource_noexec_tor_internal_KmpTorApi_kmpTorTerminateAndAwaitResult;
+        JNI_OnLoad;
+        JNI_OnUnload;
     local:
         *;
 };

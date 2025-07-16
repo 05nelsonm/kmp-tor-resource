@@ -16,6 +16,8 @@
 package io.matthewnelson.kmp.tor.resource.geoip
 
 import io.matthewnelson.kmp.file.SysTempDir
+import io.matthewnelson.kmp.file.delete2
+import io.matthewnelson.kmp.file.exists2
 import io.matthewnelson.kmp.file.resolve
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
@@ -41,12 +43,12 @@ class ResourceConfigUnitTest {
         val geoip6 = paths[ALIAS_GEOIP6]!!
 
         try {
-            assertTrue(geoip.exists())
-            assertTrue(geoip6.exists())
+            assertTrue(geoip.exists2())
+            assertTrue(geoip6.exists2())
         } finally {
-            geoip.delete()
-            geoip6.delete()
-            tmpDir.delete()
+            geoip.delete2(ignoreReadOnly = true)
+            geoip6.delete2(ignoreReadOnly = true)
+            tmpDir.delete2(ignoreReadOnly = true)
         }
     }
 }
