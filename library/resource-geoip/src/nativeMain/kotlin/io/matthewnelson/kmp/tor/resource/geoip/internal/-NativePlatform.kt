@@ -26,13 +26,13 @@ import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP6
 @Suppress("NOTHING_TO_INLINE")
 internal actual inline fun Resource.Config.Builder.platformConfigureGeoipResources() {
     resource(ALIAS_GEOIP) {
-        isExecutable = false
+        mode("444")
         platform {
             nativeResource = resource_geoip_gz
         }
     }
     resource(ALIAS_GEOIP6) {
-        isExecutable = false
+        mode("444")
         platform {
             nativeResource = resource_geoip6_gz
         }

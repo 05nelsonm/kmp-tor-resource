@@ -38,7 +38,7 @@ public fun Resource.Config.Builder.configureTorResources(
 
     if (OSInfo.INSTANCE.osHost is OSHost.Windows) {
         resource("DLL redirect") {
-            isExecutable = false
+            mode("444")
             platform {
                 moduleName = "$moduleNamePrefix.${OSHost.Windows}"
                 resourcePath = "tor.exe.local"

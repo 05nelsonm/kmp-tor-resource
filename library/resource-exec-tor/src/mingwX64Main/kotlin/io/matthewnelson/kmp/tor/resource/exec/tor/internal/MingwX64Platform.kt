@@ -26,13 +26,13 @@ import io.matthewnelson.kmp.tor.resource.lib.tor.configureLibTorResource
 internal actual inline fun Resource.Config.Builder.configureTorResources() {
     configureLibTorResource(ALIAS_LIBTOR)
     resource("DLL redirect") {
-        isExecutable = false
+        mode("444")
         platform {
             nativeResource = resource_tor_exe_local
         }
     }
     resource(ALIAS_TOREXEC) {
-        isExecutable = true
+        mode("554")
         platform {
             nativeResource = resource_tor_exe_gz
         }
