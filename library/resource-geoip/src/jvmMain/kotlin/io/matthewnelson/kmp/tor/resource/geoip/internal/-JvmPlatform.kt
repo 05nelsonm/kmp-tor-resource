@@ -39,14 +39,14 @@ internal actual inline fun Resource.Config.Builder.platformConfigureGeoipResourc
     val clazz = LoaderClazz()
 
     resource(ALIAS_GEOIP) {
-        isExecutable = false
+        mode("444")
         platform {
             resourceClass = clazz
             resourcePath = PATH_RESOURCE_GEOIP
         }
     }
     resource(ALIAS_GEOIP6) {
-        isExecutable = false
+        mode("444")
         platform {
             resourceClass = clazz
             resourcePath = PATH_RESOURCE_GEOIP6

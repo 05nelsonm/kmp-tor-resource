@@ -22,7 +22,7 @@ import io.matthewnelson.kmp.tor.resource.lib.tor.internal.resource_libtor_so_gz
 @InternalKmpTorApi
 public fun Resource.Config.Builder.configureLibTorResource(alias: String) {
     resource(alias) {
-        isExecutable = true
+        mode("554")
         platform {
             nativeResource = resource_libtor_so_gz
         }

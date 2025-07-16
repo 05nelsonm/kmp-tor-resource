@@ -28,14 +28,14 @@ private const val MODULE_NAME = "kmp-tor.resource-geoip"
 @Suppress("NOTHING_TO_INLINE")
 internal actual inline fun Resource.Config.Builder.platformConfigureGeoipResources() {
     resource(ALIAS_GEOIP) {
-        isExecutable = false
+        mode("444")
         platform {
             moduleName = MODULE_NAME
             resourcePath = "geoip.gz"
         }
     }
     resource(ALIAS_GEOIP6) {
-        isExecutable = false
+        mode("444")
         platform {
             moduleName = MODULE_NAME
             resourcePath = "geoip6.gz"

@@ -80,7 +80,7 @@ private inline fun Resource.Config.Builder.configureWindowsDLLRedirect(loader: C
     if (OSInfo.INSTANCE.osHost !is OSHost.Windows) return
 
     resource("DLL redirect") {
-        isExecutable = false
+        mode("444")
         platform {
             resourcePath = "/io/matthewnelson/kmp/tor/resource/exec/tor/native/${OSHost.Windows}/tor.exe.local"
             resourceClass = loader

@@ -62,7 +62,7 @@ internal inline fun Resource.Config.Builder.configureExecutableResource(
     }
 
     resource(alias) {
-        isExecutable = true
+        mode("554")
         platform { block(host, arch) }
     }
 }
