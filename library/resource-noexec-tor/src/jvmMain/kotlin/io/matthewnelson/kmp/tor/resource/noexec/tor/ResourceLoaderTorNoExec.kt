@@ -13,31 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING", "RemoveRedundantQualifierName", "DEPRECATION")
+@file:Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING", "RemoveRedundantQualifierName", "DEPRECATION", "RedundantModalityModifier")
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
 import io.matthewnelson.kmp.file.File
 import io.matthewnelson.kmp.file.IOException
 import io.matthewnelson.kmp.file.absoluteFile2
-import io.matthewnelson.kmp.tor.common.api.GeoipFiles
-import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 import io.matthewnelson.kmp.tor.common.api.TorApi
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_GEOIPS
-import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP
-import io.matthewnelson.kmp.tor.resource.geoip.ALIAS_GEOIP6
 import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.KmpTorApi
-import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.RESOURCE_CONFIG_LIB_TOR
-import kotlin.concurrent.Volatile
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.noExecExtractGeoips
+import io.matthewnelson.kmp.tor.resource.noexec.tor.internal.noExecToString
 import kotlin.jvm.JvmStatic
 
-// noExecMain
+// jvmMain
 public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
-    public companion object {
+    public actual companion object: GetOrCreate() {
 
         /**
+         * DEPRECATED
+         *
          * Creates a new instance of [ResourceLoaderTorNoExec] with provided [resourceDir]. If
          * an instance of [ResourceLoader.Tor] already exists, that will be returned instead.
          *
@@ -45,11 +42,16 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
          *
          * @throws [IOException] If [absoluteFile2] has to reference the filesystem to construct
          *   an absolute path and fails due to a filesystem security exception.
-         * @throws [UnsupportedOperationException] On Kotlin/JS-Browser if [absoluteFile2]
-         *   references the filesystem to construct an absolute path.
          * */
         @JvmStatic
-        public fun getOrCreate(
+        @Deprecated("""
+
+            Loading & unloading of shared libraries on jvm is deprecated, not only because
+            libjvm has major thread/memory management issues in the JNI layer, but because
+            JEP 472 which is phasing out JNI all together. Use the resource-exec-tor{-gpl}
+            dependency instead. See: https://github.com/05nelsonm/kmp-tor-resource/issues/156
+        """)
+        public final override fun getOrCreate(
             resourceDir: File,
         ): ResourceLoader.Tor = getOrCreate(
             resourceDir = resourceDir,
@@ -68,68 +70,19 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
          *
          * @throws [IOException] If [absoluteFile2] has to reference the filesystem to construct
          *   an absolute path and fails due to a filesystem security exception.
-         * @throws [UnsupportedOperationException] On Kotlin/JS-Browser if [absoluteFile2]
-         *   references the filesystem to construct an absolute path.
          * @suppress
          * */
         @JvmStatic
         @Deprecated("ShutdownHook registration causes abnormal application exit behavior for Java/Android")
-        public fun getOrCreate(
+        public final override fun getOrCreate(
             resourceDir: File,
             registerShutdownHook: Boolean,
         ): ResourceLoader.Tor = NoExec.getOrCreate(
             resourceDir = resourceDir,
-            extract = ::extractGeoips,
+            extract = ::noExecExtractGeoips,
             create = { dir -> KmpTorApi.of(dir, registerShutdownHook) },
-            toString = ::toString,
+            toString = ::noExecToString,
         )
-
-        @Volatile
-        private var isFirstExtraction: Boolean = true
-
-        @OptIn(InternalKmpTorApi::class)
-        private fun extractGeoips(resourceDir: File): GeoipFiles {
-            val map = RESOURCE_CONFIG_GEOIPS
-                .extractTo(resourceDir, onlyIfDoesNotExist = !isFirstExtraction)
-
-            isFirstExtraction = false
-
-            return GeoipFiles(
-                geoip = map.getValue(ALIAS_GEOIP),
-                geoip6 = map.getValue(ALIAS_GEOIP6),
-            )
-        }
-
-        @OptIn(InternalKmpTorApi::class)
-        private fun toString(resourceDir: File): String = buildString {
-            appendLine("ResourceLoader.Tor.NoExec: [")
-            append("    resourceDir: ")
-            appendLine(resourceDir)
-
-            RESOURCE_CONFIG_GEOIPS.toString().lines().let { lines ->
-                appendLine("    configGeoips: [")
-                for (i in 1 until lines.size) {
-                    append("    ")
-                    appendLine(lines[i])
-                }
-            }
-
-            RESOURCE_CONFIG_LIB_TOR.let { config ->
-                // Android may have an empty configuration if not using
-                // test resources. iOS and androidNative are always empty;
-                // do not include if that is the case.
-                if (config.errors.isEmpty() && config.resources.isEmpty()) return@let
-
-                val lines = config.toString().lines()
-                appendLine("    configLibTor: [")
-                for (i in 1 until lines.size) {
-                    append("    ")
-                    appendLine(lines[i])
-                }
-            }
-
-            append(']')
-        }
     }
 
     @Throws(IllegalStateException::class)
