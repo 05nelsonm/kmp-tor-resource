@@ -224,6 +224,9 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     // properly.
                     """
                         ---
+                        #ifndef __KMP_TOR_H
+                        #define __KMP_TOR_H
+
                         #include <kmp_tor.h>
                         #include <stdlib.h>
 
@@ -286,6 +289,8 @@ fun KmpConfigurationExtension.configureNoExecTor(
                           }
                           return kmp_tor_terminate_and_await_result(__ctx->ctx);
                         }
+
+                        #endif /* !defined(__KMP_TOR_H) */
                     """
                 } else {
                     """
