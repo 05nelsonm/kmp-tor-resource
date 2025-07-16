@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Matthew Nelson
+ * Copyright (c) 2025 Matthew Nelson
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,4 @@
 
 package io.matthewnelson.kmp.tor.resource.noexec.tor
 
-import io.matthewnelson.kmp.tor.common.api.ResourceLoader
-
-// commonMain
-public expect class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
-
-    public companion object: GetOrCreate
-
-    @Throws(IllegalStateException::class)
-    @Suppress("ConvertSecondaryConstructorToPrimary", "UnnecessaryOptInAnnotation", "unused")
-    private constructor()
-}
+public expect abstract class GetOrCreate internal constructor()

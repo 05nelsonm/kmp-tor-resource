@@ -22,6 +22,8 @@ import io.matthewnelson.kmp.tor.common.api.ResourceLoader
 // nonNoExecMain
 public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
 
+    public actual companion object: GetOrCreate()
+
 //    @Throws(IllegalStateException::class)
     @Suppress("ConvertSecondaryConstructorToPrimary", "UnnecessaryOptInAnnotation", "unused")
     private actual constructor()
