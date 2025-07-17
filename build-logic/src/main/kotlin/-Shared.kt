@@ -55,16 +55,15 @@ fun KmpConfigurationExtension.configureShared(
             }
         }
 
+        @Suppress("RedundantSamConstructor")
         js {
             target {
                 browser {
-                    @Suppress("RedundantSamConstructor")
                     testTask(Action {
                         isEnabled = false
                     })
                 }
                 nodejs {
-                    @Suppress("RedundantSamConstructor")
                     testTask(Action {
                         useMocha { timeout = "30s" }
                     })

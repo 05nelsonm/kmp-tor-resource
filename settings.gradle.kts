@@ -86,6 +86,8 @@ if (CHECK_PUBLICATION != null) {
         ).forEach { module ->
             include(":library:$module")
         }
+
+        include(":test-android")
     }
 
     listOf(
@@ -95,6 +97,4 @@ if (CHECK_PUBLICATION != null) {
     ).forEach { module ->
         include(":tools:$module")
     }
-
-    include(":test-android")
 }
