@@ -26,13 +26,13 @@
 #define __JNI_VERSION JNI_VERSION_1_6
 #endif // JNI_VERSION_1_6
 
-#define ERR_BUF_LEN 512
+#define ERR_BUF_LEN 1024
 
 static kmp_tor_context_t *ctx = NULL;
 static jclass clazz_kmp_tor_api = NULL;
 
 static int
-CStringToErrBuf(JNIEnv *env, jcharArray err_buf, const char *error)
+CStringToErrBuf(JNIEnv *env, jbyteArray err_buf, const char *error)
 {
   // err_buf is checked for non-NULL & capacity ERR_BUF_LEN in KMP_TOR_JNI_kmpTorRunMain
 
@@ -48,17 +48,17 @@ CStringToErrBuf(JNIEnv *env, jcharArray err_buf, const char *error)
     len = ERR_BUF_LEN;
   }
 
-  jchar j_error[len];
+  jbyte j_error[len];
   for (jsize i = 0; i < len; i++) {
     j_error[i] = error[i];
   }
-  (*env)->SetCharArrayRegion(env, err_buf, 0, len, j_error);
+  (*env)->SetByteArrayRegion(env, err_buf, 0, len, j_error);
 
   return len;
 }
 
 static char *
-JCharArrayToCString(JNIEnv *env, jcharArray a)
+JByteArrayToCString(JNIEnv *env, jbyteArray a)
 {
   if (!a) {
     return NULL;
@@ -83,8 +83,8 @@ JCharArrayToCString(JNIEnv *env, jcharArray a)
     return c_arg;
   }
 
-  jchar j_buf[len];
-  (*env)->GetCharArrayRegion(env, a, 0, len, j_buf);
+  jbyte j_buf[len];
+  (*env)->GetByteArrayRegion(env, a, 0, len, j_buf);
 
   for (jsize i = 0; i < len; i++) {
     c_arg[i] = j_buf[i];
@@ -95,7 +95,7 @@ JCharArrayToCString(JNIEnv *env, jcharArray a)
 
 static jint JNICALL
 KMP_TOR_JNI_kmpTorRunMain
-(JNIEnv *env, jobject thiz, jcharArray lib_tor, jobjectArray args, jcharArray err_buf)
+(JNIEnv *env, jobject thiz, jbyteArray lib_tor, jobjectArray args, jbyteArray err_buf)
 {
   assert(lib_tor);
   assert(args);
@@ -113,9 +113,9 @@ KMP_TOR_JNI_kmpTorRunMain
   char *c_lib_tor = NULL;
   const char *error = NULL;
 
-  c_lib_tor = JCharArrayToCString(env, lib_tor);
+  c_lib_tor = JByteArrayToCString(env, lib_tor);
   if (!c_lib_tor) {
-    return CStringToErrBuf(env, err_buf, "JCharArrayToCString failed to copy lib_tor");
+    return CStringToErrBuf(env, err_buf, "JByteArrayToCString failed to copy lib_tor");
   }
 
   c_argv = malloc(j_argc * sizeof(char *));
@@ -132,8 +132,8 @@ KMP_TOR_JNI_kmpTorRunMain
       continue;
     }
 
-    jcharArray j_arg = (jcharArray) (*env)->GetObjectArrayElement(env, args, i);
-    c_argv[c_argc] = JCharArrayToCString(env, j_arg);
+    jbyteArray j_arg = (jbyteArray) (*env)->GetObjectArrayElement(env, args, i);
+    c_argv[c_argc] = JByteArrayToCString(env, j_arg);
     if (j_arg) {
       (*env)->DeleteLocalRef(env, j_arg);
     }
@@ -180,7 +180,7 @@ KMP_TOR_JNI_kmpTorTerminateAndAwaitResult
 }
 
 static JNINativeMethod kmp_tor_jni_methods[] = {
-  {"kmpTorRunMain",                 "([C[[C[C)I", (void *) &KMP_TOR_JNI_kmpTorRunMain},
+  {"kmpTorRunMain",                 "([B[[B[B)I", (void *) &KMP_TOR_JNI_kmpTorRunMain},
   {"kmpTorState",                   "()I",        (void *) &KMP_TOR_JNI_kmpTorState},
   {"kmpTorTerminateAndAwaitResult", "()I",        (void *) &KMP_TOR_JNI_kmpTorTerminateAndAwaitResult},
 };

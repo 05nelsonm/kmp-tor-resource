@@ -31,19 +31,20 @@ internal actual class KmpTorApi private constructor(
 
     @Throws(IllegalStateException::class, IOException::class)
     actual override fun torRunMain(args: Array<String>) {
-        val cLibTor = synchronized(Companion) { extractLibTor(isInit = false) }.path.toCharArray()
-        val cArgs = Array(args.size) { i -> args[i].toCharArray() }
-        val errBuf = CharArray(ERR_BUF_LEN)
+        val cLibTor = synchronized(Companion) { extractLibTor(isInit = false) }.path.encodeToByteArray()
+        val cArgs = Array(args.size) { i -> args[i].encodeToByteArray() }
+        val errBuf = ByteArray(ERR_BUF_LEN)
 
         val errLen = kmpTorRunMain(cLibTor, cArgs, errBuf)
 
         // Ensure Java won't GC them until after kmpTorRunMain returns from JNI layer
         cLibTor.size
         cArgs.size
+        errBuf.size
 
         if (errLen <= 0) return
 
-        val msg = errBuf.concatToString(endIndex = errLen)
+        val msg = errBuf.decodeToString(endIndex = errLen)
         throw IllegalStateException(msg)
     }
 
@@ -88,7 +89,7 @@ internal actual class KmpTorApi private constructor(
     internal actual companion object {
 
         // Defined in external/native/kmp_tor-jni.c
-        private const val ERR_BUF_LEN = 512
+        private const val ERR_BUF_LEN = 1024
 
         internal const val ALIAS_LIBTORJNI: String = "libtorjni"
 
@@ -101,7 +102,7 @@ internal actual class KmpTorApi private constructor(
 
         @JvmStatic
         @Synchronized
-        private external fun kmpTorRunMain(libTor: CharArray, args: Array<CharArray>, errBuf: CharArray): Int
+        private external fun kmpTorRunMain(libTor: ByteArray, args: Array<ByteArray>, errBuf: ByteArray): Int
         @JvmStatic
         @Synchronized
         private external fun kmpTorState(): Int
