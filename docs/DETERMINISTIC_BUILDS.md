@@ -22,7 +22,7 @@ script. The expected Sha256 hashes are provided by gradle extensions located in 
 
 2) Checkout the tag you wish to validate (replace with desired tag name):
    ```shell
-   git checkout 408.16.4
+   git checkout 408.17.0
    ```
 
 3) Compile code (go touch grass for a bit):

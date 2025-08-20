@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## Version 408.17.0 (2025-08-20)
+ - Updates `kmp-tor-common` to `2.3.1` [[#155]][155]
+ - Updates `tor` to `tor-0.4.8.17` [[#155]][155]
+ - Updates `openssl` to `3.4.2` [[#155]][155]
+ - Refactors `kmp_tor-jni.c` to use `JNI_OnLoad` and `JNI_OnUnload`, instead
+   of exposing individual JNI function symbols [[#155]][155]
+ - Deprecates `ResourceLoaderTorNoExec.getOrCreate` for Jvm [[#157]][157]
+     - The `resource-noexec-tor{-gpl}` dependencies for Android were **NOT** deprecated, only 
+       the Jvm dependency.
+     - Jvm consumers should switch to using the `resource-exec-tor{-gpl}` dependency instead.
+ - Use UTF-8 encoded ByteArray when passing tor arguments to JNI layer [[#160]][160]
+
 ## Version 408.16.4 (2025-06-11)
  - Updates `kotlin` to `2.1.21` [[#130]][130]
  - Updates `android-gradle-plugin` to `8.9.3` [[#130]][130]
@@ -148,6 +160,9 @@
 [152]: https://github.com/05nelsonm/kmp-tor-resource/pull/152
 [153]: https://github.com/05nelsonm/kmp-tor-resource/pull/153
 [154]: https://github.com/05nelsonm/kmp-tor-resource/pull/154
+[155]: https://github.com/05nelsonm/kmp-tor-resource/pull/155
+[157]: https://github.com/05nelsonm/kmp-tor-resource/pull/157
+[160]: https://github.com/05nelsonm/kmp-tor-resource/pull/160
 
 [tor-844]: https://gitlab.torproject.org/tpo/core/tor/-/merge_requests/844
 [url-build-env]: https://github.com/05nelsonm/build-env

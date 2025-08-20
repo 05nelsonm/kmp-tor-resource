@@ -33,13 +33,13 @@ Tor and its dependencies are compiled from source using the following versions
 <!-- TAG_VERSION -->
 <!-- TAG_DEPENDENCIES -->
 
-|          | git tag                                                         |
-|----------|-----------------------------------------------------------------|
-| libevent | `release-2.1.12-stable`                                         |
-| openssl  | `openssl-3.4.2`                                                 |
-| tor      | `maint-0.4.8` commit `f84d461b5560d5675d2a4ce86a040c301b814b51` |
-| xz       | `v5.8.1`                                                        |
-| zlib     | `v1.3.1`                                                        |
+|          | git tag                 |
+|----------|-------------------------|
+| libevent | `release-2.1.12-stable` |
+| openssl  | `openssl-3.4.2`         |
+| tor      | `tor-0.4.8.17`          |
+| xz       | `v5.8.1`                |
+| zlib     | `v1.3.1`                |
 
 **NOTE:** All `macOS` and `Windows` compilations are code signed so they work out of the box.
 
@@ -128,7 +128,7 @@ have a `GPL` license are able to take advantage of the new functionality, and pr
 ```kotlin
 // build.gradle.kts
 dependencies {
-    val vKmpTorResource = "408.16.4"
+    val vKmpTorResource = "408.17.0"
     implementation("io.matthewnelson.kmp-tor:resource-exec-tor:$vKmpTorResource")
     implementation("io.matthewnelson.kmp-tor:resource-noexec-tor:$vKmpTorResource")
 
@@ -284,14 +284,14 @@ val env = TorRuntime.Environment.Builder(myWorkDir, myCacheDir, ResourceLoaderTo
 See [kmp-tor-samples][url-kmp-tor-samples] for more details.
 
 <!-- TAG_VERSION -->
-[badge-latest-release]: https://img.shields.io/badge/latest--release-408.16.4-5d2f68.svg?logo=torproject&style=flat&logoColor=5d2f68
+[badge-latest-release]: https://img.shields.io/badge/latest--release-408.17.0-5d2f68.svg?logo=torproject&style=flat&logoColor=5d2f68
 [badge-license]: https://img.shields.io/badge/license-Apache%20License%202.0-blue.svg?style=flat
 
 <!-- TAG_DEPENDENCIES -->
 [badge-androidx-startup]: https://img.shields.io/badge/androidx.startup-1.1.1-6EDB8D.svg?logo=android
 [badge-kotlin]: https://img.shields.io/badge/kotlin-2.1.21-blue.svg?logo=kotlin
 [badge-build-env]: https://img.shields.io/badge/build--env-0.3.0-blue.svg?logo=docker
-[badge-kmp-tor-common]: https://img.shields.io/badge/kmp--tor--common-2.3.1--SNAPSHOT-blue.svg?style=flat
+[badge-kmp-tor-common]: https://img.shields.io/badge/kmp--tor--common-2.3.1-blue.svg?style=flat
 
 <!-- TAG_PLATFORMS -->
 [badge-platform-android]: http://img.shields.io/badge/-android-6EDB8D.svg?style=flat
