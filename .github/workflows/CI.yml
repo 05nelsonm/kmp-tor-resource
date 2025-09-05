@@ -261,18 +261,22 @@ jobs:
             distro: ubuntu16.04
             expected-host: linux-libc
             expected-arch: aarch64
+            java-version: 8
           - arch: armv7
             distro: ubuntu16.04
             expected-host: linux-libc
             expected-arch: armv7
+            java-version: 8
           - arch: ppc64le
             distro: ubuntu16.04
             expected-host: linux-libc
             expected-arch: ppc64
+            java-version: 8
           - arch: riscv64
             distro: ubuntu20.04
             expected-host: linux-libc
             expected-arch: riscv64
+            java-version: 11
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -314,7 +318,7 @@ jobs:
             case "${{ matrix.distro }}" in
               ubuntu*)
                 apt-get update -q -y
-                apt-get install -q -y openjdk-8-jre-headless
+                apt-get install -q -y openjdk-${{ matrix.java-version }}-jre-headless
                 ;;
               *)
                 echo 1>&2 "Host not configured..."
