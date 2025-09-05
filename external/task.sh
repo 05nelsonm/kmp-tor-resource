@@ -47,6 +47,7 @@ function build:all:linux-libc { ## Builds all Linux Libc targets
   build:linux-libc:aarch64
   build:linux-libc:armv7
   build:linux-libc:ppc64
+  build:linux-libc:riscv64
   build:linux-libc:x86
   build:linux-libc:x86_64
 }
@@ -165,6 +166,15 @@ function build:linux-libc:ppc64 { ## Builds Linux Libc powerpc64le
   local os_subtype="-libc"
   local os_arch="ppc64"
   local openssl_target="linux-ppc64le"
+  __build:configure:target:init
+  __build:docker:execute
+}
+
+function build:linux-libc:riscv64 { ## Builds Linux Libc riscv64
+  local os_name="linux"
+  local os_subtype="-libc"
+  local os_arch="riscv64"
+  local openssl_target="linux64-riscv64"
   __build:configure:target:init
   __build:docker:execute
 }
@@ -379,7 +389,7 @@ function package:ios { ## Packages all iOS & iOS Simulator build/out contents
 }
 
 function package:linux-libc { ## Packages all Linux Libc build/out contents
-  local archs="aarch64 armv7 ppc64 x86 x86_64"
+  local archs="aarch64 armv7 ppc64 riscv64 x86 x86_64"
   local dirname_out="tor"
   local dirname_final="resource-lib-tor"
   local rpath_native="resource/lib/tor"

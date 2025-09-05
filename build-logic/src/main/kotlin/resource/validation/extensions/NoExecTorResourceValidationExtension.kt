@@ -48,6 +48,7 @@ open class NoExecTorResourceValidationExtension private constructor(
     private val jvmLinuxLibcAarch64: String = "887fbfcbc319c8a1beb34cb060779776590ea63c86d681b18e9063f773f86235"
     private val jvmLinuxLibcArmv7: String = "ff9b7bc7c7958baff8fec9122c71b65305e94ac40957a8e32ceb84da72d8c621"
     private val jvmLinuxLibcPpc64: String = "e15351018b9ff85c12e14f40e974f542157c7e33c4634cbc808814d36951d4e5"
+    private val jvmLinuxLibcRiscv64: String = "f2e06d9463bc74d289d2f68c0598226f72e96946b560671adadb905cd5cb5418"
     private val jvmLinuxLibcX86: String = "63d28c9eac8cb180729d6a95e51d13516583a860444e53a2ad82d446c7074874"
     private val jvmLinuxLibcX86_64: String = "81c495605fe1921380c38e5ab1ff272c6b4dbe9f96c1d86335b71d0366bfbca1"
 
@@ -138,6 +139,13 @@ open class NoExecTorResourceValidationExtension private constructor(
             arch = "ppc64",
             libName = "libtorjni.so.gz",
             hash = jvmLinuxLibcPpc64,
+        ),
+        ValidationHash.LibJvm(
+            osName = "linux",
+            osSubtype = "libc",
+            arch = "riscv64",
+            libName = "libtorjni.so.gz",
+            hash = jvmLinuxLibcRiscv64,
         ),
         ValidationHash.LibJvm(
             osName = "linux",

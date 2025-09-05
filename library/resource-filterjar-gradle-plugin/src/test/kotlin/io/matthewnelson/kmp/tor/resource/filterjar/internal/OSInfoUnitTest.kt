@@ -49,9 +49,10 @@ internal class OSInfoUnitTest {
         assertContains(arches, OSArch.Aarch64)
         assertContains(arches, OSArch.Armv7)
         assertContains(arches, OSArch.Ppc64)
+        assertContains(arches, OSArch.Riscv64)
         assertContains(arches, OSArch.X86)
         assertContains(arches, OSArch.X86_64)
-        assertEquals(5, arches.size)
+        assertEquals(6, arches.size)
         assertEquals(0, arches.filterIsInstance<OSArch.Unsupported>().size)
     }
 

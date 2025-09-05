@@ -81,6 +81,7 @@ internal inline fun OSArch.isSupportedBy(osHost: OSHost): Boolean = when (osHost
         OSArch.Aarch64,
         OSArch.Armv7,
         OSArch.Ppc64,
+        OSArch.Riscv64,
         OSArch.X86,
         OSArch.X86_64,
     )

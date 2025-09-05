@@ -47,14 +47,14 @@ More details about how things are compiled can be found [HERE](docs/COMPILATION_
 
 ### Jvm/Node.js Supported Operating Systems & Architectures
 
-|                 | x86 | x86_64 | armv7 | aarch64 | ppc64 |
-|-----------------|-----|--------|-------|---------|-------|
-| Windows         | ✔   | ✔      |       |         |       |
-| macOS           |     | ✔      |       | ✔       |       |
-| Linux (android) | ✔   | ✔      | ✔     | ✔       |       |
-| Linux (libc)    | ✔   | ✔      | ✔     | ✔       | ✔     |
-| Linux (musl)    |     |        |       |         |       |
-| FreeBSD         |     |        |       |         |       |
+|                 | aarch64 | armv7a | ppc64le | riscv64 | x86 | x86_64 |
+|-----------------|---------|--------|---------|---------|-----|--------|
+| Windows         |         |        |         |         | ✔   | ✔      |
+| macOS           | ✔       |        |         |         |     | ✔      |
+| Linux (android) | ✔       | ✔      |         |         | ✔   | ✔      |
+| Linux (libc)    | ✔       | ✔      | ✔       | ✔       | ✔   | ✔      |
+| Linux (musl)    |         |        |         |         |     |        |
+| FreeBSD         |         |        |         |         |     |        |
 
 ### Types (`exec` & `noexec`)
 

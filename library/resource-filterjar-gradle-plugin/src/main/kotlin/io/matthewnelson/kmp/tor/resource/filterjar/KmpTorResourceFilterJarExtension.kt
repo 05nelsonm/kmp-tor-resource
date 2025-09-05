@@ -69,6 +69,7 @@ public abstract class KmpTorResourceFilterJarExtension internal constructor(
      *  - `aarch64`
      *  - `armv7`
      *  - `ppc64`
+     *  - `riscv64`
      *  - `x86`
      *  - `x86_64`
      *
@@ -108,6 +109,7 @@ public abstract class KmpTorResourceFilterJarExtension internal constructor(
      *  - `aarch64`
      *  - `armv7`
      *  - `ppc64`
+     *  - `riscv64`
      *  - `x86`
      *  - `x86_64`
      *
@@ -144,6 +146,7 @@ public abstract class KmpTorResourceFilterJarExtension internal constructor(
      *  - `aarch64`
      *  - `armv7`
      *  - `ppc64`
+     *  - `riscv64`
      *  - `x86`
      *  - `x86_64`
      *

@@ -75,6 +75,7 @@ internal fun Set<String>.toOSArches(): Set<OSArch> = flatMapTo(LinkedHashSet(siz
             OSArch.Aarch64,
             OSArch.Armv7,
             OSArch.Ppc64,
+            OSArch.Riscv64,
             OSArch.X86,
             OSArch.X86_64,
         )
@@ -86,6 +87,7 @@ internal fun Set<String>.toOSArches(): Set<OSArch> = flatMapTo(LinkedHashSet(siz
         OSArch.Aarch64.path -> listOf(OSArch.Aarch64)
         OSArch.Armv7.path -> listOf(OSArch.Armv7)
         OSArch.Ppc64.path -> listOf(OSArch.Ppc64)
+        OSArch.Riscv64.path -> listOf(OSArch.Riscv64)
         OSArch.X86.path -> listOf(OSArch.X86)
         OSArch.X86_64.path -> listOf(OSArch.X86_64)
         else -> throw IllegalArgumentException(
@@ -96,6 +98,7 @@ internal fun Set<String>.toOSArches(): Set<OSArch> = flatMapTo(LinkedHashSet(siz
                     ${OSArch.Aarch64}
                     ${OSArch.Armv7}
                     ${OSArch.Ppc64}
+                    ${OSArch.Riscv64}
                     ${OSArch.X86}
                     ${OSArch.X86_64}
             """.trimIndent()
