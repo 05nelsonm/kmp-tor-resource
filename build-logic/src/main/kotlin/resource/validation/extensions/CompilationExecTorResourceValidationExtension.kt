@@ -42,10 +42,10 @@ open class CompilationExecTorResourceValidationExtension private constructor(
     @Suppress("unused")
     internal constructor(project: Project): this(project, isGpl = false)
 
-    private val androidAarch64: String = "8a4eb402a872f21fdb6de60b59cc783503a1f49555c381e48fcb32a11a8f73c9"
-    private val androidArmv7: String = "3172cf145ed7a4060f7fc20c1ee9463224fb564b9f674df1fef9b4c3a5d72796"
-    private val androidX86: String = "9c919fb4aa36c391d6aa64ac67ced5b220392597eb40d565456353edcc45c8bd"
-    private val androidX86_64: String = "d556c33cb1d6ffeb951c6aaea441b80cf804c207e2728d3b3b47b99b3c78fd1c"
+    private val androidAarch64: String = "6c8a2aaf4edc090082f6c55f2ca46925044082b102ab1b8647bc5cdb9d50f5a9"
+    private val androidArmv7: String = "ffce026d155c45235ff41f3061376fa142af27f8c0d71e8a7eed7b785eee534d"
+    private val androidX86: String = "c38e82b665c817c755ef832360c41994c1a9265350b06a97b9fa9a9f488193e8"
+    private val androidX86_64: String = "9356c448c0700b50b4440cfd830aecc782394511aad5f541adf0a55f0f1b6528"
 
     /**
      * Resource validation and configuration for module `:library:resource-compilation-exec-tor-gpl`,

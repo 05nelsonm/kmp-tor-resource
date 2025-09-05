@@ -147,7 +147,7 @@ function __package:file {
     # Must utilize docker gzip for reproducible results
     __docker:run "--silent" \
       "$DIR_STAGING" \
-      "05nelsonm/build-env.non-linux.base" \
+      "05nelsonm/build-env.base" \
       gzip --no-name --best --verbose "/work/$3"
 
     file_ext=".gz"

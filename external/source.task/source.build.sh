@@ -164,9 +164,6 @@ fi
   __build:SCRIPT 'export PKG_CONFIG_PATH="$DIR_SCRIPT/libevent/lib/pkgconfig:$DIR_SCRIPT/openssl/lib/pkgconfig:$DIR_SCRIPT/xz/lib/pkgconfig:$DIR_SCRIPT/zlib/lib/pkgconfig"'
 
   case "$os_name" in
-    "macos")
-      __build:SCRIPT 'export OSXCROSS_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"'
-      ;;
     "mingw")
       __build:SCRIPT 'export CHOST="$CROSS_TRIPLE"'
       ;;
@@ -260,7 +257,6 @@ fi
     no-dynamic-engine \
     no-ec2m \
     no-engine \
-    no-hw \
     no-idea \
     no-md4 \
     no-mdc2 \
@@ -286,7 +282,7 @@ fi
   fi
 
   if [ "$os_name" = "android" ]; then
-    __build:OPENSSL '-D__ANDROID_API__=21'
+    __build:OPENSSL '-D__ANDROID_API__=$ANDROID_TARGET_API'
   fi
 
   if [ "$os_name" = "mingw" ]; then
