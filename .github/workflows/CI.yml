@@ -250,3 +250,77 @@ jobs:
             **/build/reports/androidTests/**
             **/build/outputs/androidTest-results/connected/debug/*/logcat-*.txt
           retention-days: 1
+
+  linux-check:
+    needs: compile-task
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: aarch64
+            distro: ubuntu16.04
+            expected-host: linux-libc
+            expected-arch: aarch64
+          - arch: armv7
+            distro: ubuntu16.04
+            expected-host: linux-libc
+            expected-arch: armv7
+          - arch: ppc64le
+            distro: ubuntu16.04
+            expected-host: linux-libc
+            expected-arch: ppc64
+          - arch: riscv64
+            distro: ubuntu20.04
+            expected-host: linux-libc
+            expected-arch: riscv64
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v3
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 11
+
+      - name: Download Native Compilation Artifacts
+        shell: bash
+        run: |
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "geoip" "${{ needs.compile-task.outputs.id-geoip }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "android" "${{ needs.compile-task.outputs.id-android }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "linux-libc" "${{ needs.compile-task.outputs.id-linux-libc }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "macos" "${{ needs.compile-task.outputs.id-macos }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "mingw" "${{ needs.compile-task.outputs.id-mingw }}"
+
+      - name: Assemble test-linux.jar
+        run: >
+          ./gradlew :test-linux:assembleFatJar
+          -PKMP_TARGETS="JVM"
+
+      - name: Run tor
+        uses: uraimo/run-on-arch-action@v3
+        with:
+          arch: ${{ matrix.arch }}
+          distro: ${{ matrix.distro }}
+          githubToken: ${{ github.token }}
+          dockerRunArgs: |
+            -v "${PWD}/test-linux/build:/work"
+            -u "$(id -u):$(id -g)"
+          install: |
+            case "${{ matrix.distro }}" in
+              ubuntu*)
+                apt-get update -q -y
+                apt-get install -q -y openjdk-8-jre-headless
+                ;;
+              *)
+                echo 1>&2 "Host not configured..."
+                exit 2
+                ;;
+            esac
+          run: |
+            cd /work
+            java -jar libs/test-linux.jar "10" "${{ matrix.expected-host }}" "${{ matrix.expected-arch }}" "."
