@@ -50,6 +50,7 @@ open class ExecTorResourceValidationExtension private constructor(
     private val jvmLinuxLibcAarch64: String = "4eb67a0aa825c4737a8502e629823d456563d610b662bda3c39756a43b8c4046"
     private val jvmLinuxLibcArmv7: String = "2635cde02071851b3b26e7af1ca62d64349edc5604411d472f8bc816ea80283c"
     private val jvmLinuxLibcPpc64: String = "47588c8ca5d8a77b3eb868e1a8206a93ff594e9b045355d46a9e624efbbc0221"
+    private val jvmLinuxLibcRiscv64: String = "a79912aeda2d09c31af8c03f796bba2ec85d4264b2ef1b18de2751a1f57c533d"
     private val jvmLinuxLibcX86: String = "7dbf5f18dc25a84dae0816af7de47685de8e4243d9a39cf6a5ba845c2695f469"
     private val jvmLinuxLibcX86_64: String = "eb6ac226e3e542b5ad039252ebbfd363ba7b5993e03179ccf78a8f1c0b113ea8"
 
@@ -147,6 +148,13 @@ open class ExecTorResourceValidationExtension private constructor(
             arch = "ppc64",
             libName = "tor.gz",
             hash = jvmLinuxLibcPpc64,
+        ),
+        ValidationHash.LibJvm(
+            osName = "linux",
+            osSubtype = "libc",
+            arch = "riscv64",
+            libName = "tor.gz",
+            hash = jvmLinuxLibcRiscv64,
         ),
         ValidationHash.LibJvm(
             osName = "linux",

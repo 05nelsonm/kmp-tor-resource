@@ -50,6 +50,7 @@ open class LibTorResourceValidationExtension private constructor(
     protected open val jvmLinuxLibcAarch64: String = "d4e86c577993653f2c82e4f9c4b30beb40ae46a5924bed5de5100437d5de16da"
     protected open val jvmLinuxLibcArmv7: String = "589eec923be03ae34d3c01cd23fbceb5be9056babbb97aca3c661796ec998a2a"
     protected open val jvmLinuxLibcPpc64: String = "a134c06f1ac2bc8f0e6b2ff779270a582838ba7b46f46db8ad4a9c3350ccd3c4"
+    protected open val jvmLinuxLibcRiscv64: String = "e7c33bbf336b23904775c9d9e05791209a8e7b13d603a2351a90d133b292c0c0"
     protected open val jvmLinuxLibcX86: String = "fa8c9fe26b8f6747905288c06dd0f41bb06bed24783c53ebb94d9c632f595eb3"
     protected open val jvmLinuxLibcX86_64: String = "a75df0b5d5e4dc6a7874924806ee1ff7d05c2e94f8eff30e2ca42526c8a57efe"
 
@@ -86,6 +87,7 @@ open class LibTorResourceValidationExtension private constructor(
         override val jvmLinuxLibcAarch64: String = "c3db1eb896e1d9e8ed9644a88afaa17574fdc54ad99a1bee901e1cf8ec4335ac"
         override val jvmLinuxLibcArmv7: String = "086b71590aa5a3dde4642daf66062aaf7b0b80e8b87ccf8d3ac8fbe2ff0771a8"
         override val jvmLinuxLibcPpc64: String = "db880b6bb55bdb51f5fbf7e806baccfda89415d2a7efcd71a524c5c15e2f7639"
+        override val jvmLinuxLibcRiscv64: String = "31399610ce8371584cf3c4abf60f432635b8b6350fb41c3fc2798df5debcb788"
         override val jvmLinuxLibcX86: String = "c01b2d9a0a256db6f5c864a0819dde87a0264e7537f317f3e0c516f42210f060"
         override val jvmLinuxLibcX86_64: String = "fdb076ac32dacad9b4064fad6f570a18587dc40c85791c30604e2f38341366cc"
 
@@ -164,6 +166,13 @@ open class LibTorResourceValidationExtension private constructor(
             arch = "ppc64",
             libName = "libtor.so.gz",
             hash = jvmLinuxLibcPpc64,
+        ),
+        ValidationHash.LibJvm(
+            osName = "linux",
+            osSubtype = "libc",
+            arch = "riscv64",
+            libName = "libtor.so.gz",
+            hash = jvmLinuxLibcRiscv64,
         ),
         ValidationHash.LibJvm(
             osName = "linux",

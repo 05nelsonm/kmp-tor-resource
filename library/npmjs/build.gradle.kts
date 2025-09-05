@@ -123,7 +123,7 @@ private fun Project.createPublicationVersions(): List<PublicationVersion> {
         // development iteration.
         val vNext = vProject.indexOfLast { it == '.' }.let { i ->
             val increment = vProject.substring(i + 1).toInt() + 1
-            vProject.substring(0, i + 1) + increment
+            vProject.take(i + 1) + increment
         }
 
         // Always put release publication last
