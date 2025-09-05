@@ -88,6 +88,7 @@ if (CHECK_PUBLICATION != null) {
         }
 
         include(":test-android")
+        include(":test-linux")
     }
 
     listOf(
