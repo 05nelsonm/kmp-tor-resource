@@ -112,7 +112,7 @@ internal fun main(vararg array: String) {
     }
 
     val outString = out.toString()
-    if (outString.contains("[notice] Bootstrapped ")) {
+    if (outString.contains("[notice] Parsing GEOIP IPv4 file")) {
         println("SUCCESS")
         return
     }
