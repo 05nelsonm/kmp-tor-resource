@@ -673,6 +673,8 @@ function validate:all:update_hashes { ## Updates gradle extensions with new hash
   local old_hash=""
   local print_next_line=""
   local err_line=""
+  local file=""
+  local update=""
 
   for err_line in echo $output; do
     if [ -n "$print_next_line" ]; then
@@ -697,8 +699,9 @@ function validate:all:update_hashes { ## Updates gradle extensions with new hash
       fi
 
       for extension_kt_file in $(echo "$extension_kt_files" | tr "," " "); do
-        sed -i='' "s+$old_hash+$new_hash+g" \
-          "$DIR_TASK/../build-logic/src/main/kotlin/resource/validation/extensions/$extension_kt_file"
+        file="$DIR_TASK/../build-logic/src/main/kotlin/resource/validation/extensions/$extension_kt_file"
+        update=$(sed "s+$old_hash+$new_hash+g" "$file")
+        echo "$update" > "$file"
       done
 
       old_hash=""
