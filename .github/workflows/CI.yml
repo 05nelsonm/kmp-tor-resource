@@ -327,4 +327,4 @@ jobs:
             esac
           run: |
             cd /work
-            java -jar libs/test-linux.jar "10" "${{ matrix.expected-host }}" "${{ matrix.expected-arch }}" "."
+            java -jar libs/test-linux.jar "10" "${{ matrix.expected-host }}" "${{ matrix.expected-arch }}" "./test_linux/${{ matrix.expected-arch }}"
