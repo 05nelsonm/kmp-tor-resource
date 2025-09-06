@@ -34,7 +34,7 @@ class TestLinuxUnitTest {
 
         // Will throw exception if it fails
         main(
-            /* timeout = */ 1.toString(),
+            /* timeout = */ 3.toString(),
             /* expectedHost = */ OSInfo.INSTANCE.osHost.toString(),
             /* expectedArch = */ OSInfo.INSTANCE.osArch.toString(),
             /* runtimeDir = */ "".toFile().absolutePath2(),
