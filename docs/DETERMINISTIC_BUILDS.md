@@ -1,16 +1,34 @@
 # DETERMINISTIC BUILDS
 
-Tor and it's dependencies are compiled deterministically such that anyone who wishes to verify 
-the output can do so. Compilation, packaging and validation are had by the `external/task.sh` 
-script. The expected Sha256 hashes are provided by gradle extensions located in directory 
+Tor and it's dependencies are compiled deterministically such that anyone who wishes to verify
+the output can do so. Compilation, packaging and validation are had by the `external/task.sh`
+script. The expected Sha256 hashes are provided by gradle extensions located in directory
 `build-logic/src/main/kotlin/resource/validation/extensions`.
 
+### TL;DR
+
+<!-- TAG_VERSION -->
+```
+git clone --branch 408.17.0 --depth 1 https://github.com/05nelsonm/kmp-tor-resource.git \
+&& cd kmp-tor-resource \
+&& ./external/task.sh build:all \
+&& ./external/task.sh package:all \
+&& ./external/task.sh validate
+```
+
+### Validate Compilations
+
 - What you will need:
-    - `Linux` or `macOS` `x86_64`
-        - Must be `x86_64` machine to compile apple targets. See [[#4]][issue-4]
+    - An `x86_64` machine
+        - If your machine is not `x86_64`, but your docker installation supports virtualization 
+          of `linux/amd64` containers, things will still work but there will be significant overhead. 
+          For example, `macOS` with `M` series chipsets build fine using rosetta virtualization, but 
+          may take upwards of 6 hours compared to 20-30 minutes.
+    - Bash
     - Git
     - Docker
     - Java 11+
+    - Approximately 15GB of available disk space
 
 1) Clone the repository:
    ```shell
@@ -19,7 +37,6 @@ script. The expected Sha256 hashes are provided by gradle extensions located in 
    ```
 
 <!-- TAG_VERSION -->
-
 2) Checkout the tag you wish to validate (replace with desired tag name):
    ```shell
    git checkout 408.17.0
@@ -30,7 +47,7 @@ script. The expected Sha256 hashes are provided by gradle extensions located in 
    ./external/task.sh build:all
    ```
    - NOTE: If you are not building for the first time here, you can add flag `--rebuild` 
-     or perform `clean` before `build:all` to start completely fresh.
+     or perform `./external/task.sh clean` before `build:all` to start completely fresh.
 
 4) Package all compilations:
    ```shell
@@ -41,8 +58,8 @@ script. The expected Sha256 hashes are provided by gradle extensions located in 
    ```shell
    ./external/task.sh validate
    ```
-   - NOTE: Java `linux-android` resources are the same compilations as the `build:all:android` 
-     task, just gzipped (so, implicit validation of android compilations).
+   - NOTE: Java `linux-android` resources are the exact same compilations as the `build:all:android` 
+     task output, just gzipped. So, there is implicit validation of the android compilations.
    - If you have Java 17+ and Android Studio installed, you can run task `validate:all` instead 
      which will include android in its checks.
 
@@ -53,5 +70,3 @@ Any error output is pretty self-explanatory; either the file didn't exist or has
 match what was expected for the given platform/architecture.
 
 That's it.
-
-[issue-4]: https://github.com/05nelsonm/kmp-tor-resource/issues/4
