@@ -18,7 +18,7 @@
 # See https://github.com/05nelsonm/build-env
 # NOTE: If apple SDKs were updated with version bump, framework Info.plist(s)
 #       may need to be updated with new min version.
-readonly TAG_DOCKER_BUILD_ENV="0.4.0"
+readonly TAG_DOCKER_BUILD_ENV="0.4.1"
 
 readonly DOCKER="$(which docker)"
 readonly U_ID="$(id -u)"
