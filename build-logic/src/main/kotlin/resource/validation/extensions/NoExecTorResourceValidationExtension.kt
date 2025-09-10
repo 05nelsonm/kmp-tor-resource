@@ -52,21 +52,25 @@ open class NoExecTorResourceValidationExtension private constructor(
     private val jvmLinuxLibcX86: String = "63d28c9eac8cb180729d6a95e51d13516583a860444e53a2ad82d446c7074874"
     private val jvmLinuxLibcX86_64: String = "81c495605fe1921380c38e5ab1ff272c6b4dbe9f96c1d86335b71d0366bfbca1"
 
-    protected open val jvmMacosAarch64: String = "3a7f148b3b3afc82986f341256998cf9513e367c4c251c6386cd27f6de4a92da"
-    protected open val jvmMacosX86_64: String = "d5b11ba70b589bc05dd21eaab5d73ea7b3eeeb9c69844165f66d082bb46cd31b"
+    private val jvmLinuxMuslAarch64: String = "ab969dfde1579ee3c1afdaf6139eb8f4bb3d929c77f22f3958a3eacac1df78f1"
+    private val jvmLinuxMuslX86: String = "ce6631cb358524e136452e4e1cd5169f1fe656f8a8e27f821440ee931b47153d"
+    private val jvmLinuxMuslX86_64: String = "3dd42b4e744fc0a45df4c89bd64ddf2ad62ae54b0f3830f50fe5979b30c05417"
 
-    protected open val jvmMingwX86: String = "fd6dacd8458088dbe06dea7f6816b5fb32a6fff3b0083b86bef7260cca532a7a"
-    protected open val jvmMingwX86_64: String = "63a58a92ec11a89a59a45855fbb91929baf73d8cad957b90f470e53ff5607ace"
+    protected open val jvmMacosAarch64: String = "779163e7bfef2485bfda3d3c0cace7b1e8fbf1847f38f14e12aec71936e79bac"
+    protected open val jvmMacosX86_64: String = "3971dca15fdbd7b8d104e8e1d2495bf9f1356737d493af859d45e69945463f97"
+
+    protected open val jvmMingwX86: String = "21a1e888c1a1fff7b165b068be811b490ac9e4987305432f4bb7fd024d35f570"
+    protected open val jvmMingwX86_64: String = "188bf334ca1bf3a34f2db5ed58a40bc3c4b1519e6b2c0ad65d4ea8824f0421ac"
 
     abstract class GPL @Inject internal constructor(
         project: Project,
     ): NoExecTorResourceValidationExtension(project, isGpl = true) {
 
-        override val jvmMacosAarch64: String = "fe06c3768402d66a8fe57ffb53b48affd837dfb0994a1c3c4832175fc8f2a69c"
-        override val jvmMacosX86_64: String = "b3749c315cd66010358cd238d1c7368ef1eed1a88d8ad6b6fca482b4725d84ad"
+        override val jvmMacosAarch64: String = "9d9d79fb7720b1adf51a058084ee00cdd145c540f2bc2eb3e150d1dc5305a337"
+        override val jvmMacosX86_64: String = "4e84310941eb94826464569d235326fc2c4394a75eca6324618813dceb5ca0b8"
 
-        override val jvmMingwX86: String = "ee1c8aeade1bc914ad709e7c3d3b6bba3e4a8cb99f81e018c7f97363f4ea2ffb"
-        override val jvmMingwX86_64: String = "bcbee98b8369c49f89bfccb66f0b42a5d8db735c7bdb08ebead60745811a5f56"
+        override val jvmMingwX86: String = "f6f47772029930e714945b2e0395b3d9c801953768715d33bf5f3ac7f7bcfddd"
+        override val jvmMingwX86_64: String = "7bc86af8169a7f8130c2a2568de39db90647d5da9f9d8078c974462aa57ad330"
 
         internal companion object {
             internal const val NAME = "noExecTorGPLResourceValidation"
@@ -160,6 +164,29 @@ open class NoExecTorResourceValidationExtension private constructor(
             arch = "x86_64",
             libName = "libtorjni.so.gz",
             hash = jvmLinuxLibcX86_64,
+        ),
+
+        // jvm linux-musl
+        ValidationHash.LibJvm(
+            osName = "linux",
+            osSubtype = "musl",
+            arch = "aarch64",
+            libName = "libtorjni.so.gz",
+            hash = jvmLinuxMuslAarch64,
+        ),
+        ValidationHash.LibJvm(
+            osName = "linux",
+            osSubtype = "musl",
+            arch = "x86",
+            libName = "libtorjni.so.gz",
+            hash = jvmLinuxMuslX86,
+        ),
+        ValidationHash.LibJvm(
+            osName = "linux",
+            osSubtype = "musl",
+            arch = "x86_64",
+            libName = "libtorjni.so.gz",
+            hash = jvmLinuxMuslX86_64,
         ),
 
         // jvm macos
