@@ -85,7 +85,11 @@ internal inline fun OSArch.isSupportedBy(osHost: OSHost): Boolean = when (osHost
         OSArch.X86,
         OSArch.X86_64,
     )
-    is OSHost.Linux.Musl -> emptySet()
+    is OSHost.Linux.Musl -> setOf(
+        OSArch.Aarch64,
+        OSArch.X86,
+        OSArch.X86_64,
+    )
     is OSHost.MacOS -> setOf(
         OSArch.Aarch64,
         OSArch.X86_64,
