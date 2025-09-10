@@ -56,6 +56,7 @@ public abstract class KmpTorResourceFilterJarExtension internal constructor(
      *      - i.e. keep compilations of tor for the current host
      *  - `linux-android`
      *  - `linux-libc`
+     *  - `linux-musl`
      *  - `macos`
      *  - `mingw`
      *  - `windows`
@@ -96,6 +97,7 @@ public abstract class KmpTorResourceFilterJarExtension internal constructor(
      *      - i.e. keep compilations of tor for the current host
      *  - `linux-android`
      *  - `linux-libc`
+     *  - `linux-musl`
      *  - `macos`
      *  - `mingw`
      *  - `windows`
@@ -133,6 +135,7 @@ public abstract class KmpTorResourceFilterJarExtension internal constructor(
      *      - i.e. keep compilations of tor for the current host
      *  - `linux-android`
      *  - `linux-libc`
+     *  - `linux-musl`
      *  - `macos`
      *  - `mingw`
      *  - `windows`

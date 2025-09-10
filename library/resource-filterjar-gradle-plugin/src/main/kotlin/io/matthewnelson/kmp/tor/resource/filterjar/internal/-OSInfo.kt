@@ -38,20 +38,15 @@ internal fun Map<String, Set<String>>.resolveOSInfo(): Map<OSHost, Set<OSArch>> 
 @InternalKmpTorApi
 @Throws(IllegalArgumentException::class)
 internal fun String.toOSHost(): OSHost = when (lowercase()) {
-    "current" -> {
-        val current = OSInfo.INSTANCE.osHost
-        when (current) {
-            is OSHost.FreeBSD,
-            is OSHost.Linux.Musl,
-            is OSHost.Unknown -> throw IllegalArgumentException("host[current] resolution to OSHost[$current] is unsupported")
-            else -> {}
-        }
-        current
+    "current" -> when (val current = OSInfo.INSTANCE.osHost) {
+        is OSHost.FreeBSD,
+        is OSHost.Unknown -> throw IllegalArgumentException("host[current] resolution to OSHost[$current] is unsupported")
+        else -> current
     }
 //    OSHost.FreeBSD.path -> OSHost.FreeBSD
     OSHost.Linux.Android.path -> OSHost.Linux.Android
     OSHost.Linux.Libc.path -> OSHost.Linux.Libc
-//    OSHost.Linux.Musl.path -> OSHost.Linux.Musl
+    OSHost.Linux.Musl.path -> OSHost.Linux.Musl
     OSHost.MacOS.path -> OSHost.MacOS
     "windows", OSHost.Windows.path -> OSHost.Windows
     else -> throw IllegalArgumentException(
@@ -60,6 +55,7 @@ internal fun String.toOSHost(): OSHost = when (lowercase()) {
                 current
                 ${OSHost.Linux.Android}
                 ${OSHost.Linux.Libc}
+                ${OSHost.Linux.Musl}
                 ${OSHost.MacOS}
                 ${OSHost.Windows}
                 windows
