@@ -54,17 +54,21 @@ open class ExecTorResourceValidationExtension private constructor(
     private val jvmLinuxLibcX86: String = "7dbf5f18dc25a84dae0816af7de47685de8e4243d9a39cf6a5ba845c2695f469"
     private val jvmLinuxLibcX86_64: String = "eb6ac226e3e542b5ad039252ebbfd363ba7b5993e03179ccf78a8f1c0b113ea8"
 
-    protected open val jvmMacosAarch64: String = "06fef369cac7d82871cd9bae352a6a9515a08b6a86e2066ff9905825ddd47893"
-    protected open val jvmMacosX86_64: String = "2bb70d2f0ccdc78bd5e09cb8832daf3c700a59f64e5be6ea5f70002098ddadcd"
+    private val jvmLinuxMuslAarch64: String = "1ada319c711e3d74fc48aac36d3dffb080fbb8d8daebdd9ab8822ca3f60e14f5"
+    private val jvmLinuxMuslX86: String = "33ae5f06bebac301bb78ef0507a54ea46f5897cc746f29a4b574ea36eae3bfbd"
+    private val jvmLinuxMuslX86_64: String = "4772c877bafe8d10ec335cca23cc0080fb542bcaf4302a8de345180b2ce87a7a"
 
-    protected open val jvmMingwX86: String = "4ad376b83e8e30b8b5a519080b3472f6b74a96451c61985607afaf15cf9f8eb8"
-    protected open val jvmMingwX86_64: String = "d9642deea4b337ba3ed99479287f18b246571ffee97599d2ec5ac59cae29504e"
+    protected open val jvmMacosAarch64: String = "03e0d3e40ae6a722a9b11d8e9d6bb465fb2dc6875657b14c59ffdd48e921ec81"
+    protected open val jvmMacosX86_64: String = "c95fb94573ed3befc72560fd6134967472d2d978a7fa0dd5c583f3a99a702dea"
+
+    protected open val jvmMingwX86: String = "132bd65a5724982c8e2b61da78f661a86acc721cdd3402ed72f7411a248eacb2"
+    protected open val jvmMingwX86_64: String = "be6ae8e6141c4c9ae447cc48247fc8daad8b8dad552b7d7d7394e2e6bf8cde12"
 
     private val nativeLinuxArm64: String = jvmLinuxLibcAarch64
     private val nativeLinuxX64: String = jvmLinuxLibcX86_64
 
-    protected open val nativeMacosArm64: String = "7d6fccb563e12552839cc629c0423c90f9323db4216243c4bd472c0f5fb87e61"
-    protected open val nativeMacosX64: String = "aa1ffc21fb69b3efc776993349923a06bb5ed9e068f23d07522ab0dff602a3c5"
+    protected open val nativeMacosArm64: String = "1601af296c7332cf8991261439748a3080d09fd19be283500d218477785ba0a4"
+    protected open val nativeMacosX64: String = "06b37a4579b4a33b1bca94f54c217c3228a513623d417af96c78c5b6502d5ed8"
 
     private val nativeMingwX64: String by lazy { jvmMingwX86_64 }
 
@@ -76,14 +80,14 @@ open class ExecTorResourceValidationExtension private constructor(
         project: Project,
     ): ExecTorResourceValidationExtension(project, isGpl = true) {
 
-        override val jvmMacosAarch64: String = "9c7d123f6e9b0949bbba769275103852db042b4a2b38ce93abfe656f749a848b"
-        override val jvmMacosX86_64: String = "0cccec4166fc8a19f203c788408a87a01e573d038186c7a8748f89ecb6d8f6be"
+        override val jvmMacosAarch64: String = "b7a1fc24a3215a17ad6fbcc8e2b865174b61551c6c5bcb7e5623c9529dba6e5e"
+        override val jvmMacosX86_64: String = "f5725c768457d200d045c31471a189ef1a8b68fefa6e1e5efb56eb59c8c2a0fb"
 
-        override val jvmMingwX86: String = "b0c53f728ae1446d2c5ab85588be7d76b9d47ae8b9314e8d50128416521b825d"
-        override val jvmMingwX86_64: String = "b90969c996a8c8cacc7b7d0535cd15c5fa0c5993ac6c4ae637babbfcaf14c5cb"
+        override val jvmMingwX86: String = "26e7c48f8e8327abf777a23dde235aa9f494959bd0f9c249254a15df294519a8"
+        override val jvmMingwX86_64: String = "5719167dcc7c352c4f7dbd0a578c2aaecc270d46ca88cc6a0188b1a9352d0600"
 
-        override val nativeMacosArm64: String = "bfe3e50b4c218fed3c20ba67f9c81b20a5ba39c67272a50f341fe5bf75bfcd12"
-        override val nativeMacosX64: String = "f61ee69a540dda03d12a9171dcf4be91745f9d95243680eb81a75f237ce1f99a"
+        override val nativeMacosArm64: String = "76cc249c7eaf24f8e8efd043710880017aa3d43dd42895f0ae565166cdc217f5"
+        override val nativeMacosX64: String = "464737cc1b328bd7b6567dbd1f727c6f1a7140ea42bd708c55b5066d2466bed7"
 
         internal companion object {
             internal const val NAME = "execTorGPLResourceValidation"
@@ -169,6 +173,29 @@ open class ExecTorResourceValidationExtension private constructor(
             arch = "x86_64",
             libName = "tor.gz",
             hash = jvmLinuxLibcX86_64,
+        ),
+
+        // jvm linux-musl
+        ValidationHash.LibJvm(
+            osName = "linux",
+            osSubtype = "musl",
+            arch = "aarch64",
+            libName = "tor.gz",
+            hash = jvmLinuxMuslAarch64,
+        ),
+        ValidationHash.LibJvm(
+            osName = "linux",
+            osSubtype = "musl",
+            arch = "x86",
+            libName = "tor.gz",
+            hash = jvmLinuxMuslX86,
+        ),
+        ValidationHash.LibJvm(
+            osName = "linux",
+            osSubtype = "musl",
+            arch = "x86_64",
+            libName = "tor.gz",
+            hash = jvmLinuxMuslX86_64,
         ),
 
         // jvm macos

@@ -41,6 +41,51 @@ function __package:android {
   __package:file "build/out/$dirname_out/android/$1" "androidMain/jniLibs/$1" "$2"
 }
 
+function __package:linux:jvm {
+  __util:require:var_set "$archs" "archs"
+  __util:require:var_set "$os_subtype" "os_subtype"
+
+  local arch=
+  local dirname_out="tor"
+  local dirname_final="resource-lib-tor"
+  local rpath_native="resource/lib/tor"
+  local target="linux$os_subtype"
+  for arch in $archs; do
+    __package:jvm "$arch" "libtor.so"
+  done
+
+  dirname_final="resource-exec-tor"
+  rpath_native="resource/exec/tor"
+  for arch in $archs; do
+    __package:jvm "$arch" "tor"
+  done
+
+  dirname_final="resource-noexec-tor"
+  rpath_native="resource/noexec/tor"
+  for arch in $archs; do
+    __package:jvm "$arch" "libtorjni.so"
+  done
+
+  dirname_out="tor-gpl"
+  dirname_final="resource-lib-tor-gpl"
+  rpath_native="resource/lib/tor"
+  for arch in $archs; do
+    __package:jvm "$arch" "libtor.so"
+  done
+
+  dirname_final="resource-exec-tor-gpl"
+  rpath_native="resource/exec/tor"
+  for arch in $archs; do
+    __package:jvm "$arch" "tor"
+  done
+
+  dirname_final="resource-noexec-tor-gpl"
+  rpath_native="resource/noexec/tor"
+  for arch in $archs; do
+    __package:jvm "$arch" "libtorjni.so"
+  done
+}
+
 function __package:jvm {
   __util:require:var_set "$dirname_out" "dirname_out"
   __util:require:var_set "$rpath_native" "rpath_native (e.g. jvmMain/resources/io/matthewnelson/kmp/tor/{rpath_native}/native/{target}/{arch})"

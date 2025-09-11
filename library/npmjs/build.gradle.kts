@@ -69,6 +69,7 @@ npmPublish {
     val targets = NativeTargets(
         "linux-android",
         "linux-libc",
+        "linux-musl",
         "macos",
         "mingw",
     )

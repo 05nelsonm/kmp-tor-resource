@@ -10,13 +10,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        task-target: [ geoip, android, ios, linux-libc, macos, mingw ]
+        task-target: [ geoip, android, ios, linux-libc, linux-musl, macos, mingw ]
     runs-on: ubuntu-latest
     outputs:
       id-geoip: ${{ steps.output-artifact-id.outputs.id-geoip }}
       id-android: ${{ steps.output-artifact-id.outputs.id-android }}
       id-ios: ${{ steps.output-artifact-id.outputs.id-ios }}
       id-linux-libc: ${{ steps.output-artifact-id.outputs.id-linux-libc }}
+      id-linux-musl: ${{ steps.output-artifact-id.outputs.id-linux-musl }}
       id-macos: ${{ steps.output-artifact-id.outputs.id-macos }}
       id-mingw: ${{ steps.output-artifact-id.outputs.id-mingw }}
     steps:
@@ -128,6 +129,7 @@ jobs:
           ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "android" "${{ needs.compile-task.outputs.id-android }}"
           ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "ios" "${{ needs.compile-task.outputs.id-ios }}"
           ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "linux-libc" "${{ needs.compile-task.outputs.id-linux-libc }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "linux-musl" "${{ needs.compile-task.outputs.id-linux-musl }}"
           ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "macos" "${{ needs.compile-task.outputs.id-macos }}"
           ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "mingw" "${{ needs.compile-task.outputs.id-mingw }}"
 
@@ -262,6 +264,11 @@ jobs:
             expected-host: linux-libc
             expected-arch: aarch64
             java-version: 8
+          - arch: aarch64
+            distro: alpine_latest
+            expected-host: linux-musl
+            expected-arch: aarch64
+            java-version: 21
           - arch: armv7
             distro: ubuntu16.04
             expected-host: linux-libc
@@ -277,6 +284,16 @@ jobs:
             expected-host: linux-libc
             expected-arch: riscv64
             java-version: 11
+          - arch: i386
+            distro: _
+            expected-host: linux-musl
+            expected-arch: x86
+            java-version: 8
+          - arch: amd64
+            distro: _
+            expected-host: linux-musl
+            expected-arch: x86_64
+            java-version: 8
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -297,6 +314,7 @@ jobs:
           ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "geoip" "${{ needs.compile-task.outputs.id-geoip }}"
           ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "android" "${{ needs.compile-task.outputs.id-android }}"
           ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "linux-libc" "${{ needs.compile-task.outputs.id-linux-libc }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "linux-musl" "${{ needs.compile-task.outputs.id-linux-musl }}"
           ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "macos" "${{ needs.compile-task.outputs.id-macos }}"
           ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "mingw" "${{ needs.compile-task.outputs.id-mingw }}"
 
@@ -307,6 +325,7 @@ jobs:
 
       - name: Run tor
         uses: uraimo/run-on-arch-action@v3
+        if: matrix.distro != '_'
         with:
           arch: ${{ matrix.arch }}
           distro: ${{ matrix.distro }}
@@ -320,6 +339,10 @@ jobs:
                 apt-get update -q -y
                 apt-get install -q -y openjdk-${{ matrix.java-version }}-jre-headless
                 ;;
+              alpine*)
+                apk update
+                apk add openjdk${{ matrix.java-version }}
+                ;;
               *)
                 echo 1>&2 "Host not configured..."
                 exit 2
@@ -328,3 +351,22 @@ jobs:
           run: |
             cd /work
             java -jar libs/test-linux.jar "10" "${{ matrix.expected-host }}" "${{ matrix.expected-arch }}" "./test_linux/${{ matrix.expected-arch }}"
+
+      - name: Build Alpine Container
+        if: matrix.distro == '_'
+        run: >
+          docker build
+          -f "${PWD}/.github/docker/Dockerfile"
+          --build-arg ARCH=${{ matrix.arch }}
+          -t TestLinux/tor.alpine.${{ matrix.arch }}
+          "${PWD}/.github/docker"
+
+      - name: Run tor On Alpine
+        if: matrix.distro == '_'
+        run: >
+          docker run --rm
+          --pull never
+          -v "${PWD}/test-linux/build:/work"
+          -u "$(id -u):$(id -g)"
+          TestLinux/tor.alpine.${{ matrix.arch }}:latest
+          sh -c 'java -jar libs/test-linux.jar "10" "${{ matrix.expected-host }}" "${{ matrix.expected-arch }}" "./test_linux/${{ matrix.expected-arch }}"'

@@ -29,11 +29,6 @@ internal class OSInfoUnitTest {
     }
 
     @Test
-    fun givenHost_whenLinuxMusl_thenThrowsException() {
-        assertFailsWith<IllegalArgumentException>{ "linux-musl".toOSHost() }
-    }
-
-    @Test
     fun givenHost_whenFreeBSD_thenThrowsException() {
         assertFailsWith<IllegalArgumentException>{ "freebsd".toOSHost() }
     }

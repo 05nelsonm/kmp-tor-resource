@@ -33,6 +33,7 @@ function build:all:android { ## Builds all Android targets
 
 function build:all:desktop { ## Builds all Linux, macOS, MinGW targets
   build:all:linux-libc
+  build:all:linux-musl
   build:all:macos
   build:all:mingw
 }
@@ -50,6 +51,12 @@ function build:all:linux-libc { ## Builds all Linux Libc targets
   build:linux-libc:riscv64
   build:linux-libc:x86
   build:linux-libc:x86_64
+}
+
+function build:all:linux-musl { ## Builds all Linux Musl targets
+  build:linux-musl:aarch64
+  build:linux-musl:x86
+  build:linux-musl:x86_64
 }
 
 function build:all:macos { ## Builds all macOS and macOS LTS targets
@@ -197,6 +204,33 @@ function build:linux-libc:x86_64 { ## Builds Linux Libc x86_64
   __build:docker:execute
 }
 
+function build:linux-musl:aarch64 { ## Builds Linux Musl aarch64
+  local os_name="linux"
+  local os_subtype="-musl"
+  local os_arch="aarch64"
+  local openssl_target="linux-aarch64"
+  __build:configure:target:init
+  __build:docker:execute
+}
+
+function build:linux-musl:x86 { ## Builds Linux Musl i686
+  local os_name="linux"
+  local os_subtype="-musl"
+  local os_arch="x86"
+  local openssl_target="linux-x86"
+  __build:configure:target:init
+  __build:docker:execute
+}
+
+function build:linux-musl:x86_64 { ## Builds Linux Musl x86_64
+  local os_name="linux"
+  local os_subtype="-musl"
+  local os_arch="x86_64"
+  local openssl_target="linux-x86_64"
+  __build:configure:target:init
+  __build:docker:execute
+}
+
 function build:macos-lts:aarch64 { ## Builds macOS LTS (SDK 12.3 - Jvm/Js) aarch64
   local os_subtype="-lts"
   build:macos:aarch64
@@ -207,7 +241,7 @@ function build:macos-lts:x86_64 { ## Builds macOS LTS (SDK 12.3 - Jvm/Js) x86_64
   build:macos:x86_64
 }
 
-function build:macos:aarch64 { ## Builds macOS     (SDK 14.0 - Native) aarch64
+function build:macos:aarch64 { ## Builds macOS     (SDK 15.4 - Native) aarch64
   local os_name="macos"
   local os_arch="aarch64"
   local openssl_target="darwin64-arm64-cc"
@@ -216,7 +250,7 @@ function build:macos:aarch64 { ## Builds macOS     (SDK 14.0 - Native) aarch64
   __build:docker:execute
 }
 
-function build:macos:x86_64 { ## Builds macOS     (SDK 14.0 - Native) x86_64
+function build:macos:x86_64 { ## Builds macOS     (SDK 15.4 - Native) x86_64
   local os_name="macos"
   local os_arch="x86_64"
   local openssl_target="darwin64-x86_64-cc"
@@ -279,6 +313,7 @@ function package:all { ## Packages all build/out contents & geoip files
   package:android
   package:ios
   package:linux-libc
+  package:linux-musl
   package:macos
   package:mingw
 }
@@ -325,44 +360,9 @@ function package:android { ## Packages all Android build/out contents
   done
 
   archs="aarch64 armv7 x86 x86_64"
-  dirname_out="tor"
-  dirname_final="resource-lib-tor"
-  local rpath_native="resource/lib/tor"
-  local target="linux-android"
-  for arch in $archs; do
-    __package:jvm "$arch" "libtor.so"
-  done
-
-  dirname_final="resource-exec-tor"
-  rpath_native="resource/exec/tor"
-  for arch in $archs; do
-    __package:jvm "$arch" "tor"
-  done
-
-  dirname_final="resource-noexec-tor"
-  rpath_native="resource/noexec/tor"
-  for arch in $archs; do
-    __package:jvm "$arch" "libtorjni.so"
-  done
-
-  dirname_out="tor-gpl"
-  dirname_final="resource-lib-tor-gpl"
-  rpath_native="resource/lib/tor"
-  for arch in $archs; do
-    __package:jvm "$arch" "libtor.so"
-  done
-
-  dirname_final="resource-exec-tor-gpl"
-  rpath_native="resource/exec/tor"
-  for arch in $archs; do
-    __package:jvm "$arch" "tor"
-  done
-
-  dirname_final="resource-noexec-tor-gpl"
-  rpath_native="resource/noexec/tor"
-  for arch in $archs; do
-    __package:jvm "$arch" "libtorjni.so"
-  done
+  local os_subtype="-android"
+  unset arch dirname_out dirname_final
+  __package:linux:jvm
 }
 
 function package:ios { ## Packages all iOS & iOS Simulator build/out contents
@@ -390,49 +390,14 @@ function package:ios { ## Packages all iOS & iOS Simulator build/out contents
 
 function package:linux-libc { ## Packages all Linux Libc build/out contents
   local archs="aarch64 armv7 ppc64 riscv64 x86 x86_64"
+  local os_subtype="-libc"
+  __package:linux:jvm
+  unset archs os_subtype
+
   local dirname_out="tor"
   local dirname_final="resource-lib-tor"
-  local rpath_native="resource/lib/tor"
   local target="linux-libc"
-  for arch in $archs; do
-    __package:jvm "$arch" "libtor.so"
-  done
 
-  dirname_final="resource-exec-tor"
-  rpath_native="resource/exec/tor"
-  for arch in $archs; do
-    __package:jvm "$arch" "tor"
-  done
-
-  dirname_final="resource-noexec-tor"
-  rpath_native="resource/noexec/tor"
-  for arch in $archs; do
-    __package:jvm "$arch" "libtorjni.so"
-  done
-
-  dirname_out="tor-gpl"
-  dirname_final="resource-lib-tor-gpl"
-  rpath_native="resource/lib/tor"
-  for arch in $archs; do
-    __package:jvm "$arch" "libtor.so"
-  done
-
-  dirname_final="resource-exec-tor-gpl"
-  rpath_native="resource/exec/tor"
-  for arch in $archs; do
-    __package:jvm "$arch" "tor"
-  done
-
-  dirname_final="resource-noexec-tor-gpl"
-  rpath_native="resource/noexec/tor"
-  for arch in $archs; do
-    __package:jvm "$arch" "libtorjni.so"
-  done
-
-  unset rpath_native
-
-  dirname_out="tor"
-  dirname_final="resource-lib-tor"
   local native_resource="io.matthewnelson.kmp.tor.resource.lib.tor.internal"
   __package:native "aarch64" "libtor.so" "linuxArm64Main"
   __package:native "x86_64" "libtor.so" "linuxX64Main"
@@ -452,6 +417,12 @@ function package:linux-libc { ## Packages all Linux Libc build/out contents
   dirname_final="resource-exec-tor-gpl"
   __package:native "aarch64" "tor" "linuxArm64Main"
   __package:native "x86_64" "tor" "linuxX64Main"
+}
+
+function package:linux-musl { ## Packages all Linux Musl build/out contents
+  local archs="aarch64 x86 x86_64"
+  local os_subtype="-musl"
+  __package:linux:jvm
 }
 
 function package:macos { ## Packages all macOS & macOS LTS build/out contents
