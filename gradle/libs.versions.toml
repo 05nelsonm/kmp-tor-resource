@@ -10,7 +10,7 @@ encoding                    = "2.4.0"
 
 gradle-android              = "8.9.3"
 gradle-binary-compat        = "0.18.1"
-gradle-cklib                = "0.3.3"
+gradle-cklib                = "0.3.4"
 gradle-filterjar            = "0.1.0"
 gradle-kmp-configuration    = "0.5.2"
 gradle-kotlin               = "2.2.20"
