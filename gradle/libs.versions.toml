@@ -1,8 +1,8 @@
 [versions]
 #noinspection GradleDependency
 androidx-startup            = "1.1.1" # Do not upgrade. Next version requires minSdk 21+
-androidx-test-core          = "1.6.1"
-androidx-test-runner        = "1.6.2"
+androidx-test-core          = "1.7.0"
+androidx-test-runner        = "1.7.0"
 
 clikt                       = "5.0.3"
 
