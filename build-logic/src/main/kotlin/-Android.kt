@@ -18,7 +18,6 @@ import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import io.matthewnelson.kmp.configuration.extension.container.target.TargetAndroidContainer
 import org.gradle.api.Action
-import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import resource.validation.extensions.ExecTorResourceValidationExtension
 import resource.validation.extensions.LibTorResourceValidationExtension
@@ -29,7 +28,6 @@ fun KmpConfigurationContainerDsl.androidLibrary(
     buildTools: String? = "35.0.1",
     compileSdk: Int = 35,
     minSdk: Int = 21,
-    javaVersion: JavaVersion = JavaVersion.VERSION_1_8,
     action: (Action<TargetAndroidContainer.Library>)? = null,
 ) {
     androidLibrary {
@@ -49,10 +47,6 @@ fun KmpConfigurationContainerDsl.androidLibrary(
                 targetSdk = compileSdk
             }
         }
-
-        kotlinJvmTarget = javaVersion
-        compileSourceCompatibility = javaVersion
-        compileTargetCompatibility = javaVersion
 
         action?.execute(this)
     }

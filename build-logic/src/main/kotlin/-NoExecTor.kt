@@ -321,13 +321,6 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     includeDirs(externalNativeDir)
                 }.interopProcessingTaskName
 
-                if (target.konanTarget.family == Family.MINGW) {
-                    target.compilations["test"].cinterops.create("win32_sockets") {
-                        defFile(generatedNativeDir.resolve("$name.def"))
-                        includeDirs(externalNativeDir)
-                    }
-                }
-
                 if (linkerOpts.isNotBlank()) {
                     target.compilerOptions.freeCompilerArgs.addAll("-linker-options", linkerOpts)
                 }
@@ -475,26 +468,26 @@ fun KmpConfigurationExtension.configureNoExecTor(
 // The following info can be found in ~/.konan/kotlin-native-prebuild-{os}-{arch}-{kotlin version}/konan/konan.properties
 private object LLVM {
     const val URL: String = "https://download.jetbrains.com/kotlin/native/resources/llvm"
-    const val VERSION: String = "16.0.0"
+    const val VERSION: String = "19"
 
     // llvm-{llvm version}-{arch}-{host}-dev-{id}
     object DevID {
         object Linux {
-            const val x86_64: Int = 80
+            const val x86_64: Int = 103
         }
         object MacOS {
-            const val aarch64: Int = 65
-            const val x86_64: Int = 56
+            const val aarch64: Int = 79
+            const val x86_64: Int = 75
         }
         object MinGW {
-            const val x86_64: Int = 56
+            const val x86_64: Int = 134
         }
     }
 }
 
 private fun CKlibGradleExtension.configure(libs: LibrariesForLibs) {
     kotlinVersion = libs.versions.gradle.kotlin.get()
-    check(kotlinVersion == "2.1.21") {
+    check(kotlinVersion == "2.2.20") {
         "Kotlin version out of date! Download URLs for LLVM need to be updated for ${project.path}"
     }
 
