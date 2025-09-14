@@ -19,5 +19,5 @@ plugins {
 
 kmpConfiguration {
     // See build-logic/src/main/kotlin/-CompilationExecTor.kt
-    configureCompilationExecTor(project) {}
+    configureCompilationExecTor {}
 }

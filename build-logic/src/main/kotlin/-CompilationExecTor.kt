@@ -17,12 +17,10 @@ import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
-import org.gradle.api.Project
 import org.gradle.kotlin.dsl.the
 import resource.validation.extensions.CompilationExecTorResourceValidationExtension
 
 fun KmpConfigurationExtension.configureCompilationExecTor(
-    project: Project,
     action: Action<KmpConfigurationContainerDsl>,
 ) {
     require(project.name.startsWith("resource-compilation-exec-tor")) { "Invalid project." }

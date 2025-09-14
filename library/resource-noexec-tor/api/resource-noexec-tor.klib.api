@@ -1,5 +1,5 @@
 // Klib ABI Dump
-// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64]
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, wasmJs]
 // Alias: native => [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64]
 // Rendering settings:
 // - Signature version: 2
@@ -14,7 +14,7 @@ final class io.matthewnelson.kmp.tor.resource.noexec.tor/ResourceLoaderTorNoExec
         final fun getOrCreate(io.matthewnelson.kmp.file/File, kotlin/Boolean): io.matthewnelson.kmp.tor.common.api/ResourceLoader.Tor // io.matthewnelson.kmp.tor.resource.noexec.tor/ResourceLoaderTorNoExec.Companion.getOrCreate|getOrCreate(io.matthewnelson.kmp.file.File;kotlin.Boolean){}[0]
     }
 
-    // Targets: [js]
+    // Targets: [js, wasmJs]
     final object Companion : io.matthewnelson.kmp.tor.resource.noexec.tor/GetOrCreate // io.matthewnelson.kmp.tor.resource.noexec.tor/ResourceLoaderTorNoExec.Companion|null[0]
 }
 
@@ -24,5 +24,5 @@ abstract class io.matthewnelson.kmp.tor.resource.noexec.tor/GetOrCreate { // io.
     abstract fun getOrCreate(io.matthewnelson.kmp.file/File, kotlin/Boolean): io.matthewnelson.kmp.tor.common.api/ResourceLoader.Tor // io.matthewnelson.kmp.tor.resource.noexec.tor/GetOrCreate.getOrCreate|getOrCreate(io.matthewnelson.kmp.file.File;kotlin.Boolean){}[0]
 }
 
-// Targets: [js]
+// Targets: [js, wasmJs]
 abstract class io.matthewnelson.kmp.tor.resource.noexec.tor/GetOrCreate // io.matthewnelson.kmp.tor.resource.noexec.tor/GetOrCreate|null[0]

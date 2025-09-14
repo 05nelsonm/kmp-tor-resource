@@ -24,7 +24,7 @@ fun KmpConfigurationExtension.configureShared(
     java9ModuleName: String? = null,
     publish: Boolean = false,
     excludeNative: Boolean = false,
-    action: Action<KmpConfigurationContainerDsl>
+    action: Action<KmpConfigurationContainerDsl>,
 ) {
     if (publish) {
         require(!java9ModuleName.isNullOrBlank()) { "publications must specify a module-info name" }
@@ -50,36 +50,32 @@ fun KmpConfigurationExtension.configureShared(
             }
         }
 
-        @Suppress("RedundantSamConstructor")
         js {
             target {
                 browser {
-                    testTask(Action {
+                    testTask {
                         isEnabled = false
-                    })
+                    }
                 }
                 nodejs {
-                    testTask(Action {
+                    testTask {
                         useMocha { timeout = "30s" }
-                    })
+                    }
                 }
             }
         }
 
-        // TODO: Update Kotlin to 2.2.20
-        //  See https://youtrack.jetbrains.com/issue/KT-77443
-//        @Suppress("RedundantSamConstructor")
-//        @OptIn(ExperimentalWasmDsl::class)
-//        wasmJs {
-//            target {
-//                browser {
-//                    testTask(Action {
-//                        isEnabled = false
-//                    })
-//                }
-//                nodejs()
-//            }
-//        }
+        @OptIn(ExperimentalWasmDsl::class)
+        wasmJs {
+            target {
+                browser {
+                    testTask {
+                        isEnabled = false
+                    }
+                }
+                nodejs()
+            }
+        }
 
         if (!excludeNative) {
             androidNativeAll()

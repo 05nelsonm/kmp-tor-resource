@@ -19,5 +19,5 @@ plugins {
 
 kmpConfiguration {
     // See build-logic/src/main/kotlin/-NoExecTor.kt
-    configureNoExecTor(project) {}
+    configureNoExecTor {}
 }
