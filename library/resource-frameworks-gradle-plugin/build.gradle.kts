@@ -13,22 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import resource.validation.extensions.FrameworksResourceValidationExtension
 
 plugins {
-    kotlin("jvm")
-    id("publication")
-    id("java-gradle-plugin")
     id("resource-validation")
+    id("shared-plugin")
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-
     sourceSets.getByName("main") {
         resources.srcDir(frameworksResourceValidation.jvmNativeLibResourcesSrcDir())
 
@@ -59,13 +51,6 @@ java {
             internal const val HASH_IOS_LIBTOR_GPL: String = "${FrameworksResourceValidationExtension.HASH_IOS_LIBTOR_GPL}"
 
         """.trimIndent())
-    }
-}
-
-tasks.withType<KotlinCompile> {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_1_8)
-        explicitApiMode.set(ExplicitApiMode.Strict)
     }
 }
 
