@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-
 plugins {
     id("configuration")
     id("resource-validation")
@@ -30,21 +28,6 @@ kmpConfiguration {
                 resources.srcDirs(geoipResourceValidation.jvmResourcesSrcDir())
             }
         }
-
-        // TODO: Update Kotlin to 2.2.20
-        //  See https://youtrack.jetbrains.com/issue/KT-77443
-//        @Suppress("RedundantSamConstructor")
-//        @OptIn(ExperimentalWasmDsl::class)
-//        wasmJs {
-//            target {
-//                browser {
-//                    testTask(Action {
-//                        isEnabled = false
-//                    })
-//                }
-//                nodejs()
-//            }
-//        }
 
         common {
             sourceSetMain {

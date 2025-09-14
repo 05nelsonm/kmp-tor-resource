@@ -164,7 +164,6 @@ fun KmpConfigurationContainerDsl.configureAndroidNativeEmulatorTests(project: Pr
 }
 
 fun KmpConfigurationExtension.configureAndroidUnitTestTor(
-    project: Project,
     action: Action<KmpConfigurationContainerDsl>,
 ) {
     require(project.name.startsWith("resource-android-unit-test-tor")) { "Invalid project" }

@@ -20,7 +20,6 @@ import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
-import org.gradle.api.Project
 import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.get
@@ -40,7 +39,6 @@ import resource.validation.extensions.NoExecTorResourceValidationExtension
 import java.io.File
 
 fun KmpConfigurationExtension.configureNoExecTor(
-    project: Project,
     action: Action<KmpConfigurationContainerDsl>,
 ) {
     require(project.name.startsWith("resource-noexec-tor")) { "Invalid project" }
