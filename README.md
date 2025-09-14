@@ -13,6 +13,7 @@
 ![badge-platform-linux]
 ![badge-platform-ios]
 ![badge-platform-macos]
+![badge-platform-wasm]
 ![badge-platform-windows]
 ![badge-support-android-native]
 ![badge-support-linux-arm]
@@ -43,7 +44,7 @@ Tor and its dependencies are compiled from source using the following versions
 
 More details about how things are compiled can be found [HERE](docs/COMPILATION_DETAILS.md)
 
-### Jvm/Node.js Supported Operating Systems & Architectures
+### Supported Operating Systems & Architectures for Jvm, Kotlin/Js, & Kotlin/WasmJs
 
 |                 | aarch64 | armv7a | ppc64le | riscv64 | x86 | x86_64 |
 |-----------------|---------|--------|---------|---------|-----|--------|
@@ -262,7 +263,7 @@ See the [filterjar gradle plugin README](library/resource-filterjar-gradle-plugi
 </details>
 
 <details>
-    <summary>Configure Node.js</summary>
+    <summary>Configure Kotlin/Js and/or Kotlin/WasmJs</summary>
 
 See the [npmjs README](library/npmjs/README.md) for more details.
 
