@@ -281,6 +281,7 @@ private fun NpmPackage.applyPackageInfoJson(isGpl: Boolean) {
 
         keywords.add("tor")
         keywords.add("kmp-tor")
+        keywords.add("kmp-tor-resource")
     }
 }
 

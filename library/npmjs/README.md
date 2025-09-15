@@ -1,6 +1,6 @@
 # npmjs
 
-Module specifically for `Node.js` publications to `Npmjs` registry, available at https://www.npmjs.com/search?q=kmp-tor.resource-exec
+Module specifically for `Node.js` publications to `Npmjs` registry, available from [Npmjs#search][url-npmjs-search]
 
 When utilizing the `resource-exec-tor` dependency (or its `-gpl` variant) for Kotlin Multiplatform `Node.js`, 
 an additional dependency for the `npm` module must be added to the `js` and/or `wasmJs` source set(s). The Kotlin 
@@ -57,3 +57,5 @@ implementation expects the node module to be present at runtime.
       }
   }
   ```
+
+[url-npmjs-search]: https://www.npmjs.com/search?q=keywords%3Akmp-tor-resource

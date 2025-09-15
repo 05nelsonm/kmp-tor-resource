@@ -319,11 +319,32 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     includeDirs(externalNativeDir)
                 }.interopProcessingTaskName
 
+                val testInteropTaskInfo = if (target.konanTarget.family == Family.MINGW) {
+                    target.compilations["test"].cinterops.create("win32_sockets") {
+                        defFile(generatedNativeDir.resolve("$name.def"))
+                        includeDirs(externalNativeDir)
+                    }.interopProcessingTaskName to target.targetName
+                } else {
+                    null
+                }
+
                 if (linkerOpts.isNotBlank()) {
                     target.compilerOptions.freeCompilerArgs.addAll("-linker-options", linkerOpts)
                 }
 
-                interopTaskName to target.konanTarget
+                Triple(interopTaskName, target.konanTarget, testInteropTaskInfo)
+            }
+
+            project.afterEvaluate {
+                project.tasks.all {
+                    when {
+                        name.endsWith("TestCinterop-win32_socketsKlib") -> interopTaskInfo.forEach {
+                            val (taskName, targetName) = it.third ?: return@forEach
+                            if (!name.startsWith(targetName)) return@forEach
+                            dependsOn(taskName)
+                        }
+                    }
+                }
             }
 
             project.extensions.configure<CompileToBitcodeExtension> {
@@ -352,9 +373,9 @@ fun KmpConfigurationExtension.configureNoExecTor(
                     // Ensure the CompileToBitcode task comes after cinterop task such
                     // that whatever sysroot dependencies are needed get downloaded
                     // and are available at time of execution.
-                    interopTaskInfo.forEach { (interopTaskName, interopTarget) ->
+                    interopTaskInfo.forEach { (interopTaskName, interopTarget, _) ->
                         if (interopTarget != kt) return@forEach
-                        this.dependsOn(interopTaskName)
+                        dependsOn(interopTaskName)
                     }
                 }
             }
