@@ -20,6 +20,7 @@ import io.matthewnelson.kmp.configuration.extension.KmpConfigurationExtension
 import io.matthewnelson.kmp.configuration.extension.container.target.KmpConfigurationContainerDsl
 import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Action
+import org.gradle.api.Task
 import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.get
@@ -348,7 +349,7 @@ fun KmpConfigurationExtension.configureNoExecTor(
             }
 
             project.extensions.configure<CompileToBitcodeExtension> {
-                config.configure(libs)
+                val downloadDevLLVMTask = config.configure(libs)
 
                 create("kmp_tor") {
                     language = CompileToBitcode.Language.C
@@ -377,6 +378,8 @@ fun KmpConfigurationExtension.configureNoExecTor(
                         if (interopTarget != kt) return@forEach
                         dependsOn(interopTaskName)
                     }
+
+                    dependsOn(downloadDevLLVMTask)
                 }
             }
         }
@@ -485,6 +488,9 @@ fun KmpConfigurationExtension.configureNoExecTor(
 // the -dev llvm compiler for the current kotlin version.
 //
 // The following info can be found in ~/.konan/kotlin-native-prebuild-{os}-{arch}-{kotlin version}/konan/konan.properties
+//
+//   e.g. cat ~/.konan/kotlin-native-prebuilt-linux-x86_64-2.2.20/konan/konan.properties | grep ".dev="
+@Suppress("ConstPropertyName")
 private object LLVM {
     const val URL: String = "https://download.jetbrains.com/kotlin/native/resources/llvm"
     const val VERSION: String = "19"
@@ -504,7 +510,7 @@ private object LLVM {
     }
 }
 
-private fun CKlibGradleExtension.configure(libs: LibrariesForLibs) {
+private fun CKlibGradleExtension.configure(libs: LibrariesForLibs): Task {
     kotlinVersion = libs.versions.gradle.kotlin.get()
     check(kotlinVersion == "2.2.20") {
         "Kotlin version out of date! Download URLs for LLVM need to be updated for ${project.path}"
@@ -535,7 +541,7 @@ private fun CKlibGradleExtension.configure(libs: LibrariesForLibs) {
 
     val source = DependencySource.Remote.Public(subDirectory = "${LLVM.VERSION}-${arch}-${host}")
 
-    DependencyProcessor(
+    val processor = DependencyProcessor(
         dependenciesRoot = cklibDir,
         dependenciesUrl = LLVM.URL,
         dependencyToCandidates = mapOf(llvmDev to listOf(source)),
@@ -550,5 +556,9 @@ private fun CKlibGradleExtension.configure(libs: LibrariesForLibs) {
             println("Downloading[$llvmDev] - $current / $total")
         },
         archiveType = archive,
-    ).run()
+    )
+
+    return project.tasks.register("downloadDevLLVM") {
+        actions = listOf(Action { processor.run() })
+    }.get()
 }
