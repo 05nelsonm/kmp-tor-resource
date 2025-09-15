@@ -18,6 +18,8 @@ plugins {
     `java-gradle-plugin`
 }
 
+kotlin.compilerOptions.freeCompilerArgs.add("-Xsuppress-version-warnings")
+
 gradlePlugin {
     plugins {
         create("resource-validation") {
