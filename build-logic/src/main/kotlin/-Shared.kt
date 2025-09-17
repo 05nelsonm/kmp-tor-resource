@@ -100,5 +100,7 @@ fun KmpConfigurationExtension.configureShared(
         kotlin { explicitApi() }
 
         action.execute(this)
+
+        configureKotlinVersionCompatibility()
     }
 }

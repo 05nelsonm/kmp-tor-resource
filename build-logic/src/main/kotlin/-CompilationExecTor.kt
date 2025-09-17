@@ -74,5 +74,7 @@ fun KmpConfigurationExtension.configureCompilationExecTor(
         configureAndroidEnvironmentKeysConfig(project)
 
         action.execute(this)
+
+        configureKotlinVersionCompatibility()
     }
 }

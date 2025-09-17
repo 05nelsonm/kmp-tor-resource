@@ -15,16 +15,17 @@
  **/
 package io.matthewnelson.kmp.tor.resource.geoip
 
+import io.matthewnelson.encoding.base16.Base16
+import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
 import io.matthewnelson.kmp.file.SysTempDir
 import io.matthewnelson.kmp.file.delete2
 import io.matthewnelson.kmp.file.exists2
 import io.matthewnelson.kmp.file.resolve
 import io.matthewnelson.kmp.tor.common.api.InternalKmpTorApi
 import io.matthewnelson.kmp.tor.common.core.Resource
+import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertTrue
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @OptIn(InternalKmpTorApi::class)
 class ResourceConfigUnitTest {
@@ -33,10 +34,7 @@ class ResourceConfigUnitTest {
     fun givenGeoipFiles_whenAddedToConfig_thenAreExtracted() {
         val config = Resource.Config.create { configureGeoipResources() }
 
-        @OptIn(ExperimentalUuidApi::class)
-        val tmpDir = SysTempDir
-            .resolve(Uuid.random().toHexString())
-            .resolve("geoip")
+        val tmpDir = SysTempDir.resolve("geoip_" + Random.nextBytes(8).encodeToString(Base16))
 
         val paths = config.extractTo(tmpDir, onlyIfDoesNotExist = false)
         val geoip = paths[ALIAS_GEOIP]!!

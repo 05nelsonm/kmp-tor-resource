@@ -35,6 +35,11 @@ kmpConfiguration {
                     implementation(libs.kmp.tor.common.core)
                 }
             }
+            sourceSetTest {
+                dependencies {
+                    implementation(libs.encoding.base16)
+                }
+            }
         }
 
         kotlin { geoipResourceValidation.configureNativeResources(this) }
