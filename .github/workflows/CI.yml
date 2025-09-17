@@ -234,6 +234,13 @@ jobs:
         run: |
           ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "geoip" "${{ needs.compile-task.outputs.id-geoip }}"
           ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "android" "${{ needs.compile-task.outputs.id-android }}"
+          cd external/build/package
+          rm -rf resource-exec-tor/src/jvmMain/resources
+          rm -rf resource-exec-tor-gpl/src/jvmMain/resources
+          rm -rf resource-noexec-tor/src/jvmMain/resources
+          rm -rf resource-noexec-tor-gpl/src/jvmMain/resources
+          rm -rf resource-lib-tor/src/jvmMain/resources
+          rm -rf resource-lib-tor-gpl/src/jvmMain/resources
 
       - name: Run Android Instrumented Tests
         uses: reactivecircus/android-emulator-runner@v2
