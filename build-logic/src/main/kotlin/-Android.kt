@@ -211,5 +211,7 @@ fun KmpConfigurationExtension.configureAndroidUnitTestTor(
         common { pluginIds("publication", "resource-validation") }
 
         action.execute(this)
+
+        configureKotlinVersionCompatibility()
     }
 }

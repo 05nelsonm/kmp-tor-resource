@@ -73,5 +73,7 @@ fun KmpConfigurationExtension.configureCompilationLibTor(
         configureAndroidEnvironmentKeysConfig(project)
 
         action.execute(this)
+
+        configureKotlinVersionCompatibility()
     }
 }
