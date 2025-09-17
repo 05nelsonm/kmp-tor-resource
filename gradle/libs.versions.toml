@@ -6,7 +6,7 @@ androidx-test-runner        = "1.7.0"
 
 clikt                       = "5.0.3"
 
-encoding                    = "2.4.0"
+encoding                    = "2.5.0-SNAPSHOT"
 
 gradle-android              = "8.11.2"
 gradle-binary-compat        = "0.18.1"

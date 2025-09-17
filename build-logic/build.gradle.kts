@@ -18,8 +18,6 @@ plugins {
     `java-gradle-plugin`
 }
 
-kotlin.compilerOptions.freeCompilerArgs.add("-Xsuppress-version-warnings")
-
 gradlePlugin {
     plugins {
         create("resource-validation") {
@@ -35,7 +33,9 @@ dependencies {
     implementation(libs.gradle.kmp.configuration)
     implementation(libs.gradle.kotlin)
     implementation(libs.gradle.publish.maven)
-    implementation(libs.encoding.base16)
+    implementation(libs.encoding.base16) {
+        exclude("org.jetbrains.kotlin")
+    }
 
     // https://github.com/gradle/gradle/issues/15383#issuecomment-779893192
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
