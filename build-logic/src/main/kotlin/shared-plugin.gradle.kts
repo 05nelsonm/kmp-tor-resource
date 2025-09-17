@@ -42,7 +42,7 @@ tasks.withType(KotlinCompile::class.java) {
         explicitApiMode.set(ExplicitApiMode.Strict)
         freeCompilerArgs.add("-Xsuppress-version-warnings")
         @Suppress("DEPRECATION")
-        languageVersion.set(KotlinVersion.KOTLIN_1_8)
+        languageVersion.set(KotlinVersion.KOTLIN_1_9)
     }
 }
 
