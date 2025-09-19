@@ -111,15 +111,17 @@ NPMJS_PUBLISH_TASKS=$(./gradlew tasks | grep "ToNpmjsRegistry" | cut -d ' ' -f 1
 ./gradlew $NPMJS_PUBLISH_TASKS --no-daemon --no-parallel
 ```
 
-- Update `.kotlin-js-store/yarn.lock`
+- Update `.kotlin-js-store/{js/wasm}/yarn.lock` files
 ```
 ./gradlew kotlinUpgradeYarnLock
+./gradlew kotlinWasmUpgradeYarnLock
 ```
 
 - Verify that `.kotlin-js-store/yarn.lock` is using the release 
   publication dependency (should not be using `SNAPSHOT` version).
 ```
-cat .kotlin-js-store/yarn.lock | grep "kmp-tor.resource" | grep "@"
+cat .kotlin-js-store/js/yarn.lock | grep "kmp-tor.resource" | grep "@"
+cat .kotlin-js-store/wasm/yarn.lock | grep "kmp-tor.resource" | grep "@"
 ```
 
 - Commit Changes
@@ -166,9 +168,10 @@ git merge --no-ff -S release_"$VERSION_NAME"
 
 - Update `VERSION_NAME` (add `-SNAPSHOT`) and `VERSION_CODE` in root project's `gradle.properties` file
 
-- Update `.kotlin-js-store/yarn.lock`
+- Update `.kotlin-js-store/{js/wasm}/yarn.lock`
 ```
-./gradlew kotlinUpgradeYarnLock -DKMP_TARGETS_ALL
+./gradlew kotlinUpgradeYarnLock
+./gradlew kotlinWasmUpgradeYarnLock
 ```
 
 - Commit changes

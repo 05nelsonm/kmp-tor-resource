@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## Version 408.17.1 (2025-09-19)
+ - Updates `kotlin` to `2.2.20` [[#171]][171]
+ - Updates `kmp-tor-common` to `2.4.0` [[#171]][171]
+ - Updates `build-env` to `0.4.1` [[#163]][163] [[#170]][170]
+ - Updates `gradle-filterjar-plugin` to `0.1.1` [[#173]][173]
+ - Adds support for `linux-libc` `riscv64` [[#165]][165]
+ - Adds support for `linux-musl` `aarch64`, `x86`, `x86_64` [[#170]][170]
+ - Adds support for `wasmJs` [[#174]][174]
+ - Fixes `resource-filterjar-gradle-plugin` and `resource-frameworks-gradle-plugin` metadata 
+   incompatibility issues related to Kotlin language version [[#173]][173] [[#177]][177]
+ - Lower supported `KotlinVersion` to `1.9` [[#177]][177]
+     - Source sets `js`, `wasmJs`, & `jsWasmJs` require a minimum `KotlinVersion` of `2.0`
+
 ## Version 408.17.0 (2025-08-20)
  - Updates `kmp-tor-common` to `2.3.1` [[#155]][155]
  - Updates `tor` to `tor-0.4.8.17` [[#155]][155]
@@ -163,6 +176,13 @@
 [155]: https://github.com/05nelsonm/kmp-tor-resource/pull/155
 [157]: https://github.com/05nelsonm/kmp-tor-resource/pull/157
 [160]: https://github.com/05nelsonm/kmp-tor-resource/pull/160
+[163]: https://github.com/05nelsonm/kmp-tor-resource/pull/163
+[165]: https://github.com/05nelsonm/kmp-tor-resource/pull/165
+[170]: https://github.com/05nelsonm/kmp-tor-resource/pull/170
+[171]: https://github.com/05nelsonm/kmp-tor-resource/pull/171
+[173]: https://github.com/05nelsonm/kmp-tor-resource/pull/173
+[174]: https://github.com/05nelsonm/kmp-tor-resource/pull/174
+[177]: https://github.com/05nelsonm/kmp-tor-resource/pull/177
 
 [tor-844]: https://gitlab.torproject.org/tpo/core/tor/-/merge_requests/844
 [url-build-env]: https://github.com/05nelsonm/build-env
