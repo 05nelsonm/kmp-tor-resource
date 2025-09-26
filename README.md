@@ -18,6 +18,8 @@
 ![badge-support-android-native]
 ![badge-support-linux-arm]
 
+TEST
+
 This project is focused on the packaging and distribution of pre-compiled `tor` resources 
 for Kotlin Multiplatform, primarily to be consumed as a dependency for [kmp-tor][url-kmp-tor].
 
