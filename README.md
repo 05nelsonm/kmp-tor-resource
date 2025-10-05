@@ -35,8 +35,8 @@ Tor and its dependencies are compiled from source using the following versions
 |          | git tag                 |
 |----------|-------------------------|
 | libevent | `release-2.1.12-stable` |
-| openssl  | `openssl-3.4.2`         |
-| tor      | `tor-0.4.8.17`          |
+| openssl  | `openssl-3.4.3`         |
+| tor      | `tor-0.4.8.18`          |
 | xz       | `v5.8.1`                |
 | zlib     | `v1.3.1`                |
 

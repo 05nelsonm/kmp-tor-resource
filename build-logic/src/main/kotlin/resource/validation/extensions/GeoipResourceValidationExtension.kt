@@ -35,8 +35,8 @@ abstract class GeoipResourceValidationExtension @Inject internal constructor(
     packageName = "io.matthewnelson.kmp.tor.resource.geoip",
 ) {
 
-    private val geoip: String = "62f377067785875d5a6864a279c77d3c1bec0b1066917f00954666a07b8e7de4"
-    private val geoip6: String = "e0897af601cae797e0a26936e52f4998ad71cff7016f04335539c5b355240a45"
+    private val geoip: String = "d5c3346c44981b8f98227753e2d545fc4c0b3db129d0ba9c2964ae5c7364cdab"
+    private val geoip6: String = "275e013b518194d12d20f56cab22ff8d73aaccd6ae83c8b6616886a178a30991"
 
     fun jvmResourcesSrcDir(): File = jvmResourcesSrcDirProtected(reportName = "jvm-geoip")
     fun errorReportJvmResources(): String = errorReportJvmResourcesProtected()
