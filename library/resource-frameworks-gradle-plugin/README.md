@@ -12,7 +12,7 @@ in order to load `tor`.
 - Add the plugin to your **root project's** `build.gradle(.kts)` file 
   ```kotlin
   plugins {
-    id("io.matthewnelson.kmp.tor.resource-frameworks") version("408.17.1")
+    id("io.matthewnelson.kmp.tor.resource-frameworks") version("408.18.0")
   }
   ```
 
