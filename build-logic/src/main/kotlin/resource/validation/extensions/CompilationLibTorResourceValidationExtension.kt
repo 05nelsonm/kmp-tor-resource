@@ -39,10 +39,10 @@ open class CompilationLibTorResourceValidationExtension private constructor(
     @Suppress("unused")
     internal constructor(project: Project): this(project, isGpl = false)
 
-    protected open val androidAarch64: String = "493028924181038a11ebb2afaa3ba7d9675c08cb8ac3da635da4e190ab4f8ed8"
-    protected open val androidArmv7: String = "dae382754cc1f95c583f45b839fe193025a8acc9e34ea5018410f9c7835c79f1"
-    protected open val androidX86: String = "0f09e99120a7fd5080394f5a20fc44e94bb252f3f1685a12eeba560c64ad53e1"
-    protected open val androidX86_64: String = "96c47d6f3004628ca06b3688c846a3c3f03657e6ba86cfb3143713d71741fc6d"
+    protected open val androidAarch64: String = "21ab1a8e8f9306add9fc2f505184f4d07a321b77cdc8edd14a623305411dd9ae"
+    protected open val androidArmv7: String = "0f3bbf9efeddc6743761607a9c638ee8d37878db7cbcaa6dbeb58c7dd9541c76"
+    protected open val androidX86: String = "0836451571e186581c89c6fc0f07a0d87f3cefdd8faaa3751ebf04427514009e"
+    protected open val androidX86_64: String = "078a7b5376a78cae340ff2e9802c2a88b00c9127f389e7e769cf87588246b2bf"
 
     /**
      * Resource validation and configuration for module `:library:resource-compilation-lib-tor-gpl`,
@@ -52,10 +52,10 @@ open class CompilationLibTorResourceValidationExtension private constructor(
         project: Project,
     ): CompilationLibTorResourceValidationExtension(project, isGpl = true) {
 
-        override val androidAarch64: String = "af0e8011ea496963b0c60a5cd8af9e8e96fd102ae8687dbadfcc06718a8d82b1"
-        override val androidArmv7: String = "db949952493910c5b4de502d6085ca4f7e55ac403537f266e74b68d06e4bb586"
-        override val androidX86: String = "b28fd74d964cf242527d6b6775725a9b274ed98d359b12493f4237bdea4fcde8"
-        override val androidX86_64: String = "0097ceca97cb6856feba34450f99891fd0cfd60b2d4b0db7df4f0436ffb48449"
+        override val androidAarch64: String = "854da603529c3424d94e7716c8735cd3003afd2b93b02c564d3f8cd818f1c7ef"
+        override val androidArmv7: String = "f3a661d5fecde5f49a3acc98f9ac2ec405d2cef2b94111552699e3f350278ae6"
+        override val androidX86: String = "73ad1b20723cab116812471da1d424002d246ca3cad32eeb6238aa522117885e"
+        override val androidX86_64: String = "59580a0809e28fed16b83aeb924bf9368530d3308bf4dd020c369a6ed5ef36b4"
 
         internal companion object {
             internal const val NAME = "compilationLibTorGPLResourceValidation"
