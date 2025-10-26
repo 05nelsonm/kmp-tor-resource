@@ -17,7 +17,7 @@ gradle-kotlin               = "2.2.20"
 gradle-publish-maven        = "0.34.0"
 gradle-publish-npm          = "3.5.3"
 
-kmp-tor-common              = "2.4.0"
+kmp-tor-common              = "2.4.1"
 kotlincrypto-catalog        = "0.8.0" # Utilized from settings.gradle.kts
 kotlinx-coroutines          = "1.10.2"
 ktor                        = "3.3.0"
@@ -37,9 +37,9 @@ gradle-publish-maven        = { module = "com.vanniktech:gradle-maven-publish-pl
 kmp-tor-common-api          = { module = "io.matthewnelson.kmp-tor:common-api", version.ref = "kmp-tor-common" }
 kmp-tor-common-core         = { module = "io.matthewnelson.kmp-tor:common-core", version.ref = "kmp-tor-common" }
 
-kotlin-stdlib           = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "gradle-kotlin" }
-kotlin-stdlib-jdk8      = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "gradle-kotlin" }
-kotlin-reflect          = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "gradle-kotlin" }
+kotlin-stdlib               = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "gradle-kotlin" }
+kotlin-stdlib-jdk8          = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "gradle-kotlin" }
+kotlin-reflect              = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "gradle-kotlin" }
 
 # tests & tools
 androidx-test-core          = { module = "androidx.test:core", version.ref = "androidx-test-core" }

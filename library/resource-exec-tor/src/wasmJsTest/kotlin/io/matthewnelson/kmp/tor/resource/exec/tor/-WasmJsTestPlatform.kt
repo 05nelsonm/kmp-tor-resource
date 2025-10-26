@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-@file:Suppress("PropertyName")
+@file:Suppress("PropertyName", "OPT_IN_USAGE")
 
 package io.matthewnelson.kmp.tor.resource.exec.tor
 
