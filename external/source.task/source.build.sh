@@ -786,7 +786,7 @@ fi
   fi
 
   __build:SCRIPT ''
-  __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$shared_name\" 2>/dev/null"
+#  __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$shared_name\" 2>/dev/null"
 
   if [ -n "$exec_name" ]; then
     __build:SCRIPT "  \$STRIP $strip_flags \"\$_out/$exec_name\" 2>/dev/null"
