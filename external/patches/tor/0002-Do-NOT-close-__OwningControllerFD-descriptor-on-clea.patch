@@ -1,8 +1,8 @@
-From 255b987d81e390c541ae7c0a7e03b9a9cfa7d3c4 Mon Sep 17 00:00:00 2001
+From 1aecdaafd90ec10844affe8e8d60f934a17eeff9 Mon Sep 17 00:00:00 2001
 From: Matthew Nelson <developer@matthewnelson.io>
-Date: Sat, 12 Jul 2025 08:10:19 -0400
-Subject: [PATCH 3/3] Do NOT close __OwningControllerFD descriptor on cleanup,
- leave it to whoever opened it.
+Date: Tue, 28 Oct 2025 09:33:43 -0400
+Subject: [PATCH 2/2] Do NOT close __OwningControllerFD descriptor on cleanup.
+ Leave it to whomever opened it.
 
 ---
  src/app/config/config.c                     |  3 ++-
@@ -13,10 +13,10 @@ Subject: [PATCH 3/3] Do NOT close __OwningControllerFD descriptor on cleanup,
  5 files changed, 21 insertions(+), 5 deletions(-)
 
 diff --git a/src/app/config/config.c b/src/app/config/config.c
-index a10329c552..bfd74af3d1 100644
+index a1520820a9..cfd686eb2e 100644
 --- a/src/app/config/config.c
 +++ b/src/app/config/config.c
-@@ -2158,7 +2158,8 @@ options_act,(const or_options_t *old_options))
+@@ -2159,7 +2159,8 @@ options_act,(const or_options_t *old_options))
        options->OwningControllerFD != UINT64_MAX) {
      const unsigned ctrl_flags =
        CC_LOCAL_FD_IS_OWNER |
