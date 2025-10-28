@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Version 408.19.0 (2025-10-28)
+ - Updates `tor` to `tor-0.4.8.19` [[#184]][184]
+ - Updates `kmp-tor-common` to `2.4.1` [[#184]][184]
+
 ## Version 408.18.0 (2025-10-07)
  - Updates `tor` to `tor-0.4.8.18` [[#183]][183]
  - Updates `openssl` to `3.4.3` [[#183]][183]
@@ -188,6 +192,7 @@
 [174]: https://github.com/05nelsonm/kmp-tor-resource/pull/174
 [177]: https://github.com/05nelsonm/kmp-tor-resource/pull/177
 [183]: https://github.com/05nelsonm/kmp-tor-resource/pull/183
+[184]: https://github.com/05nelsonm/kmp-tor-resource/pull/184
 
 [tor-844]: https://gitlab.torproject.org/tpo/core/tor/-/merge_requests/844
 [url-build-env]: https://github.com/05nelsonm/build-env
