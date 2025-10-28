@@ -61,7 +61,10 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
          *   an absolute path and fails due to a filesystem security exception.
          * @suppress
          * */
-        @Deprecated("ShutdownHook registration causes abnormal application exit behavior for Java/Android")
+        @Deprecated(
+            message = "ShutdownHook registration causes abnormal application exit behavior for Java/Android",
+            level = DeprecationLevel.WARNING,
+        )
         public override fun getOrCreate(
             resourceDir: File,
             registerShutdownHook: Boolean,

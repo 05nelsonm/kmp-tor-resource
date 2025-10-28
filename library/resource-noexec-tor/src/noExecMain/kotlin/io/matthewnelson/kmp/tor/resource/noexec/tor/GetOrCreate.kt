@@ -56,7 +56,10 @@ public actual abstract class GetOrCreate internal actual constructor() {
      *   an absolute path and fails due to a filesystem security exception.
      * @suppress
      * */
-    @Deprecated("ShutdownHook registration causes abnormal application exit behavior for Java/Android")
+    @Deprecated(
+        message = "ShutdownHook registration causes abnormal application exit behavior for Java/Android",
+        level = DeprecationLevel.WARNING,
+    )
     public abstract fun getOrCreate(
         resourceDir: File,
         registerShutdownHook: Boolean,
