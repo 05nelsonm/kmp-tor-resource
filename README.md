@@ -10,13 +10,12 @@
 ![badge-platform-android]
 ![badge-platform-jvm]
 ![badge-platform-js-node]
-![badge-platform-linux]
-![badge-platform-ios]
-![badge-platform-macos]
 ![badge-platform-wasm]
+![badge-platform-android-native]
+![badge-platform-linux]
+![badge-platform-macos]
+![badge-platform-ios]
 ![badge-platform-windows]
-![badge-support-android-native]
-![badge-support-linux-arm]
 
 This project is focused on the packaging and distribution of pre-compiled `tor` resources 
 for Kotlin Multiplatform, primarily to be consumed as a dependency for [kmp-tor][url-kmp-tor].
@@ -36,7 +35,7 @@ Tor and its dependencies are compiled from source using the following versions
 |----------|-------------------------|
 | libevent | `release-2.1.12-stable` |
 | openssl  | `openssl-3.4.3`         |
-| tor      | `tor-0.4.8.18`          |
+| tor      | `tor-0.4.8.19`          |
 | xz       | `v5.8.1`                |
 | zlib     | `v1.3.1`                |
 
@@ -290,7 +289,7 @@ See [kmp-tor-samples][url-kmp-tor-samples] for more details.
 [badge-androidx-startup]: https://img.shields.io/badge/androidx.startup-1.1.1-6EDB8D.svg?logo=android
 [badge-kotlin]: https://img.shields.io/badge/kotlin-2.2.20-blue.svg?logo=kotlin
 [badge-build-env]: https://img.shields.io/badge/build--env-0.4.1-blue.svg?logo=docker
-[badge-kmp-tor-common]: https://img.shields.io/badge/kmp--tor--common-2.4.0-blue.svg?style=flat
+[badge-kmp-tor-common]: https://img.shields.io/badge/kmp--tor--common-2.4.1-blue.svg?style=flat
 
 <!-- TAG_PLATFORMS -->
 [badge-platform-android]: http://img.shields.io/badge/-android-6EDB8D.svg?style=flat
@@ -303,9 +302,9 @@ See [kmp-tor-samples][url-kmp-tor-samples] for more details.
 [badge-platform-tvos]: http://img.shields.io/badge/-tvos-808080.svg?style=flat
 [badge-platform-watchos]: http://img.shields.io/badge/-watchos-C0C0C0.svg?style=flat
 [badge-platform-wasm]: https://img.shields.io/badge/-wasm-624FE8.svg?style=flat
+[badge-platform-wasi]: https://img.shields.io/badge/-wasi-18a033.svg?style=flat
 [badge-platform-windows]: http://img.shields.io/badge/-windows-4D76CD.svg?style=flat
-[badge-support-android-native]: http://img.shields.io/badge/support-[AndroidNative]-6EDB8D.svg?style=flat
-[badge-support-linux-arm]: http://img.shields.io/badge/support-[LinuxArm]-2D3F6C.svg?style=flat
+[badge-platform-android-native]: http://img.shields.io/badge/-android--native-6EDB8D.svg?style=flat
 
 [url-androidx-startup]: https://developer.android.com/jetpack/androidx/releases/startup
 [url-build-env]: https://github.com/05nelsonm/build-env

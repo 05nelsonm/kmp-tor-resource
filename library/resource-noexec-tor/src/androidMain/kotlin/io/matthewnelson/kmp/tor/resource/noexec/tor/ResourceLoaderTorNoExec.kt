@@ -64,7 +64,10 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
          * @suppress
          * */
         @JvmStatic
-        @Deprecated("ShutdownHook registration causes abnormal application exit behavior for Java/Android")
+        @Deprecated(
+            message = "ShutdownHook registration causes abnormal application exit behavior for Java/Android",
+            level = DeprecationLevel.WARNING,
+        )
         public final override fun getOrCreate(
             resourceDir: File,
             registerShutdownHook: Boolean,

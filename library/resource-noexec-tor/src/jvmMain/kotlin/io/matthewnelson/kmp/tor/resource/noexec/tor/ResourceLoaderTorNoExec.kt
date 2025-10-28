@@ -44,13 +44,15 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
          *   an absolute path and fails due to a filesystem security exception.
          * */
         @JvmStatic
-        @Deprecated("""
+        @Deprecated(
+            message = """
 
-            Loading & unloading of shared libraries on jvm is deprecated, not only because
-            libjvm has major thread/memory management issues in the JNI layer, but because
-            JEP 472 which is phasing out JNI all together. Use the resource-exec-tor{-gpl}
-            dependency instead. See: https://github.com/05nelsonm/kmp-tor-resource/issues/156
-        """)
+                libjvm has major thread/memory management issues in the JNI layer. Also, JPE 472
+                is phasing out JNI all together. Use the resource-exec-tor{-gpl} dependency instead.
+                See: https://github.com/05nelsonm/kmp-tor-resource/issues/156
+            """,
+            level = DeprecationLevel.WARNING,
+        )
         public final override fun getOrCreate(
             resourceDir: File,
         ): ResourceLoader.Tor = getOrCreate(
@@ -73,7 +75,10 @@ public actual class ResourceLoaderTorNoExec: ResourceLoader.Tor.NoExec {
          * @suppress
          * */
         @JvmStatic
-        @Deprecated("ShutdownHook registration causes abnormal application exit behavior for Java/Android")
+        @Deprecated(
+            message = "ShutdownHook registration causes abnormal application exit behavior for Java/Android",
+            level = DeprecationLevel.WARNING,
+        )
         public final override fun getOrCreate(
             resourceDir: File,
             registerShutdownHook: Boolean,
