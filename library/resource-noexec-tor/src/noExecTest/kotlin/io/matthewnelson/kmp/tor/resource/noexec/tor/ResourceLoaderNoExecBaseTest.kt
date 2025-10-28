@@ -137,7 +137,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
     @Test
     @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
     open fun givenHandle_whenTerminateAndAwait_thenTorExits(): TestResult {
-        val count = runTorMainCount / 25
+        val count = runTorMainCount / 5
 
         return runTest(timeout = (count * 4).seconds) {
             if (skipTorRunMain) return@runTest
@@ -168,6 +168,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
                 add("--HiddenServicePort"); add("80")
             }
 
+            println("LOG_FILE[${helper.logFile}]")
             repeat(count) { index ->
                 if (index < 4 || (index + 1) % 5 == 0) {
                     println("RUN_TOR[${index + 1}]")
@@ -188,7 +189,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
 
                 helper.logFile.delete2()
                 helper.deleteCacheDir()
-                helper.deleteCacheDir()
+                helper.deleteDataDir()
                 deleteHsDir()
 
                 listOf(
@@ -342,7 +343,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
             add("--SocksPort"); add("auto")
             add("--HTTPTunnelPort"); add("auto")
 
-            add("--Log"); add("notice file $logFile")
+            add("--Log"); add("debug file $logFile")
             add("--TruncateLogFile"); add("1")
 
             add("--DormantCanceledByStartup"); add("1")
