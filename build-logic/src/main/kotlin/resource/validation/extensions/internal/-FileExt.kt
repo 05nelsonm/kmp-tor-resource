@@ -21,7 +21,7 @@ import java.io.File
 import java.io.IOException
 import java.security.MessageDigest
 
-private val BASE_16 = Base16 { encodeToLowercase = true }
+private val BASE_16 = Base16.Builder { encodeLowercase(enable = true) }
 
 @Throws(IOException::class)
 internal fun File.sha256(): String = MessageDigest
