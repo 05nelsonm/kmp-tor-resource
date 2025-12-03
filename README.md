@@ -287,7 +287,7 @@ See [kmp-tor-samples][url-kmp-tor-samples] for more details.
 
 <!-- TAG_DEPENDENCIES -->
 [badge-androidx-startup]: https://img.shields.io/badge/androidx.startup-1.1.1-6EDB8D.svg?logo=android
-[badge-kotlin]: https://img.shields.io/badge/kotlin-2.2.20-blue.svg?logo=kotlin
+[badge-kotlin]: https://img.shields.io/badge/kotlin-2.2.21-blue.svg?logo=kotlin
 [badge-build-env]: https://img.shields.io/badge/build--env-0.4.1-blue.svg?logo=docker
 [badge-kmp-tor-common]: https://img.shields.io/badge/kmp--tor--common-2.4.1-blue.svg?style=flat
 
