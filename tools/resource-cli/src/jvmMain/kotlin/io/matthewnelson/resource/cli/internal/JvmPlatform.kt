@@ -18,7 +18,6 @@ package io.matthewnelson.resource.cli.internal
 import io.matthewnelson.encoding.base16.Base16
 import io.matthewnelson.encoding.base64.Base64
 import io.matthewnelson.encoding.core.Encoder.Companion.encodeToString
-import io.matthewnelson.encoding.core.util.LineBreakOutFeed
 import org.kotlincrypto.hash.sha2.SHA256
 import java.io.File
 import java.io.IOException
@@ -62,7 +61,7 @@ internal actual fun ResourceWriter.write(): String {
 
         Triple(
             size,
-            digest.digest().encodeToString(Base16 { encodeToLowercase = true }),
+            digest.digest().encodeToString(Base16.Builder { encodeLowercase(enable = true) }),
             chunks,
         )
     }
@@ -83,9 +82,7 @@ internal actual fun ResourceWriter.write(): String {
             ))
 
             val sb = StringBuilder()
-
-            val out = LineBreakOutFeed(interval = 64, out = { char -> sb.append(char) })
-            val feed = Base64.Default.newEncoderFeed(out)
+            val feed = Base64.Default.newEncoderFeed { c -> sb.append(c) }
 
             try {
                 var i = 0L
@@ -102,7 +99,6 @@ internal actual fun ResourceWriter.write(): String {
                         feed.consume(buf[j])
                     }
                     feed.flush()
-                    out.reset()
 
                     sb.appendLine("\"\"\"")
                     sb.appendLine()

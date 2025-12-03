@@ -512,7 +512,7 @@ private object LLVM {
 
 private fun CKlibGradleExtension.configure(libs: LibrariesForLibs): Task {
     kotlinVersion = libs.versions.gradle.kotlin.get()
-    check(kotlinVersion == "2.2.20") {
+    check(kotlinVersion == "2.2.21") {
         "Kotlin version out of date! Download URLs for LLVM need to be updated for ${project.path}"
     }
 
