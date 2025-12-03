@@ -209,7 +209,7 @@ abstract class ResourceLoaderNoExecBaseTest protected constructor(
     }
 
     @Test
-    open fun givenTor_whenQueryCheckTorProject_thenConnectionIsUsingTor() = runTest(timeout = 7.minutes) {
+    open fun givenTor_whenQueryCheckTorProject_thenConnectionIsUsingTor() = runTest(timeout = 10.minutes) {
         val factory = factory
         if (factory == null) {
             println("Skipping...")
