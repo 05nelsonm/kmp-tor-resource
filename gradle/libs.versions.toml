@@ -20,7 +20,7 @@ gradle-publish-npm          = "3.5.3"
 kmp-tor-common              = "2.4.1"
 kotlincrypto-catalog        = "0.8.0" # Utilized from settings.gradle.kts
 kotlinx-coroutines          = "1.10.2"
-ktor                        = "3.3.0"
+ktor                        = "3.3.3"
 
 okio                        = "3.16.0"
 
