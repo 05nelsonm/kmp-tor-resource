@@ -174,6 +174,12 @@ git merge --no-ff -S release_"$VERSION_NAME"
 ./gradlew kotlinWasmUpgradeYarnLock
 ```
 
+- Verify that `.kotlin-js-store/yarn.lock` is using the `SNAPSHOT` publications
+```
+cat .kotlin-js-store/js/yarn.lock | grep "kmp-tor.resource" | grep "@"
+cat .kotlin-js-store/wasm/yarn.lock | grep "kmp-tor.resource" | grep "@"
+```
+
 - Commit changes
 ```
 git add --all

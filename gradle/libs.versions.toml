@@ -6,7 +6,7 @@ androidx-test-runner        = "1.7.0"
 
 clikt                       = "5.0.3"
 
-encoding                    = "2.6.0-SNAPSHOT"
+encoding                    = "2.6.0"
 
 gradle-android              = "8.12.3"
 gradle-binary-compat        = "0.18.1"
@@ -17,7 +17,7 @@ gradle-kotlin               = "2.2.21"
 gradle-publish-maven        = "0.35.0"
 gradle-publish-npm          = "3.5.3"
 
-kmp-tor-common              = "2.4.2-SNAPSHOT"
+kmp-tor-common              = "2.4.2"
 kotlincrypto-catalog        = "0.8.0" # Utilized from settings.gradle.kts
 kotlinx-coroutines          = "1.10.2"
 ktor                        = "3.3.3"
