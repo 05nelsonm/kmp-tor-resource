@@ -170,6 +170,7 @@ git merge --no-ff -S release_"$VERSION_NAME"
 
 - Update `.kotlin-js-store/{js/wasm}/yarn.lock`
 ```
+./gradlew clean
 ./gradlew kotlinUpgradeYarnLock
 ./gradlew kotlinWasmUpgradeYarnLock
 ```
