@@ -1,0 +1,30 @@
+From 3ba239814e7185641e7ac242d7f9ad6bf7d7800c Mon Sep 17 00:00:00 2001
+From: Matthew Nelson <developer@matthewnelson.io>
+Date: Mon, 9 Feb 2026 10:10:09 -0500
+Subject: [PATCH] Fix MinGW build (missing definition) Patch created from
+ https://github.com/openssl/openssl/commit/40d8060c0e8af7c7d3f0d70a7e2d3bf96a15fc10
+
+---
+ ssl/quic/quic_reactor.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/ssl/quic/quic_reactor.c b/ssl/quic/quic_reactor.c
+index 1a95f131e3..c30bc3c595 100644
+--- a/ssl/quic/quic_reactor.c
++++ b/ssl/quic/quic_reactor.c
+@@ -76,6 +76,12 @@ void ossl_quic_reactor_cleanup(QUIC_REACTOR *rtor)
+ }
+ 
+ #if defined(OPENSSL_SYS_WINDOWS)
++
++/* Work around for MinGW builds. */
++#if defined(__MINGW32__) && !defined(SIO_UDP_NETRESET)
++#define SIO_UDP_NETRESET _WSAIOW(IOC_VENDOR, 15)
++#endif
++
+ /*
+  * On Windows recvfrom() may return WSAECONNRESET when destination port
+  * used in preceding call to sendto() is no longer reachable. The reset
+-- 
+2.34.1
+
