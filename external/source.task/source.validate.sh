@@ -23,6 +23,7 @@ function __validate:report {
   local file_err=
 
   dir_module_reports="$DIR_TASK/../library/$1/build/reports/resource-validation/$1"
+  __util:require:directory_exists "$dir_module_reports"
   errs=$(ls "$dir_module_reports")
 
   for file_err in $errs; do
