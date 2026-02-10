@@ -619,10 +619,12 @@ function validate { ## Checks the build/package directory output against expecte
   ./gradlew clean -PKMP_TARGETS="$targets"
   ./gradlew prepareKotlinBuildScriptModel -PKMP_TARGETS="$targets"
 
-  __validate:report "resource-compilation-exec-tor"
-  __validate:report "resource-compilation-exec-tor-gpl"
-  __validate:report "resource-compilation-lib-tor"
-  __validate:report "resource-compilation-lib-tor-gpl"
+  if [ -n "$include_android" ]; then
+    __validate:report "resource-compilation-exec-tor"
+    __validate:report "resource-compilation-exec-tor-gpl"
+    __validate:report "resource-compilation-lib-tor"
+    __validate:report "resource-compilation-lib-tor-gpl"
+  fi
   __validate:report "resource-exec-tor"
   __validate:report "resource-exec-tor-gpl"
   __validate:report "resource-frameworks-gradle-plugin"

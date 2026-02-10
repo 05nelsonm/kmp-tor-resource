@@ -137,7 +137,7 @@ jobs:
         shell: bash
         run: |
           VALIDATE_OUTPUT=$(./external/task.sh validate | grep "ERROR")
-          if [ -n "$VALIDATE_OUTPUT ]; then
+          if [ -n "$VALIDATE_OUTPUT" ]; then
             echo "$VALIDATE_OUTPUT"
             exit 1
           fi
