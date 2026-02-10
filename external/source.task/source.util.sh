@@ -88,10 +88,21 @@ function __util:require:cmd {
   __util:require:file_exists "$1" "$2" "is required to run this script"
 }
 
+function __util:require:directory_exists {
+  if [ -d "$1" ]; then return 0; fi
+
+  local _message="directory[$1] does not exist"
+
+  if [ -n "$3" ]; then
+    _message="$3"
+  fi
+  __util:error "$2 $_message"
+}
+
 function __util:require:file_exists {
   if [ -f "$1" ]; then return 0; fi
 
-  local _message="file does not exist"
+  local _message="file[$1] does not exist"
 
   if [ -n "$3" ]; then
     _message="$3"

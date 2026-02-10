@@ -83,7 +83,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.rv-hash }}-${{ matrix.task-target }}
-          path: ${{ matrix.task-target }}.tar.gz
+          path: |
+            external/build/stage/*/*/*/logs/**
+            ${{ matrix.task-target }}.tar.gz
           if-no-files-found: error
           overwrite: false
 
@@ -136,12 +138,8 @@ jobs:
       - name: Validate Native Compilations
         shell: bash
         run: |
-          if ./external/task.sh validate | grep "ERROR\[ .* ]"; then
-            IS_VALID=false
-          else
-            IS_VALID=true
-          fi
-          if ! $IS_VALID; then exit 1; fi
+          VALIDATE_OUTPUT="$(./external/task.sh validate)"
+          if echo "$VALIDATE_OUTPUT" | grep "ERROR"; then exit 1; fi
 
       - name: Check API Compatibility
         if: matrix.os == 'macos-latest' && matrix.java-version == 19

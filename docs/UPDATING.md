@@ -30,3 +30,5 @@
    ```shell
    ./external/task.sh validate:all:update_hashes
    ```
+
+8) Ensure validation output has NO errors

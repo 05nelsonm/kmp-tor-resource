@@ -619,10 +619,12 @@ function validate { ## Checks the build/package directory output against expecte
   ./gradlew clean -PKMP_TARGETS="$targets"
   ./gradlew prepareKotlinBuildScriptModel -PKMP_TARGETS="$targets"
 
-  __validate:report "resource-compilation-exec-tor"
-  __validate:report "resource-compilation-exec-tor-gpl"
-  __validate:report "resource-compilation-lib-tor"
-  __validate:report "resource-compilation-lib-tor-gpl"
+  if [ -n "$include_android" ]; then
+    __validate:report "resource-compilation-exec-tor"
+    __validate:report "resource-compilation-exec-tor-gpl"
+    __validate:report "resource-compilation-lib-tor"
+    __validate:report "resource-compilation-lib-tor-gpl"
+  fi
   __validate:report "resource-exec-tor"
   __validate:report "resource-exec-tor-gpl"
   __validate:report "resource-frameworks-gradle-plugin"
@@ -681,6 +683,7 @@ function validate:all:update_hashes { ## Updates gradle extensions with new hash
 
       for extension_kt_file in $(echo "$extension_kt_files" | tr "," " "); do
         file="$DIR_TASK/../build-logic/src/main/kotlin/resource/validation/extensions/$extension_kt_file"
+        __util:require:file_exists "$file"
         update=$(sed "s+$old_hash+$new_hash+g" "$file")
         echo "$update" > "$file"
       done
