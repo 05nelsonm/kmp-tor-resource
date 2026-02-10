@@ -47,7 +47,7 @@ open class ExecTorResourceValidationExtension private constructor(
     private val jvmLinuxAndroidX86: String = "2a09b41f866ba6d8c8b453a2c02da61f63f4e9462c6daf0af4170cee093ba43c"
     private val jvmLinuxAndroidX86_64: String = "4b24f9555d45cad122e87b7be2b94367a2f4bdaf1e8f6480c739a8e810617509"
 
-    private val jvmLinuxLibcAarch64: String = "67d64240c27d4571935ab5d5a05ac870cf880b1f6f8189b06ef52d09979270cd"
+    protected open val jvmLinuxLibcAarch64: String = "4eb67a0aa825c4737a8502e629823d456563d610b662bda3c39756a43b8c4046"
     private val jvmLinuxLibcArmv7: String = "2635cde02071851b3b26e7af1ca62d64349edc5604411d472f8bc816ea80283c"
     private val jvmLinuxLibcPpc64: String = "04d1d5d14a8a0a7a2f56d5b6d587faa20f4a40ef203bcb2557960f6f757acb50"
     private val jvmLinuxLibcRiscv64: String = "a79912aeda2d09c31af8c03f796bba2ec85d4264b2ef1b18de2751a1f57c533d"
@@ -64,7 +64,7 @@ open class ExecTorResourceValidationExtension private constructor(
     protected open val jvmMingwX86: String = "8208d11f407a357998498f07a4c02baf018c0a00ac5d87a565dcf8aec2464b9d"
     protected open val jvmMingwX86_64: String = "b28540e3d6c18c68c05bddd007679f675dcda52238c1da2c01e32b17da374b84"
 
-    private val nativeLinuxArm64: String = jvmLinuxLibcAarch64
+    private val nativeLinuxArm64: String by lazy { jvmLinuxLibcAarch64 }
     private val nativeLinuxX64: String = jvmLinuxLibcX86_64
 
     protected open val nativeMacosArm64: String = "b23184d3331edfe3de190553c9573d4f03ac4c32d8800141460278a88063d810"
@@ -79,6 +79,8 @@ open class ExecTorResourceValidationExtension private constructor(
     abstract class GPL @Inject internal constructor(
         project: Project,
     ): ExecTorResourceValidationExtension(project, isGpl = true) {
+
+        override val jvmLinuxLibcAarch64: String = "67d64240c27d4571935ab5d5a05ac870cf880b1f6f8189b06ef52d09979270cd"
 
         override val jvmMacosAarch64: String = "39553292cb45b8c94f5baff83fc9686894c8812c0d7343ea82e04bad6f93d9be"
         override val jvmMacosX86_64: String = "24f0cfa073f77f75d3499fcec0f7f12c4c8e47e73164f93d39002f0c8381242f"
