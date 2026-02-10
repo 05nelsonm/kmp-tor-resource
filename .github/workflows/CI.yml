@@ -83,7 +83,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.rv-hash }}-${{ matrix.task-target }}
-          path: ${{ matrix.task-target }}.tar.gz
+          path: |
+            external/build/stage/*/*/*/logs/**
+            ${{ matrix.task-target }}.tar.gz
           if-no-files-found: error
           overwrite: false
 
