@@ -15,6 +15,7 @@
  **/
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     id("configuration")
@@ -81,6 +82,18 @@ kmpConfiguration {
             }
         }
 
+        @OptIn(ExperimentalWasmDsl::class)
+        wasmJs {
+            sourceSetMain {
+                dependencies {
+                    implementation("$group:resource-lib-tor-wasm-js:$version")
+                    implementation("$group:resource-lib-tor-gpl-wasm-js:$version")
+                    implementation(npm("kmp-tor.resource-exec-tor.all", project.npmVersion))
+                    implementation(npm("kmp-tor.resource-exec-tor-gpl.all", project.npmVersion))
+                }
+            }
+        }
+
         common {
             sourceSetMain {
                 dependencies {
@@ -98,6 +111,7 @@ kmpConfiguration {
             listOf(
                 "jvmAndroid",
                 "js",
+                "wasmJs",
                 "iosSimulatorArm64",
                 "iosX64",
                 "linux",
