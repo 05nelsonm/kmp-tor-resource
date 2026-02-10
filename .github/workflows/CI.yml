@@ -138,11 +138,8 @@ jobs:
       - name: Validate Native Compilations
         shell: bash
         run: |
-          VALIDATE_OUTPUT=$(./external/task.sh validate | grep "ERROR")
-          if [ -n "$VALIDATE_OUTPUT" ]; then
-            echo "$VALIDATE_OUTPUT"
-            exit 1
-          fi
+          VALIDATE_OUTPUT="$(./external/task.sh validate)"
+          if echo "$VALIDATE_OUTPUT" | grep "ERROR"; then exit 1; fi
 
       - name: Check API Compatibility
         if: matrix.os == 'macos-latest' && matrix.java-version == 19
