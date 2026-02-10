@@ -282,6 +282,8 @@ fi
   fi
 
   if [ "$os_name" = "android" ]; then
+    # https://github.com/openssl/openssl/issues/18561#issuecomment-1155298077
+    __build:OPENSSL '-U__ANDROID_API__'
     __build:OPENSSL '-D__ANDROID_API__=$ANDROID_TARGET_API'
   fi
 
