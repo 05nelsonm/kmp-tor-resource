@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-@file:Suppress("SpellCheckingInspection")
-
 package resource.validation.extensions
 
 import org.gradle.api.Project
@@ -35,8 +33,8 @@ abstract class GeoipResourceValidationExtension @Inject internal constructor(
     packageName = "io.matthewnelson.kmp.tor.resource.geoip",
 ) {
 
-    private val geoip: String = "cbb7874074b6cc0f0a40b082fd3286fb1aeeb27432fa4dc1d3ddb2120d8b17c1"
-    private val geoip6: String = "bb1b74809a11ea82e5ed06564f847e80b52b5de3e7cfce2faf1d504448fd976a"
+    private val geoip: String = "3ee545028cf9434d199db256d5520b0a3e7bd08f6d1d7ed50afff26339a4e995"
+    private val geoip6: String = "b9a5353de8350dadba6f4251c2a280aa69946af46073a883ccb9d135df337260"
 
     fun jvmResourcesSrcDir(): File = jvmResourcesSrcDirProtected(reportName = "jvm-geoip")
     fun errorReportJvmResources(): String = errorReportJvmResourcesProtected()

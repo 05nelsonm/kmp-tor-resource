@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
-@file:Suppress("PropertyName", "PrivatePropertyName", "SpellCheckingInspection")
+@file:Suppress("PrivatePropertyName")
 
 package resource.validation.extensions
 
 import org.gradle.api.Project
-import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import resource.validation.extensions.internal.SourceSetName.Companion.toSourceSetName
 import resource.validation.extensions.internal.ValidationHash
-import java.io.File
 import javax.inject.Inject
 
 /**
