@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+@file:Suppress("UNUSED")
+
 package resource.validation
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import resource.validation.extensions.*
 
-@Suppress("UNUSED")
 open class ResourceValidationPlugin internal constructor(): Plugin<Project> {
     override fun apply(target: Project) {
         listOf(
