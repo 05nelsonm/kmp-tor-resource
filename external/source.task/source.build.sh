@@ -330,6 +330,7 @@ fi
     --disable-system-torrc \
     --disable-systemd \
     --disable-tool-name-check \
+    --disable-zstd-advanced-apis \
     --enable-pic \
     --enable-zstd=no \
     --enable-static-libevent \
@@ -446,12 +447,6 @@ function __build:configure:target:finalize {
   __build:SCRIPT '}'
 
   # TOR & TOR GPL
-  __build:SCRIPT '
-# Includes are not enough when using --enable-lzma flag.
-# Must specify it here so configure picks it up.
-export LZMA_CFLAGS="-I$DIR_SCRIPT/xz/include"
-export LZMA_LIBS="$DIR_SCRIPT/xz/lib/liblzma.a"'
-
   local conf_out=
   local tor_target=
   for tor_target in $(echo "tor,tor-gpl" | tr "," " "); do
@@ -465,6 +460,12 @@ export LZMA_LIBS="$DIR_SCRIPT/xz/lib/liblzma.a"'
       __build:SCRIPT '  compile_prepare "tor" "tor-gpl" " (with flag --enable-gpl)"'
     fi
     __build:SCRIPT ''
+
+  __build:SCRIPT '  # Includes are not enough when using --enable-lzma flag.
+  # Must specify it here so configure picks it up.
+  export LZMA_CFLAGS="-I$DIR_SCRIPT/xz/include"
+  export LZMA_LIBS="$DIR_SCRIPT/xz/lib/liblzma.a"
+'
 
     case "$os_name" in
       "ios"|"macos"|"tvos"|"watchos")
@@ -506,6 +507,8 @@ export LZMA_LIBS="$DIR_SCRIPT/xz/lib/liblzma.a"'
     __build:SCRIPT ''
     __build:SCRIPT "  sed -i \"s+BUILDDIR \\\"\$(pwd)\\\"+BUILDDIR \\\"\$DIR_EXTERNAL/tor\\\"+\" \"\$DIR_SCRIPT/$tor_target/include/orconfig.h\""
     __build:SCRIPT "  sed -i \"s+SRCDIR \\\"\$(pwd)\\\"+SRCDIR \\\"\$DIR_EXTERNAL/tor\\\"+\" \"\$DIR_SCRIPT/$tor_target/include/orconfig.h\""
+    __build:SCRIPT ''
+    __build:SCRIPT '  unset LZMA_CFLAGS LZMA_LIBS'
 
     __build:SCRIPT '}'
   done
