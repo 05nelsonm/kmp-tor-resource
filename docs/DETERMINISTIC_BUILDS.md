@@ -9,7 +9,7 @@ script. The expected Sha256 hashes are provided by gradle extensions located in 
 
 <!-- TAG_VERSION -->
 ```
-git clone --branch 408.22.0 --depth 1 https://github.com/05nelsonm/kmp-tor-resource.git \
+git clone --branch 409.5.0 --depth 1 https://github.com/05nelsonm/kmp-tor-resource.git \
   && cd kmp-tor-resource \
   && ./external/task.sh build:all \
   && ./external/task.sh package:all \
@@ -39,7 +39,7 @@ git clone --branch 408.22.0 --depth 1 https://github.com/05nelsonm/kmp-tor-resou
 <!-- TAG_VERSION -->
 2) Checkout the tag you wish to validate (replace with desired tag name):
    ```shell
-   git checkout 408.22.0
+   git checkout 409.5.0
    ```
 
 3) Compile code (go touch grass for a bit):
