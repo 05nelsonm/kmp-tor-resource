@@ -163,7 +163,7 @@ function __package:file {
   if $DRY_RUN; then
     echo "
     Packaging Target:     $1/$3
-    Detached Signature:   $detached_sig
+    Detached Signature:   $detached_sig$(if $SKIP_CODESIGN && [ -n "$detached_sig" ]; then echo " (skipped)"; fi)
     gzip:                 $gzip
     permissions:          $permissions
     NativeResource:       $native_resource
@@ -180,9 +180,13 @@ function __package:file {
   cp -a "$DIR_TASK/$1/$3" "$DIR_STAGING"
 
   if [ -n "$detached_sig" ]; then
-    ../tooling diff-cli apply \
-      "$DIR_TASK/codesign/$dirname_out/$detached_sig/$3.signature" \
-      "$DIR_STAGING/$3"
+    if $SKIP_CODESIGN; then
+      echo "    --skip-codesign >> packaging UNSIGNED $1/$3"
+    else
+      ../tooling diff-cli apply \
+        "$DIR_TASK/codesign/$dirname_out/$detached_sig/$3.signature" \
+        "$DIR_STAGING/$3"
+    fi
   fi
 
   local file_ext=""

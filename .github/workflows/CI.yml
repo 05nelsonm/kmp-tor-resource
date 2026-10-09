@@ -2,6 +2,13 @@ name: CI
 
 on: [ pull_request ]
 
+# Artifacts are looked up and downloaded through the REST API. A PAT_ACTION_READ secret is used
+# when present; otherwise the workflow token, which is what a pull request from a fork gets
+# (read-only), so a contributor's PR can still run the full matrix.
+permissions:
+  actions: read
+  contents: read
+
 env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Dkotlin.incremental=false -Dorg.gradle.jvmargs="-XX:+HeapDumpOnOutOfMemoryError -XX:MetaspaceSize=1g"
 
@@ -36,6 +43,15 @@ jobs:
             if [ "$FILE" = "AbstractResourceValidationExtension.kt" ]; then continue; fi
             HASHES+="$(sha256sum "$FILE" | cut -d ' ' -f 1)"
           done
+          # The packaging scripts shape the artifacts too, so a change to them must not be served
+          # from a stale artifact.
+          cd "$GITHUB_WORKSPACE"
+          for FILE in external/task.sh external/source.task/*.sh; do
+            HASHES+="$(sha256sum "$FILE" | cut -d ' ' -f 1)"
+          done
+          # The submodule commits decide what gets compiled, so a tor (or dependency) bump must
+          # never be served from an artifact built for the previous tag.
+          HASHES+="$(git ls-tree HEAD external/ | sha256sum | cut -d ' ' -f 1)"
           COMBINED="$(echo "$HASHES" | sha256sum - | cut -d ' ' -f 1)"
           echo "rv-hash=$COMBINED" >> "$GITHUB_ENV"
 
@@ -44,9 +60,9 @@ jobs:
           ARTIFACT_ID=$(
             curl -L \
               -H "Accept: application/vnd.githubm+json" \
-              -H "Authorization: Bearer ${{ secrets.PAT_ACTION_READ }}" \
+              -H "Authorization: Bearer ${{ secrets.PAT_ACTION_READ || github.token }}" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
-              "https://api.github.com/repos/05nelsonm/kmp-tor-resource/actions/artifacts?page=1&per_page=1&name=${{ env.rv-hash }}-${{ matrix.task-target }}" |
+              "https://api.github.com/repos/${{ github.repository }}/actions/artifacts?page=1&per_page=1&name=${{ env.rv-hash }}-${{ matrix.task-target }}" |
               jq '.artifacts | .[0] | select(.expired==false) | .id'
           )
           echo "artifact-id=$ARTIFACT_ID" >> "$GITHUB_ENV"
@@ -127,13 +143,13 @@ jobs:
       - name: Download Native Compilation Artifacts
         shell: bash
         run: |
-          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "geoip" "${{ needs.compile-task.outputs.id-geoip }}"
-          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "android" "${{ needs.compile-task.outputs.id-android }}"
-          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "ios" "${{ needs.compile-task.outputs.id-ios }}"
-          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "linux-libc" "${{ needs.compile-task.outputs.id-linux-libc }}"
-          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "linux-musl" "${{ needs.compile-task.outputs.id-linux-musl }}"
-          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "macos" "${{ needs.compile-task.outputs.id-macos }}"
-          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "mingw" "${{ needs.compile-task.outputs.id-mingw }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ || github.token }}" "geoip" "${{ needs.compile-task.outputs.id-geoip }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ || github.token }}" "android" "${{ needs.compile-task.outputs.id-android }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ || github.token }}" "ios" "${{ needs.compile-task.outputs.id-ios }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ || github.token }}" "linux-libc" "${{ needs.compile-task.outputs.id-linux-libc }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ || github.token }}" "linux-musl" "${{ needs.compile-task.outputs.id-linux-musl }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ || github.token }}" "macos" "${{ needs.compile-task.outputs.id-macos }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ || github.token }}" "mingw" "${{ needs.compile-task.outputs.id-mingw }}"
 
       - name: Validate Native Compilations
         shell: bash
@@ -241,8 +257,8 @@ jobs:
 
       - name: Download Native Compilations
         run: |
-          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "geoip" "${{ needs.compile-task.outputs.id-geoip }}"
-          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "android" "${{ needs.compile-task.outputs.id-android }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ || github.token }}" "geoip" "${{ needs.compile-task.outputs.id-geoip }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ || github.token }}" "android" "${{ needs.compile-task.outputs.id-android }}"
           cd external/build/package
           rm -rf resource-exec-tor/src/jvmMain/resources
           rm -rf resource-exec-tor-gpl/src/jvmMain/resources
@@ -327,12 +343,12 @@ jobs:
       - name: Download Native Compilation Artifacts
         shell: bash
         run: |
-          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "geoip" "${{ needs.compile-task.outputs.id-geoip }}"
-          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "android" "${{ needs.compile-task.outputs.id-android }}"
-          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "linux-libc" "${{ needs.compile-task.outputs.id-linux-libc }}"
-          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "linux-musl" "${{ needs.compile-task.outputs.id-linux-musl }}"
-          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "macos" "${{ needs.compile-task.outputs.id-macos }}"
-          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ }}" "mingw" "${{ needs.compile-task.outputs.id-mingw }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ || github.token }}" "geoip" "${{ needs.compile-task.outputs.id-geoip }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ || github.token }}" "android" "${{ needs.compile-task.outputs.id-android }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ || github.token }}" "linux-libc" "${{ needs.compile-task.outputs.id-linux-libc }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ || github.token }}" "linux-musl" "${{ needs.compile-task.outputs.id-linux-musl }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ || github.token }}" "macos" "${{ needs.compile-task.outputs.id-macos }}"
+          ./.github/workflows/download_artifact.sh "${{ secrets.PAT_ACTION_READ || github.token }}" "mingw" "${{ needs.compile-task.outputs.id-mingw }}"
 
       - name: Assemble test-linux.jar
         run: >

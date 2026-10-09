@@ -18,3 +18,7 @@
 # TODO: Arg parser
 readonly DRY_RUN="$(if [ "$1" = "--dry-run" ]; then echo "true"; else echo "false"; fi)"
 readonly REBUILD="$(if [ "$1" = "--rebuild" ]; then echo "true"; else echo "false"; fi)"
+# Packages Apple/Windows compilations without applying the detached code signatures from
+# external/codesign. For contributors who cannot produce them (e.g. a tor version bump PR);
+# the resulting hashes are of unsigned binaries and must not be released as-is.
+readonly SKIP_CODESIGN="$(if [ "$1" = "--skip-codesign" ]; then echo "true"; else echo "false"; fi)"

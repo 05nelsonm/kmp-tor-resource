@@ -303,6 +303,7 @@ $(
     Options:
         --dry-run                      Debugging output that does not execute.
         --rebuild                      Causes a complete rebuild of the target(s).
+        --skip-codesign                Packages Apple/Windows compilations without applying detached code signatures.
 
     Example: $0 build:all --dry-run
   "
